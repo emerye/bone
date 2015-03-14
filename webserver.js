@@ -48,5 +48,4 @@ function checkSwitch(x) {
   response.end(); 
 }
 
-
 }).listen(2000);
