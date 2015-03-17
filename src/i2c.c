@@ -19,6 +19,7 @@ void writeResulttoFile(int curTemp)
 	fclose(fd); 
 }
 	
+
 int main( int argc, char **argv )
 {
         int r;
@@ -40,11 +41,9 @@ int main( int argc, char **argv )
 
         r = ioctl(fd, I2C_SLAVE, addr);
         if(r < 0)
-        {
             perror("Selecting i2c device.\n");
-        }
-        
-        //12 bit resolution
+
+        //TMP100 12 bit resolution
         wrdata[0] = 0x60;  
         r = i2c_smbus_write_i2c_block_data(fd, 0x1, 1,  wrdata);  
         if( r < 0) {
@@ -67,10 +66,9 @@ int main( int argc, char **argv )
             else {
 		tempC = (((value[1] >> 4) & 0xFF) * 0.00625) + (int)value[0];  
                 tempF = (int)(tempC * 9.0/5.0 + 32); 
-                printf("Deg C %f  Deg F %d \n", tempC, tempF);
+//                printf("Deg C %f  Deg F %d \n", tempC, tempF);
                 writeResulttoFile(tempF); 
             }               
-         //   printf("0x%02x 0x%02x 0x%02x 0x%02x\n", value[0], value[1], value[2], value[3]);
         }
         close(fd);
         return(tempF);
