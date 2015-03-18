@@ -4,19 +4,24 @@ url = require('url');
 var htmlbreak = "<br />";
 var h1 = "<h1>"; 
 var endh1 = "</h1>";
+var temperatureFile = './temperature.log';
 
 http.createServer(function(request, response) {
   var b = require('bonescript');
   var d = new Date(); 
   var dateString; 
   
-  var img = fs.readFileSync('/root/bone/cooper.jpg'); 
+//  var img = fs.readFileSync('/root/bone/cooper.jpg'); 
+  var img = fs.readFileSync('./cooper.jpg'); 
+  var temperature = fs.readFileSync(temperatureFile); 
+
   imagedata = new Buffer(img).toString('base64'); 
  
   response.writeHead(200, {"Content-Type": "text/html"});
   response.write('<img src="data:image/jpeg;base64,'+imagedata+'">');//send image
   response.write(h1);
   response.write("\n\nLocal time: " + d.toString() + "<br />"); 
+  response.write("Temperature: " + temperature.toString() + "<br />"); 
   response.write(htmlbreak); 
 
   b.pinMode('P8_9', b.INPUT); 
