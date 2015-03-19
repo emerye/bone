@@ -20,8 +20,8 @@ http.createServer(function(request, response) {
   response.writeHead(200, {"Content-Type": "text/html"});
   response.write('<img src="data:image/jpeg;base64,'+imagedata+'">');//send image
   response.write(h1);
-  response.write("\n\nLocal time: " + d.toString() + "<br />"); 
-  response.write("Temperature: " + temperature.toString() + "<br />"); 
+  response.write("Local time: " + d.toString() + "<br />"); 
+  response.write("Temperature: " + temperature.toString() + " degrees.<br />"); 
   response.write(htmlbreak); 
 
   b.pinMode('P8_9', b.INPUT); 
@@ -30,8 +30,6 @@ http.createServer(function(request, response) {
   b.digitalRead('P8_9', check); 
 
   setTimeout(check, 500); 
- // setInterval(toggle, 1000); 
-    
 
 function toggle() {
    if(state == b.LOW) 
