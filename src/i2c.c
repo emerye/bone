@@ -72,7 +72,7 @@ main (int argc, char **argv)
 	}
       else
 	{
-	  tempC = (((value[1] >> 4) & 0xFF) * 0.00625) + (int) value[0];
+	  tempC = (((value[1] >> 4) & 0xFF) * 0.0625) + (int) value[0];
 	  tempF = (int) (tempC * 9.0 / 5.0 + 32);
 //                printf("Deg C %f  Deg F %d \n", tempC, tempF);
 	  writeResulttoFile (tempF);
