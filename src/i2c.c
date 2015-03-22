@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
+//install i2c-tools, libi2c-dev
 const static char *logFile = "./temperature.log";
 
 void
