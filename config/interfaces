@@ -6,20 +6,24 @@ auto lo
 iface lo inet loopback
 
 # The primary network interface
-#allow-hotplug eth0
+# auto wlan0
+allow-hotplug wlan0
+#auto eth0
+
 #iface eth0 inet dhcp
 # Example to keep MAC address between reboots
 #hwaddress ether DE:AD:BE:EF:CA:FE
 
 # The secondary network interface
-#allow-hotplug eth1
+#auto eth1
 #iface eth1 inet dhcp
 
 # WiFi Example
-#auto wlan0
-#iface wlan0 inet dhcp
-#    wpa-ssid "essid"
-#    wpa-psk  "password"
+# auto wlan0
+# iface wlan0 inet static 
+#    wpa-ssid "belkin.3a6"
+#    wpa-psk  "andy_wanda"
+
 
 # Ethernet/RNDIS gadget (g_ether)
 # ... or on host side, usbnet and random hwaddr
@@ -30,10 +34,17 @@ iface usb0 inet static
     network 192.168.7.0
     gateway 192.168.7.1
 
-auto eth0
-iface eth0 inet static 
-        address 192.168.1.10
+iface eth0 inet static
+	address 192.168.1.12
 	netmask 255.255.255.0
-	network 192.168.1.0
+        network 192.168.1.0
+#	gateway 192.168.1.1
+
+iface wlan0 inet static
+	address 192.168.1.11
+	netmask 255.255.255.0
+        network 192.168.1.0
 	gateway 192.168.1.1
+    wpa-ssid "belkin.3a6"
+    wpa-psk  "andy_wanda"
 
