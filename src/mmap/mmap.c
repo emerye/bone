@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <fcntl.h> 
+#include <time.h>
+#include <fcntl.h>
 #include "beaglebone_gpio.h"
 
 #define GPIO48 0x00010000
@@ -13,59 +14,125 @@
 #define RSCMD  GPIO50
 #define CS	   GPIO48
 #define WRITE  GPIO51
-#define RESET  GPIO60 
+#define RESET  GPIO60
 
-int main(int argc, char *argv[]) {
-    volatile void *gpio_addr = NULL;
-    volatile unsigned int *gpio_oe_addr = NULL;
-    volatile unsigned int *gpio_setdataout_addr = NULL;
-    volatile unsigned int *gpio_cleardataout_addr = NULL;
-    unsigned int reg;
-    volatile int setData; 
+#define HIGH 1 
+#define LOW 0
 
-  int fd = open("/dev/mem", O_RDWR);
+typedef enum 
+{
+  LCDCS,
+  LCDRS,
+  LCDWRITE,
+  LCDRESET
+} CTRLLINES;
 
-    printf("Mapping %X - %X (size: %X)\n", GPIO1_START_ADDR, 
-GPIO1_END_ADDR, GPIO1_SIZE);
 
-    gpio_addr = mmap(0, GPIO1_SIZE, PROT_READ | PROT_WRITE, 
-MAP_SHARED, fd, GPIO1_START_ADDR);
+int
+SetPin (void *gpio_addr, CTRLLINES pinNames, int newState)
+{
+  unsigned int *gpio_setdataout_addr = NULL;
+  unsigned int *gpio_cleardataout_addr = NULL;
+  unsigned int outData; 
+  unsigned int gpioBaseAddr; 
 
-    gpio_oe_addr = gpio_addr + GPIO_OE;
-    gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
-    gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
+  gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
+  gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
 
-    if(gpio_addr == MAP_FAILED) {
-        printf("Unable to map GPIO\n");
-        exit(1);
+  switch (pinNames) 
+{
+	case LCDCS:
+	  outData = GPIO48;
+	  break;
+    case LCDRS:
+      outData = GPIO50;
+      break; 
+    case LCDWRITE:
+      outData = GPIO51;
+      break; 
+    case LCDRESET:
+	  outData = GPIO60;  
+      break; 
+}	   
+	if(newState == 1) {
+      *gpio_setdataout_addr = outData;
+     }
+     else {
+       *gpio_cleardataout_addr = outData;
+     }
+return 0; 
+}
+
+
+int
+main (int argc, char *argv[])
+{
+  void *gpio_addr = NULL;
+  volatile unsigned int *gpio_oe_addr = NULL;
+  volatile unsigned int *gpio_setdataout_addr = NULL;
+  volatile unsigned int *gpio_cleardataout_addr = NULL;
+  unsigned int reg;
+  volatile int setData;
+
+  int fd = open ("/dev/mem", O_RDWR);
+
+  printf ("Mapping %X - %X (size: %X)\n", GPIO1_START_ADDR,
+	  GPIO1_END_ADDR, GPIO1_SIZE);
+
+  gpio_addr = mmap (0, GPIO1_SIZE, PROT_READ | PROT_WRITE,
+		    MAP_SHARED, fd, GPIO1_START_ADDR);
+
+  gpio_oe_addr = gpio_addr + GPIO_OE;
+  gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
+  gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
+
+  if (gpio_addr == MAP_FAILED)
+    {
+      printf ("Unable to map GPIO\n");
+      exit (1);
     }
-    printf("GPIO mapped to %p\n", gpio_addr);
-    printf("GPIO OE mapped to %p\n", gpio_oe_addr);
-    printf("GPIO SETDATAOUTADDR mapped to %p\n", 
-gpio_setdataout_addr);
-    printf("GPIO CLEARDATAOUT mapped to %p\n", 
-gpio_cleardataout_addr);
+  printf ("GPIO mapped to %p\n", gpio_addr);
+  printf ("GPIO OE mapped to %p\n", gpio_oe_addr);
+  printf ("GPIO SETDATAOUTADDR mapped to %p\n", gpio_setdataout_addr);
+  printf ("GPIO CLEARDATAOUT mapped to %p\n", gpio_cleardataout_addr);
 
-    reg = *gpio_oe_addr;
-    printf("Current GPIO1 configuration: %X\n", reg);
-     
-    setData = (GPIO48 + GPIO50 + GPIO51 + GPIO60); 
-      
+  reg = *gpio_oe_addr;
+  printf ("Current GPIO1 configuration: %X\n", reg);
+
+  setData = (GPIO48 + GPIO50 + GPIO51 + GPIO60);
+
+  //Configures registers for output
   //Y  reg = reg & (0xFFFFFFFF - (PIN + 1<<18);
-    reg = reg & (0xFFFFFFFF - setData);
-   
-   // *gpio_oe_addr = reg;
-    printf("GPIO1 new config: %X\n", reg);
+  reg = reg & (0xFFFFFFFF - setData);
 
-    printf("Start toggling PIN \n");
-    while(1) {
-        
-        *gpio_setdataout_addr = setData;
-        usleep(1); 
-        *gpio_cleardataout_addr = setData;
-        usleep(1); 
-      }
+  // *gpio_oe_addr = reg;
+  printf ("GPIO1 new config: %X\n", reg);
 
-    close(fd);
-    return 0;
+
+  printf ("Start toggling PIN \n");
+  while (1)
+    {
+ SetPin (gpio_addr, LCDRESET, HIGH);
+ SetPin (gpio_addr, LCDRESET, LOW);
+
+ SetPin (gpio_addr, LCDCS, HIGH);
+ SetPin (gpio_addr, LCDCS, LOW);
+
+ SetPin (gpio_addr, LCDRS, HIGH);
+ SetPin (gpio_addr, LCDRS, LOW);
+
+ SetPin (gpio_addr, LCDWRITE, HIGH);
+ SetPin (gpio_addr, LCDWRITE, LOW);
+/*
+     *gpio_setdataout_addr = setData;
+    usleep (1);
+    *gpio_cleardataout_addr = setData;
+  usleep (1);
+
+*/
+
+    }
+
+  close (fd);
+  return 0;
 }
