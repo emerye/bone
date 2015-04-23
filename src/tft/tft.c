@@ -14,6 +14,8 @@ char tBuffer[30] = { 0 };
 unsigned int xPos;
 void *gpio_addr = NULL;
 int mmapFD;
+char *phrase = "0123"; 
+
 
 int
 main ()
@@ -58,10 +60,13 @@ main ()
 }
   TFT_Fill (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
-
+  
+  
+  TFT_Text32 (phrase, 0, 50, WHITE, BLACK); 
   close(mmapFD);
   return 0;
 }
+
 
 void
 CreateButtons ()
