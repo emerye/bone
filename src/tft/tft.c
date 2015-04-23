@@ -11,10 +11,11 @@
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
+
 unsigned int xPos;
 void *gpio_addr = NULL;
 int mmapFD;
-char *phrase = "0123"; 
+char *phrase = "0123";
 
 
 int
@@ -30,40 +31,45 @@ main ()
     {
       printf ("Error attempting to map GPIO1.\n");
     }
-  SendDisplayReset(); 
+  SendDisplayReset ();
   TFT_Init ();
 
-  TFT_Fill(YELLOW); 
+  TFT_Fill (YELLOW);
   TFT_Set_Address (0, 0, 239, 319);
-  usleep (1000 * 500);
+  usleep (1000 * 100);
 
   TFT_Fill (GREEN);
-  usleep (1000 * 500);
+  usleep (1000 * 100);
 
   TFT_Set_Address (0, 0, 239, 319);
   TFT_Fill (RED);
-  usleep (1000 * 500);
+  usleep (1000 * 100);
 
   Write_Data (BLACK);
   TFT_Set_Address (0, 0, 239, 319);
 
   Write_Data (WHITE);
-  iCount = 32; 
-  for(yLine = 0; yLine < 320; yLine+=16)
-{
-  for (xPos = 0; xPos < 240; xPos += 16)
+  iCount = 32;
+  for (yLine = 0; yLine < 320; yLine += 16)
     {
-      TFT_Char ((char) iCount, xPos, yLine, 16, BLACK, WHITE);
-      iCount++;
-      if (iCount > 127)  iCount = 32; 
+      for (xPos = 0; xPos < 240; xPos += 16)
+	{
+	  TFT_Char ((char) iCount, xPos, yLine, 16, BLACK, WHITE);
+	  iCount++;
+	  if (iCount > 127)
+	    iCount = 32;
+	}
     }
-}
   TFT_Fill (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
-  
-  
-  TFT_Text32 (phrase, 0, 50, WHITE, BLACK); 
-  close(mmapFD);
+
+
+  TFT_Rectangle (0, 0, 100, 300, RED);
+
+  TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
+
+
+  close (mmapFD);
   return 0;
 }
 
@@ -188,11 +194,13 @@ Write_Data (unsigned int Wdata)
   SendCommand (WRITEDATA);
 }
 
+
 void
 DelayMsec (unsigned int delay)
 {
   usleep (1000 * delay);
 }
+
 
 void
 TFT_Set_Address (unsigned int PX1, unsigned int PY1, unsigned int PX2,
@@ -206,6 +214,7 @@ TFT_Set_Address (unsigned int PX1, unsigned int PY1, unsigned int PX2,
   Write_Command (0x0022);
 }
 
+
 void
 TFT_Fill (unsigned int color)
 {
@@ -216,7 +225,7 @@ TFT_Fill (unsigned int color)
   for (i = 0; i <= 319; i++)
     {
       for (j = 0; j <= 239; j++)
-	    SendCommand (WRITEDATA);
+	SendCommand (WRITEDATA);
     }
 }
 
@@ -238,13 +247,12 @@ TFT_Text (char *S, WORD x, WORD y, BYTE DimFont, WORD Fcolor, WORD Bcolor)
 {
 
   BYTE length, k;
-  WORD buffer[24] = {0}; 
+  WORD buffer[24] = { 0 };
   BYTE charcount = 0;
   length = strlen (S);
 
   while (*S != 0)
     {
-
       buffer[charcount] = *S;
       S++;
       charcount++;
@@ -276,7 +284,7 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
 {
 
   BYTE length, k;
-  WORD buffer[10] = { 0 };   
+  WORD buffer[10] = { 0 };
   BYTE charcount = 0;
   BYTE iCount;
 
@@ -297,14 +305,12 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
       Write_Data (Bcolor);
       for (iCount = 0; iCount < 4 * 32; iCount++)
 	{
-	  Write_Command(WRITEDATA); 
+	  Write_Command (WRITEDATA);
 	}
       TFT_32Char (buffer[k], x, y, Fcolor, Bcolor);
       x = x + 36;
     }
 }
-
-
 
 
 void
@@ -336,15 +342,11 @@ TFT_32Char (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 		{
 		  Write_Data (Bcolor);
 		}
-
 	    }
 	  ptrFont++;
 	}
     }
 }
-
-
-
 
 void
 TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
@@ -442,13 +444,10 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
 }
 
 
-
-
 void
 TFT_Box (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
 	 unsigned int color)
 {
-
   unsigned int i, j;
 
   TFT_Set_Address (x1, y1, x2, y2);
@@ -457,9 +456,9 @@ TFT_Box (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
     {
       for (j = x1; j <= x2; j++)
 	{
-	  SendCommand(WRITEDATA);
+	  SendCommand (WRITEDATA);
 	}
-    }
+  }
 }
 
 
@@ -475,37 +474,23 @@ void
 TFT_Line (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
 	  unsigned int color)
 {
-
   int x, y, addx, addy, dx, dy;
   long int P;
   unsigned int i;
 
   dx = abs (x2 - x1);
-
   dy = abs (y2 - y1);
-
   x = x1;
-
   y = y1;
 
-
   if (x1 > x2)
-
     {
-
       addx = -1;
-
     }
-
   else
-
     {
-
       addx = 1;
-
-
       if (y1 > y2)
-
 	{
 
 	  addy = -1;
@@ -583,9 +568,7 @@ TFT_Line (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
 	}
 
       else
-
 	{
-
 	  P = P + (2 * dx) - (2 * dy);
 
 	  x = x + addx;
@@ -593,32 +576,20 @@ TFT_Line (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
 	  y = y + addy;
 
 	}
-
     }
-
 }
-
 
 
 void
 TFT_H_Line (unsigned char x1, unsigned char x2, unsigned char y_pos,
 	    unsigned int color)
 {
-
   unsigned int k;
-
-
   for (k = x1; k <= x2; k++)
-
     {
-
       TFT_Dot (k, y_pos, color);
-
     }
-
 }
-
-
 
 
 void
@@ -631,9 +602,7 @@ TFT_V_Line (unsigned int y1, unsigned int y2, unsigned char x_pos,
   for (k = y1; k <= y2; k++)
 
     {
-
       TFT_Dot (x_pos, k, color);
-
     }
 
 }
