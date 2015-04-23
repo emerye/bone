@@ -266,7 +266,6 @@ TFT_Text (char *S, WORD x, WORD y, BYTE DimFont, WORD Fcolor, WORD Bcolor)
 }
 
 
-
 void
 TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
 {
@@ -293,10 +292,7 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
       Write_Data (Bcolor);
       for (iCount = 0; iCount < 4 * 32; iCount++)
 	{
-
-//                              P2OUT |= TFT_WR;
-//                              P2OUT &= ~TFT_WR;
-//                              P2OUT |= TFT_WR;
+	  Write_Command(WRITEDATA); 
 	}
       TFT_32Char (buffer[k], x, y, Fcolor, Bcolor);
       x = x + 36;
@@ -404,9 +400,7 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
 
 
     case 16:
-
       {
-
 	ptrintFont = (unsigned int *) FONT_16x16;
 	Cptrfont = (C1 - 32) * 16;
 	ptrintFont = ptrintFont + Cptrfont;
@@ -450,7 +444,6 @@ TFT_Box (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
 	 unsigned int color)
 {
 
-
   unsigned int i, j;
 
   TFT_Set_Address (x1, y1, x2, y2);
@@ -459,11 +452,10 @@ TFT_Box (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
     {
       for (j = x1; j <= x2; j++)
 	{
-	  SendCommand (WRITEDATA);
+	  SendCommand(WRITEDATA);
 	}
     }
 }
-
 
 
 void
