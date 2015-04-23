@@ -13,6 +13,7 @@
 #include<sys/ioctl.h>
 #include<stdint.h>
 #include<linux/spi/spidev.h>
+#include"tft.h"
 
 #define SPI_PATH "/dev/spidev1.0"
 //#define SPI_PATH "/dev/spidev2.0"
@@ -24,7 +25,7 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
   transfer.tx_buf = (unsigned long) send;	//the buffer for sending data
   transfer.rx_buf = (unsigned long) receive;	//the buffer for receiving data
   transfer.len = length;	//the length of buffer
-  transfer.speed_hz = 1000000;	//the speed in Hz
+  transfer.speed_hz = 16000000;	//the speed in Hz
   transfer.bits_per_word = 8;	//bits per word
   transfer.delay_usecs = 0;	//delay in us
 
@@ -39,14 +40,12 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
 }
 
 int
-sendWord (int data)
+SendWord (int data)
 //main ()
 {
-  unsigned int fd, i = 0;	//file handle and loop counter
-  unsigned char value, null = 0x00;	//sending only a single char
+  unsigned int fd;		//file handle and loop counter
   uint8_t bits = 8, mode = 3;	//8-bits per word, SPI mode 3
   uint32_t speed = 1000000;	//Speed is 1 MHz
-  int j, msb;
   unsigned char send[20];
   unsigned char receive[20];
 
@@ -88,10 +87,6 @@ sendWord (int data)
     }
 
   // Check that the properties have been set
-  printf ("SPI Mode is: %d\n", mode);
-  printf ("SPI Bits is: %d\n", bits);
-  printf ("SPI Speed is: %d\n", speed);
-  printf ("Counting through all of the LEDs:\n");
 
   data = data & 0xFFFF;
   send[0] = (unsigned char) ((data >> 8) & 0xFF);

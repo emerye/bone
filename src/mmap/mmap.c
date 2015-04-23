@@ -24,10 +24,16 @@ typedef enum
   LCDCS,
   LCDRS,
   LCDWRITE,
-  LCDRESET
+  LCDRESET,
 } CTRLLINES;
 
+typedef enum
+{
+	WRITECMD,
+	WRITEDATA,
+} CMDTYPE;
 
+/*
 int
 SetPin (void *gpio_addr, CTRLLINES pinNames, int newState)
 {
@@ -62,10 +68,42 @@ SetPin (void *gpio_addr, CTRLLINES pinNames, int newState)
      }
 return 0; 
 }
+*/
 
 
 int
-main (int argc, char *argv[])
+SendCommand(void *gpio_addr, CMDTYPE cmdType)
+{
+  unsigned int *gpio_setdataout_addr = NULL;
+  unsigned int *gpio_cleardataout_addr = NULL;
+
+  gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
+  gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
+
+  switch (cmdType) 
+  {
+	case WRITECMD:
+      *gpio_cleardataout_addr = GPIO50;    //Command low
+      *gpio_cleardataout_addr = GPIO51;    //Write low
+      usleep(1); 
+	  break;
+
+    case WRITEDATA:
+      *gpio_setdataout_addr = GPIO50;    //Command high
+      *gpio_cleardataout_addr = GPIO51;    //Write low
+      usleep(1);
+      break; 
+  }	   
+   *gpio_setdataout_addr = GPIO51;     //Write high   
+   usleep(1); 
+return 0; 
+}
+
+
+//Send commands. 
+int
+mmapGPIO(CMDTYPE cmd)  
+//main (int argc, char *argv[])
 {
   void *gpio_addr = NULL;
   volatile unsigned int *gpio_oe_addr = NULL;
@@ -104,25 +142,16 @@ main (int argc, char *argv[])
   //Configures registers for output
   //Y  reg = reg & (0xFFFFFFFF - (PIN + 1<<18);
   reg = reg & (0xFFFFFFFF - setData);
-
-  // *gpio_oe_addr = reg;
+  *gpio_oe_addr = reg;
   printf ("GPIO1 new config: %X\n", reg);
 
 
   printf ("Start toggling PIN \n");
   while (1)
     {
- SetPin (gpio_addr, LCDRESET, HIGH);
- SetPin (gpio_addr, LCDRESET, LOW);
-
- SetPin (gpio_addr, LCDCS, HIGH);
- SetPin (gpio_addr, LCDCS, LOW);
-
- SetPin (gpio_addr, LCDRS, HIGH);
- SetPin (gpio_addr, LCDRS, LOW);
-
- SetPin (gpio_addr, LCDWRITE, HIGH);
- SetPin (gpio_addr, LCDWRITE, LOW);
+ //SetPin (gpio_addr, LCDRESET, HIGH);
+  SendCommand(gpio_addr, WRITECMD);
+  SendCommand(gpio_addr, WRITEDATA); 
 /*
      *gpio_setdataout_addr = setData;
     usleep (1);

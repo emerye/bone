@@ -25,7 +25,7 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
   transfer.tx_buf = (unsigned long) send;	//the buffer for sending data
   transfer.rx_buf = (unsigned long) receive;	//the buffer for receiving data
   transfer.len = length;	//the length of buffer
-  transfer.speed_hz = 1000000;	//the speed in Hz
+  transfer.speed_hz = 8000000;	//the speed in Hz
   transfer.bits_per_word = 8;	//bits per word
   transfer.delay_usecs = 0;	//delay in us
 
@@ -43,9 +43,9 @@ int
 main ()
 {
   unsigned int fd, i = 0;	//file handle and loop counter
-  unsigned char value, null = 0x00;	//sending only a single char
+  unsigned char  null = 0x00;	//sending only a single char
   uint8_t bits = 8, mode = 3;	//8-bits per word, SPI mode 3
-  uint32_t speed = 1000000;	//Speed is 1 MHz
+  uint32_t speed = 12000000;	//Speed is 1 MHz
   int j;
   unsigned char cSendData[50];
   unsigned char cReceiveData[50];
@@ -96,19 +96,15 @@ main ()
   memset (cReceiveData, 0, 50);
   for (j = 0; j < 1000; j++)
     {
-      for (i = 0; i < 6100; i++)
+      for (i = 0; i < 0xFFFF; i++)
 	{
 	  cSendData[0] = (i & 0xFF);
 	  cSendData[1] = (char) ((i >> 8) & 0xFF);
-	  cSendData[2] = 5;
-	  cSendData[3] = 8;
-	  cSendData[4] = 10 & 0xff;
-	  cSendData[5] = 12;
 
 	  // This function can send and receive data, just sending here
 	  if (transfer
 	      (fd, (unsigned char *) &cSendData[0], &cReceiveData[0],
-	       5) == -1)
+	       2) == -1)
 	    {
 	      perror ("Failed to update the display");
 	      return -1;

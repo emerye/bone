@@ -6,6 +6,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include "beaglebone_gpio.h"
+#include "tft.h"
 
 #define GPIO48 0x00010000
 #define GPIO50 0x00040000
@@ -16,22 +17,16 @@
 #define WRITE  GPIO51
 #define RESET  GPIO60
 
-#define HIGH 1 
+#define HIGH 1
 #define LOW 0
 
-typedef enum 
+typedef enum
 {
   LCDCS,
   LCDRS,
   LCDWRITE,
   LCDRESET,
 } CTRLLINES;
-
-typedef enum
-{
-	WRITECMD,
-	WRITEDATA,
-} CMDTYPE;
 
 /*
 int
@@ -70,9 +65,44 @@ return 0;
 }
 */
 
+int
+MapGPIO ()
+{
+  //void *gpio_addr = NULL;
+  volatile unsigned int *gpio_oe_addr = NULL;
+  unsigned int reg;
+  volatile int setData;
+
+  mmapFD = open ("/dev/mem", O_RDWR);
+  if (mmapFD < 0)
+    {
+      printf ("Error opening map file.\n");
+    }
+  gpio_addr = mmap (0, GPIO1_SIZE, PROT_READ | PROT_WRITE,
+		    MAP_SHARED, mmapFD, GPIO1_START_ADDR);
+
+  gpio_oe_addr = gpio_addr + GPIO_OE;
+
+  if (gpio_addr == MAP_FAILED)
+    {
+      printf ("Unable to map GPIO\n");
+      exit (1);
+    }
+
+  reg = *gpio_oe_addr;
+
+  setData = (GPIO48 + GPIO50 + GPIO51 + GPIO60);
+
+  //Configures registers for output
+  //Y  reg = reg & (0xFFFFFFFF - (PIN + 1<<18);
+  reg = reg & (0xFFFFFFFF - setData);
+  *gpio_oe_addr = reg;
+  return 0;
+}
+
 
 int
-SendCommand(void *gpio_addr, CMDTYPE cmdType)
+SendCommand (CMDTYPE cmdType)
 {
   unsigned int *gpio_setdataout_addr = NULL;
   unsigned int *gpio_cleardataout_addr = NULL;
@@ -80,26 +110,41 @@ SendCommand(void *gpio_addr, CMDTYPE cmdType)
   gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
   gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
 
-  switch (cmdType) 
-  {
-	case WRITECMD:
-      *gpio_cleardataout_addr = GPIO50;    //Command low
-      *gpio_cleardataout_addr = GPIO51;    //Write low
-      usleep(1); 
-	  break;
+  switch (cmdType)
+    {
+    case WRITECMD:
+      *gpio_cleardataout_addr = GPIO50;	//Command low
+      *gpio_cleardataout_addr = GPIO51;	//Write low
+      break;
 
     case WRITEDATA:
-      *gpio_setdataout_addr = GPIO50;    //Command high
-      *gpio_cleardataout_addr = GPIO51;    //Write low
-      usleep(1);
-      break; 
-  }	   
-   *gpio_setdataout_addr = GPIO51;     //Write high   
-   usleep(1); 
-return 0; 
+      *gpio_setdataout_addr = GPIO50;	//Command high
+      *gpio_cleardataout_addr = GPIO51;	//Write low
+      break;
+    }
+  *gpio_setdataout_addr = GPIO51;	//Write high   
+  return 0;
 }
 
 
+void
+SendDisplayReset()
+{
+  unsigned int *gpio_setdataout_addr = NULL;
+  unsigned int *gpio_cleardataout_addr = NULL;
+
+  gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
+  gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
+
+  *gpio_cleardataout_addr = GPIO60;	//Set line low
+  usleep(1000 * 25);  
+  *gpio_setdataout_addr = GPIO60;	//Set line high and remain. 
+}
+
+
+
+
+/*
 //Send commands. 
 int
 mmapGPIO(CMDTYPE cmd)  
@@ -114,9 +159,6 @@ mmapGPIO(CMDTYPE cmd)
 
   int fd = open ("/dev/mem", O_RDWR);
 
-  printf ("Mapping %X - %X (size: %X)\n", GPIO1_START_ADDR,
-	  GPIO1_END_ADDR, GPIO1_SIZE);
-
   gpio_addr = mmap (0, GPIO1_SIZE, PROT_READ | PROT_WRITE,
 		    MAP_SHARED, fd, GPIO1_START_ADDR);
 
@@ -129,13 +171,8 @@ mmapGPIO(CMDTYPE cmd)
       printf ("Unable to map GPIO\n");
       exit (1);
     }
-  printf ("GPIO mapped to %p\n", gpio_addr);
-  printf ("GPIO OE mapped to %p\n", gpio_oe_addr);
-  printf ("GPIO SETDATAOUTADDR mapped to %p\n", gpio_setdataout_addr);
-  printf ("GPIO CLEARDATAOUT mapped to %p\n", gpio_cleardataout_addr);
 
   reg = *gpio_oe_addr;
-  printf ("Current GPIO1 configuration: %X\n", reg);
 
   setData = (GPIO48 + GPIO50 + GPIO51 + GPIO60);
 
@@ -143,25 +180,8 @@ mmapGPIO(CMDTYPE cmd)
   //Y  reg = reg & (0xFFFFFFFF - (PIN + 1<<18);
   reg = reg & (0xFFFFFFFF - setData);
   *gpio_oe_addr = reg;
-  printf ("GPIO1 new config: %X\n", reg);
-
-
-  printf ("Start toggling PIN \n");
-  while (1)
-    {
- //SetPin (gpio_addr, LCDRESET, HIGH);
-  SendCommand(gpio_addr, WRITECMD);
-  SendCommand(gpio_addr, WRITEDATA); 
-/*
-     *gpio_setdataout_addr = setData;
-    usleep (1);
-    *gpio_cleardataout_addr = setData;
-  usleep (1);
-
-*/
-
-    }
-
+  SendCommand(cmd);
   close (fd);
   return 0;
 }
+*/

@@ -1,9 +1,8 @@
 CC=gcc
-CFLAGS=-Wall -g  
-all: mmap
+CFLAGS=-Wall -g
 
 mmap:  mmap.o
-	$(CC) $(CFLAGS) mmap.o -o mmap 
+	$(CC) $(CFLAGS) mmap.o -o mmap
 
 clean:
-	 rm -f mmap.o mmap 
+	 rm -f mmap.o mmap
