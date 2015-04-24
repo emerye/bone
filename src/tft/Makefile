@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS = -Wall -g
-OBJECTS = tft.o mmapgpio.o spi595.o 
-FILES = tft.c spi595.c mmapgpio.c
+OBJECTS = tft.o mmapgpio.o spi595.o ssd1963.o 
+FILES = tft.c spi595.c mmapgpio.c ssd1963.c
 
 tft: $(OBJECTS) 
 	$(CC) $(CFLAGS) -o tft $(FILES) 
@@ -15,5 +15,8 @@ mmapgpio.o: mmapgpio.c beaglebone_gpio.h tft.h
 tft.o: tft.c tft.h 
 	$(CC) $(CFLAGS) -o tft.o -c tft.c 
 
+ssd1963.o: ssd1963.c tft.h 
+	$(CC) $(CFLAGS) -o ssd1963.o -c ssd1963.c 
+
 clean:
-	 rm -f tft tft.o mmapgpio.o spi595.o  
+	 rm -f tft tft.o mmapgpio.o spi595.o ssd1963.o  

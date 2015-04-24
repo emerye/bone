@@ -14,11 +14,10 @@ so we connect the pins directly — this is why we used 16 bit mode, 8 bit mode 
 Create by Robi.Wang  On 9-June-2012 
 Version 2.2  www.elecfreaks.com
 ***************************************************************************************************************************************************************/
-/* Display IO */ 
-#define LCD_RS   38         
-#define LCD_WR   39     
-#define LCD_CS   40       
-#define LCD_REST 41
+
+#include <stdio.h>
+#include <unistd.h>
+#include "tft.h"
 
 /* Touch IO  */
 #define DCLK     6
@@ -47,188 +46,109 @@ struct pix_
 
 struct pix_ Tp_pix;	
 
-void spistar()           //SPI Start
-{
-  digitalWrite(CS,HIGH);
-  digitalWrite(DCLK,HIGH);
-  digitalWrite(DIN,HIGH);
-  digitalWrite(DCLK,HIGH);
- 
-}
-//**********************************************************
-void WriteCharTo7843(unsigned char num)          //SPI Write Data
-{
-  unsigned char count=0;
-  unsigned char temp;
-  unsigned nop;
-  temp=num;
-  digitalWrite(DCLK,LOW);
-  for(count=0;count<8;count++)
-  {
-    if(temp&0x80)
-      digitalWrite(DIN,HIGH);
-    else
-      digitalWrite(DIN,LOW);
- 
-    temp=temp<<1; 
- 
-    digitalWrite(DCLK,LOW);                
-    nop++;
-    nop++;
-    digitalWrite(DCLK,HIGH);
-    nop++;
-    nop++;
-  }
-}
- 
-//**********************************************************
-unsigned int ReadFromCharFrom7843()             //SPI Read Data
-{ 
-  unsigned nop;
-  unsigned char count=0;
-  unsigned int Num=0;
-  for(count=0;count<12;count++)
-  {
-    Num<<=1;
-    digitalWrite(DCLK,HIGH);//DCLK=1; _nop_();_nop_();_nop_();                
-    nop++;
-    digitalWrite(DCLK,LOW);//DCLK=0; _nop_();_nop_();_nop_();
-    nop++;
-    if(digitalRead(DOUT)) Num++;
-  }
-  return(Num);
-}
- 
-//void AD7843(void) 
-struct pix_ AD7843()  
-{
-  struct pix_ pix;
-  digitalWrite(CS,LOW);                    
-  WriteCharTo7843(0x90); 
-  digitalWrite(DCLK,HIGH);
-  digitalWrite(DCLK,LOW); 
-  pix.y=ReadFromCharFrom7843();
-  WriteCharTo7843(0xD0);   
-  digitalWrite(DCLK,HIGH);
-  digitalWrite(DCLK,LOW);
-  pix.x=ReadFromCharFrom7843();
-  digitalWrite(CS,HIGH);
-  return pix;
-}
  
 void Lcd_Writ_Bus(char VH,char VL)
 {
-  PORTA = VH;
-  PORTC = VL;
-  digitalWrite(LCD_WR,LOW);
-  digitalWrite(LCD_WR,HIGH);
-}
- 
-void Lcd_Write_Com(char VH,char VL)  
-{   
-  digitalWrite(LCD_RS,LOW);
-  Lcd_Writ_Bus(VH,VL);
+  SendWord((int)((VH<<8)&0xff00) + (int)VL);
+  SendCommand(WRITEDATA); 
 }
  
 void Lcd_Write_Data(char VH,char VL)
 {
-  digitalWrite(LCD_RS,HIGH);
-  Lcd_Writ_Bus(VH,VL);
+  Write_Data((VH>>8) + VL);
 }
 
 void LCD_WR_Data(int da)
 {
-    digitalWrite(LCD_RS, 1);
-    Lcd_Writ_Bus(da>>8,da);
+    Write_Data((da>>8) + (da & 0xff));
 }	
  
 void LCD_WR_REG(int da)	 
 {	
-    digitalWrite(LCD_RS,0);
-    Lcd_Writ_Bus(da>>8,da);
+    Write_Command((da>>8) + (da & 0xff));
 }
 
 void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2)
 {
-    LCD_WR_REG(0x002A);	
-    LCD_WR_Data(x1>>8);	    
-    LCD_WR_Data(x1&0x00ff);
-    LCD_WR_Data(x2>>8);	    
-    LCD_WR_Data(x2&0x00ff);
-    LCD_WR_REG(0x002b);	
-    LCD_WR_Data(y1>>8);	    
-    LCD_WR_Data(y1&0x00ff);
-    LCD_WR_Data(y2>>8);	    
-    LCD_WR_Data(y2&0x00ff);
-    LCD_WR_REG(0x002c);							 
+    Write_Command(0x002A);		//Set Column Address	
+
+    Write_Data(x1>>8);	    
+    Write_Data(x1&0x00ff);
+    Write_Data(x2>>8);	    
+    Write_Data(x2&0x00ff);
+
+    Write_Command(0x002b);		//Set page address
+
+    Write_Data(y1>>8);	    
+    Write_Data(y1&0x00ff);
+    Write_Data(y2>>8);	    
+    Write_Data(y2&0x00ff);
+
+    Write_Command(0x002c);		//Write Memory Start							 
 }
  
 void Lcd_Init(void)
 {
-       digitalWrite(LCD_REST,HIGH);
-       delay(5); 
-       digitalWrite(LCD_REST,LOW);
-       delay(15);
-       digitalWrite(LCD_REST,HIGH);
-       delay(15);
-       digitalWrite(LCD_CS ,HIGH);
-       digitalWrite(LCD_WR ,HIGH);
-       digitalWrite(LCD_CS, LOW);
- 
-        LCD_WR_REG(0x00E2);	//PLL multiplier, set PLL clock to 120M
-	LCD_WR_Data(0x002d);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
-	LCD_WR_Data(0x0002);
-	LCD_WR_Data(0x0004);
-	LCD_WR_REG(0x00E0);  // PLL enable
-	LCD_WR_Data(0x0001);
-	delay(1);
-	LCD_WR_REG(0x00E0);
-	LCD_WR_Data(0x0003);
-	delay(5);
-	LCD_WR_REG(0x0001);  // software reset
-	delay(5);
-	LCD_WR_REG(0x00E6);	//PLL setting for PCLK, depends on resolution
-	LCD_WR_Data(0x0000);
-	LCD_WR_Data(0x00ff);
-	LCD_WR_Data(0x00be);
+   SendDisplayReset();  
+    Write_Command(0x00E2);	//PLL multiplier, set PLL clock to 120M
+	Write_Data(0x002d);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
+	Write_Data(0x0002);
+	Write_Data(0x0004);
 
-	LCD_WR_REG(0x00B0);	//LCD SPECIFICATION
-	LCD_WR_Data(0x0020);
-	LCD_WR_Data(0x0000);
-	LCD_WR_Data((HDP>>8)&0X00FF);  //Set HDP
-	LCD_WR_Data(HDP&0X00FF);
-        LCD_WR_Data((VDP>>8)&0X00FF);  //Set VDP
-	LCD_WR_Data(VDP&0X00FF);
-        LCD_WR_Data(0x0000);
-	delay(5);
-	LCD_WR_REG(0x00B4);	//HSYNC
-	LCD_WR_Data((HT>>8)&0X00FF);  //Set HT
-	LCD_WR_Data(HT&0X00FF);
-	LCD_WR_Data((HPS>>8)&0X00FF);  //Set HPS
-	LCD_WR_Data(HPS&0X00FF);
-	LCD_WR_Data(HPW);			   //Set HPW
-	LCD_WR_Data((LPS>>8)&0X00FF);  //SetLPS
-	LCD_WR_Data(LPS&0X00FF);
-	LCD_WR_Data(0x0000);
+	Write_Command(0x00E0);  // PLL enable
+	Write_Data(0x0001);
+	usleep(1000);
 
-	LCD_WR_REG(0x00B6);	//VSYNC
-	LCD_WR_Data((VT>>8)&0X00FF);   //Set VT
-	LCD_WR_Data(VT&0X00FF);
-	LCD_WR_Data((VPS>>8)&0X00FF);  //Set VPS
-	LCD_WR_Data(VPS&0X00FF);
-	LCD_WR_Data(VPW);			   //Set VPW
-	LCD_WR_Data((FPS>>8)&0X00FF);  //Set FPS
-	LCD_WR_Data(FPS&0X00FF);
+	Write_Command(0x00E0);  //Use PLL as system clock. Enable PLL
+	Write_Data(0x0003);
+	usleep(1000*5);
 
-	LCD_WR_REG(0x0036); //rotation
-	LCD_WR_Data(0x0000);
+	Write_Command(0x0001);  // software reset
+	usleep(5000);
+	Write_Command(0x00E6);	//PLL setting for PCLK, depends on resolution
+	Write_Data(0x0000);
+	Write_Data(0x00ff);
+	Write_Data(0x00be);
 
-	LCD_WR_REG(0x00F0); //pixel data interface
-	LCD_WR_Data(0x0003);
+	Write_Command(0x00B0);	//LCD SPECIFICATION
+	Write_Data(0x0020);
+	Write_Data(0x0000);
+	Write_Data((HDP>>8)&0X00FF);  //Set HDP
+	Write_Data(HDP&0X00FF);
+    Write_Data((VDP>>8)&0X00FF);  //Set VDP
+	Write_Data(VDP&0X00FF);
+    Write_Data(0x0000);
+	usleep(5*1000);
 
-	delay(5);
-	LCD_WR_REG(0x0029); //display on
+	Write_Command(0x00B4);	//HSYNC
+	Write_Data((HT>>8)&0X00FF);  //Set HT
+	Write_Data(HT&0X00FF);
+	Write_Data((HPS>>8)&0X00FF);  //Set HPS
+	Write_Data(HPS&0X00FF);
+	Write_Data(HPW);			   //Set HPW
+	Write_Data((LPS>>8)&0X00FF);  //SetLPS
+	Write_Data(LPS&0X00FF);
+	Write_Data(0x0000);
 
+	Write_Command(0x00B6);	//VSYNC
+	Write_Data((VT>>8)&0X00FF);   //Set VT
+	Write_Data(VT&0X00FF);
+	Write_Data((VPS>>8)&0X00FF);  //Set VPS
+	Write_Data(VPS&0X00FF);
+	Write_Data(VPW);			   //Set VPW
+	Write_Data((FPS>>8)&0X00FF);  //Set FPS
+	Write_Data(FPS&0X00FF);
+
+	Write_Command(0x0036); //rotation
+	Write_Data(0x0000);
+
+	Write_Command(0x00F0); //pixel data interface
+	Write_Data(0x0003);
+	usleep(5000);
+
+	Write_Command(0x0029); //display on
+
+/*
 	LCD_WR_REG(0x00BE); //set PWM for B/L
 	LCD_WR_Data(0x0006);
 	LCD_WR_Data(0x00f0);
@@ -236,19 +156,21 @@ void Lcd_Init(void)
 	LCD_WR_Data(0x00f0);
 	LCD_WR_Data(0x0000);
 	LCD_WR_Data(0x0000);
+*/
 
-	LCD_WR_REG(0x00d0); 
-	LCD_WR_Data(0x000d);
+	Write_Command(0x00d0); 
+	Write_Data(0x000d);
 
         //----------LCD RESET---GPIO0-------------------//
-	LCD_WR_REG(0x00B8);
-	LCD_WR_Data(0x0000);    //GPIO3=input, GPIO[2:0]=output
-	LCD_WR_Data(0x0001);    //GPIO0 normal
+	Write_Command(0x00B8);
+	Write_Data(0x0000);    //GPIO3=input, GPIO[2:0]=output
+	Write_Data(0x0001);    //GPIO0 normal
 
-	LCD_WR_REG(0x00BA);
-	LCD_WR_Data(0x0000);  
+	Write_Command(0x00BA);
+	Write_Data(0x0000);  
 }
  
+
 void Pant(char VH,char VL)
 {
   int i,j;
@@ -276,58 +198,13 @@ unsigned char Makpix(struct pix_ pix1,struct pix_ pix2) //Filtering
     return l;
 }
 
-unsigned char Getpix() 
-{
-	struct pix_ pix1;
-	struct pix_ pix2; 
-	pix1=AD7843();
-	pix2=AD7843();
- 	return	Makpix(pix1,pix2);	
-}
 
 void setup()
 {
-  for(int p=22;p<42;p++)
-  {
-    pinMode(p,OUTPUT);
-  }
-  for(int p=2; p<7;p++)
-      pinMode(p,OUTPUT);
-  pinMode(DOUT,INPUT);
-  pinMode(IRQ,INPUT);
-  
+  int p; 
+ 
   Lcd_Init();     
   Pant(0x00, 0x00);  
-  delay(500);
-  spistar();  
+  usleep(500 * 1000);
 }
  
-void loop(){
-                unsigned int lx,ly;
-                int pacy=random(0, 7);
-		while(digitalRead(IRQ)==0)
-		{
-			if(Getpix()==1)
-			{
-        
-                                lx=HDP-((Tp_pix.x-380)*10/69);
-    				if(lx>HDP) lx=HDP;
-    				ly=VDP-((Tp_pix.y-600)*10/111);
-                                    if(ly>VDP) ly=VDP;
-    				Address_set(lx,ly,lx+2,ly+2);
-                                switch(pacy)
-                                {
-                                  case 0: for(int i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x00);  break;   //Red
-                                  case 1: for(int i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xE0);  break;   //Yellow
-                                  case 2: for(int i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xFF);  break;   //White 
-                                  case 3: for(int i=0; i<7; i++)  Lcd_Write_Data(0x05,0x1F);  break;   //Blue
-                                  case 4: for(int i=0; i<7; i++)  Lcd_Write_Data(0x00,0x1F);  break;   //Blue-2
-                                  case 5: for(int i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x1F);  break;   //Magenta
-                                  case 6: for(int i=0; i<7; i++)  Lcd_Write_Data(0x07,0xE0);  break;   //Green
-                                  case 7: for(int i=0; i<7; i++)  Lcd_Write_Data(0x7F,0xFF);  break;   //Cyan
-                                  defoult:for(int i=0; i<7; i++)  Lcd_Write_Data(0x00,0x00);  break;   //Black
-                                }
-	
-		   	}
-		}	
-}

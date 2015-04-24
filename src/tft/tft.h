@@ -50,7 +50,7 @@ extern void TFT_Text32(char * S, WORD x, WORD y, WORD Fcolor, WORD Bcolor);
 extern void TestLargeFont(void);
 
 //**************************************************
-int SendWord(int data); 
+extern int SendWord(int data); 
 extern int SendCommand(CMDTYPE); 
 extern int MapGPIO();
 extern void SendDisplayReset(); 

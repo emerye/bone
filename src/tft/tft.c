@@ -8,6 +8,7 @@
 #include "AD7843.h"
 #include "tft.h"
 
+
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
@@ -64,10 +65,9 @@ main ()
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
 
 
-  TFT_Rectangle (0, 0, 100, 300, RED);
+  TFT_Rectangle (0, 100, 100 , 300, RED);
 
   TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
-
 
   close (mmapFD);
   return 0;
@@ -131,50 +131,50 @@ WriteCommandData (unsigned int Wcommand, unsigned int Wdata)
 void
 TFT_Init (void)
 {
-  WriteCommandData (0x0000, 0x0001);
-  WriteCommandData (0x0003, 0xA8A4);
-  WriteCommandData (0x000C, 0x0000);
-  WriteCommandData (0x000D, 0x800C);
-  WriteCommandData (0x000E, 0x2B00);
-  WriteCommandData (0x001E, 0x00B7);
-  WriteCommandData (0x0001, 0x2B3F);
-  WriteCommandData (0x0002, 0x0600);
-  WriteCommandData (0x0010, 0x0000);
+  WriteCommandData(0x0000, 0x0001);
+  WriteCommandData(0x0003, 0xA8A4);
+  WriteCommandData(0x000C, 0x0000);
+  WriteCommandData(0x000D, 0x800C);
+  WriteCommandData(0x000E, 0x2B00);
+  WriteCommandData(0x001E, 0x00B7);
+  WriteCommandData(0x0001, 0x2B3F);
+  WriteCommandData(0x0002, 0x0600);
+  WriteCommandData(0x0010, 0x0000);
   //Vertical
-  WriteCommandData (0x0011, 0x6070);
+  WriteCommandData(0x0011, 0x6070);
   //Horz
 //  WriteCommandData (0x0011, 0x6078);
-  WriteCommandData (0x0005, 0x0000);
-  WriteCommandData (0x0006, 0x0000);
-  WriteCommandData (0x0016, 0xEF1C);
-  WriteCommandData (0x0017, 0x0003);
-  WriteCommandData (0x0007, 0x0233);
-  WriteCommandData (0x000B, 0x0000);
-  WriteCommandData (0x000F, 0x0000);
-  WriteCommandData (0x0041, 0x0000);
-  WriteCommandData (0x0042, 0x0000);
-  WriteCommandData (0x0048, 0x0000);
-  WriteCommandData (0x0049, 0x013F);
-  WriteCommandData (0x004A, 0x0000);
-  WriteCommandData (0x004B, 0x0000);
-  WriteCommandData (0x0044, 0xEF95);
-  WriteCommandData (0x0045, 0x0000);
-  WriteCommandData (0x0046, 0x013F);
-  WriteCommandData (0x0030, 0x0707);
-  WriteCommandData (0x0031, 0x0204);
-  WriteCommandData (0x0032, 0x0204);
-  WriteCommandData (0x0033, 0x0502);
-  WriteCommandData (0x0034, 0x0507);
-  WriteCommandData (0x0035, 0x0204);
-  WriteCommandData (0x0036, 0x0204);
-  WriteCommandData (0x0037, 0x0502);
-  WriteCommandData (0x003A, 0x0302);
-  WriteCommandData (0x003B, 0x0302);
-  WriteCommandData (0x0023, 0x0000);
-  WriteCommandData (0x0024, 0x0000);
-  WriteCommandData (0x0025, 0x8000);
-  WriteCommandData (0x004f, 0x0000);
-  WriteCommandData (0x004e, 0x0000);
+  WriteCommandData(0x0005, 0x0000);
+  WriteCommandData(0x0006, 0x0000);
+  WriteCommandData(0x0016, 0xEF1C);
+  WriteCommandData(0x0017, 0x0003);
+  WriteCommandData(0x0007, 0x0233);
+  WriteCommandData(0x000B, 0x0000);
+  WriteCommandData(0x000F, 0x0000);
+  WriteCommandData(0x0041, 0x0000);
+  WriteCommandData(0x0042, 0x0000);
+  WriteCommandData(0x0048, 0x0000);
+  WriteCommandData(0x0049, 0x013F);
+  WriteCommandData(0x004A, 0x0000);
+  WriteCommandData(0x004B, 0x0000);
+  WriteCommandData(0x0044, 0xEF95);
+  WriteCommandData(0x0045, 0x0000);
+  WriteCommandData(0x0046, 0x013F);
+  WriteCommandData(0x0030, 0x0707);
+  WriteCommandData(0x0031, 0x0204);
+  WriteCommandData(0x0032, 0x0204);
+  WriteCommandData(0x0033, 0x0502);
+  WriteCommandData(0x0034, 0x0507);
+  WriteCommandData(0x0035, 0x0204);
+  WriteCommandData(0x0036, 0x0204);
+  WriteCommandData(0x0037, 0x0502);
+  WriteCommandData(0x003A, 0x0302);
+  WriteCommandData(0x003B, 0x0302);
+  WriteCommandData(0x0023, 0x0000);
+  WriteCommandData(0x0024, 0x0000);
+  WriteCommandData(0x0025, 0x8000);
+  WriteCommandData(0x004f, 0x0000);
+  WriteCommandData(0x004e, 0x0000);
   Write_Command (0x0022);
 }
 
@@ -615,13 +615,9 @@ TFT_Rectangle (unsigned int x1, unsigned int y1, unsigned int x2,
 {
 
   TFT_H_Line (x1, x2, y1, color);
-
   TFT_H_Line (x1, x2, y2, color);
-
   TFT_V_Line (y1, y2, x1, color);
-
   TFT_V_Line (y1, y2, x2, color);
-
 }
 
 
