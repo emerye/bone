@@ -18,6 +18,15 @@ void *gpio_addr = NULL;
 int mmapFD;
 char *phrase = "0123";
 
+void ssd1963Init()
+{
+  SendDisplayReset(); 
+  Lcd_Init(); 
+  
+  sleep(10000);
+} 
+  
+   
 
 int
 main ()
@@ -30,10 +39,14 @@ main ()
   retval = MapGPIO ();
   if (retval < 0)
     {
-      printf ("Error attempting to map GPIO1.\n");
+      printf("Error attempting to map GPIO1.\n");
     }
-  SendDisplayReset ();
-  TFT_Init ();
+
+ ssd1963Init(); 
+
+  SendDisplayReset();
+
+  TFT_Init();
 
   TFT_Fill (YELLOW);
   TFT_Set_Address (0, 0, 239, 319);
