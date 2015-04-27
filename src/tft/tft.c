@@ -21,21 +21,21 @@ char *phrase = "0123";
 void ssd1963Init()
 {
   int i;
+  int x = 400; 
+  int y = 200; 
 
-  SendDisplayReset(); 
-  Lcd_Init(); 
+  Init_ssd1963(); 
 
-//  SendWord(BLACK); 
-//  Address_set(0, 0, 271, 471); 
-//  for(i=0; i< 271*471; i++)
-//   SendCommand(WRITEDATA); 
+  Address_set(0, 0, 479, 271); 
+  Write_Data(BLACK); 
+  for(i=0; i< 272*480; i++)
+   SendCommand(WRITEDATA); 
 
-  Address_set(0,0,300,100);   
-  SendWord(RED);  
-  for(i=0; i< 250 * 100; i++)
-  SendCommand(WRITEDATA);  
+  Address_set(0,0,x,y);   
+  Write_Data(GREEN);  
+  for(i=0; i< x * y; i++)
+    SendCommand(WRITEDATA);  
 } 
-  
 
 int
 main ()

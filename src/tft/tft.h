@@ -14,6 +14,9 @@
 #define CYAN   0x07FF
 #define MAGENTA 0xF81F
 
+#define XRES  489
+#define YRES  272
+
 typedef enum
 {
    WRITECMD,
@@ -56,7 +59,7 @@ extern int MapGPIO();
 extern void SendDisplayReset(); 
 extern void userMode();
 
-extern void Lcd_Init();
+extern void Init_ssd1963();
 extern void Address_set(unsigned, unsigned, unsigned, unsigned); 
 
 

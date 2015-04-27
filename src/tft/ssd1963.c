@@ -110,7 +110,8 @@ void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2
     Write_Command(0x002c);		//Write Memory Start
 }
  
-void Lcd_Init(void)
+//Init sequence for ssd1963 and eBay 4.3 inch TFT.  
+void Init_ssd1963(void)
 {
    SendDisplayReset();  
     Write_Command(0x00E2);	//PLL multiplier, set PLL clock to 120M
@@ -120,7 +121,7 @@ void Lcd_Init(void)
 
 	Write_Command(0x00E0);  // PLL enable
 	Write_Data(0x0001);
-	usleep(1000*5);       //Wait 5usec
+	usleep(1000*5);       //Wait 5 usec
 
 	Write_Command(0x00E0);  //Use PLL as system clock. Enable PLL
 	Write_Data(0x0003);
@@ -133,8 +134,12 @@ void Lcd_Init(void)
 	Write_Data(0x00ff);
 	Write_Data(0x00be);
 
+	usleep(5000);
+	Write_Command(0x00F0); //pixel data interface
+	Write_Data(0x0003);    //16 bit packed  
+
 	Write_Command(0x00B0);	//LCD SPECIFICATION
-	Write_Data(0x0000);     //POR defaults 18 bit
+	Write_Data(0x0020);     //24 bit
 	Write_Data(0x0000);
 	Write_Data((HDP>>8)&0X00FF);  //Set HDP
 	Write_Data(HDP&0X00FF);
@@ -174,12 +179,8 @@ void Lcd_Init(void)
 	LCD_WR_Data(0x0000);
 	LCD_WR_Data(0x0000);
 */
-	Write_Command(0x0036); //rotation
-	Write_Data(0x0000);
 
-	Write_Command(0x00F0); //pixel data interface
-	Write_Data(0x0003);
-	usleep(5000);
+
 /*
 	Write_Command(0x00d0); 
 	Write_Data(0x000d);
@@ -227,7 +228,7 @@ void setup()
 {
   int p; 
  
-  Lcd_Init();     
+  Init_ssd1963();     
   Pant(0x00, 0x00);  
   usleep(500 * 1000);
 }
