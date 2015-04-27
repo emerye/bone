@@ -32,6 +32,7 @@ unsigned int  HPS=43;
 unsigned int  LPS=8;
 unsigned char HPW=10;
 
+
 unsigned int  VDP=271;
 unsigned int  VT=288;
 unsigned int  VPS=12;
@@ -45,6 +46,28 @@ struct pix_
 };
 
 struct pix_ Tp_pix;	
+
+void userMode() {
+    int i = 0, pacy = 1; 
+    int ly,lx; 
+                    lx=HDP-((Tp_pix.x-380)*10/69);
+				if(lx>HDP) lx=HDP;
+    				ly=VDP-((Tp_pix.y-600)*10/111);
+                                    if(ly>VDP) ly=VDP;
+    				Address_set(lx,ly,lx+2,ly+2);
+                                switch(pacy)
+                                {
+                                  case 0: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x00);  break;   //Red
+                                  case 1: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xE0);  break;   //Yellow
+                                  case 2: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xFF);  break;   //White 
+                                  case 3: for(i=0; i<7; i++)  Lcd_Write_Data(0x05,0x1F);  break;   //Blue
+                                  case 4: for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x1F);  break;   //Blue-2
+                                  case 5: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x1F);  break;   //Magenta
+                                  case 6: for(i=0; i<7; i++)  Lcd_Write_Data(0x07,0xE0);  break;   //Green
+                                  case 7: for(i=0; i<7; i++)  Lcd_Write_Data(0x7F,0xFF);  break;   //Cyan
+                                  defoult:for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x00);  break;   //Black
+                                }
+}
 
  
 void Lcd_Writ_Bus(char VH,char VL)
@@ -73,9 +96,9 @@ void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2
     Write_Command(0x002A);		//Set Column Address	
 
     Write_Data(x1>>8);	    
-    Write_Data(x1&0x00ff);
-    Write_Data(x2>>8);	    
-    Write_Data(x2&0x00ff);
+    Write_Data(x1&0xff);
+    Write_Data(x2>>8);
+    Write_Data(x2&0xff);
 
     Write_Command(0x002b);		//Set page address
 
@@ -84,7 +107,7 @@ void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2
     Write_Data(y2>>8);	    
     Write_Data(y2&0x00ff);
 
-    Write_Command(0x002c);		//Write Memory Start							 
+    Write_Command(0x002c);		//Write Memory Start
 }
  
 void Lcd_Init(void)
@@ -93,11 +116,11 @@ void Lcd_Init(void)
     Write_Command(0x00E2);	//PLL multiplier, set PLL clock to 120M
 	Write_Data(0x002d);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
 	Write_Data(0x0002);
-	Write_Data(0x0004);
+	Write_Data(0x0054);
 
 	Write_Command(0x00E0);  // PLL enable
 	Write_Data(0x0001);
-	usleep(1000);
+	usleep(1000*5);       //Wait 5usec
 
 	Write_Command(0x00E0);  //Use PLL as system clock. Enable PLL
 	Write_Data(0x0003);
@@ -111,7 +134,7 @@ void Lcd_Init(void)
 	Write_Data(0x00be);
 
 	Write_Command(0x00B0);	//LCD SPECIFICATION
-	Write_Data(0x0020);
+	Write_Data(0x0000);     //POR defaults 18 bit
 	Write_Data(0x0000);
 	Write_Data((HDP>>8)&0X00FF);  //Set HDP
 	Write_Data(HDP&0X00FF);
@@ -139,14 +162,8 @@ void Lcd_Init(void)
 	Write_Data((FPS>>8)&0X00FF);  //Set FPS
 	Write_Data(FPS&0X00FF);
 
-	Write_Command(0x0036); //rotation
-	Write_Data(0x0000);
-
-	Write_Command(0x00F0); //pixel data interface
-	Write_Data(0x0003);
-	usleep(5000);
-
 	Write_Command(0x0029); //display on
+    usleep(5000); 
 
 /*
 	LCD_WR_REG(0x00BE); //set PWM for B/L
@@ -157,7 +174,13 @@ void Lcd_Init(void)
 	LCD_WR_Data(0x0000);
 	LCD_WR_Data(0x0000);
 */
+	Write_Command(0x0036); //rotation
+	Write_Data(0x0000);
 
+	Write_Command(0x00F0); //pixel data interface
+	Write_Data(0x0003);
+	usleep(5000);
+/*
 	Write_Command(0x00d0); 
 	Write_Data(0x000d);
 
@@ -168,6 +191,7 @@ void Lcd_Init(void)
 
 	Write_Command(0x00BA);
 	Write_Data(0x0000);  
+*/
 }
  
 

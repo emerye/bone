@@ -20,13 +20,22 @@ char *phrase = "0123";
 
 void ssd1963Init()
 {
+  int i;
+
   SendDisplayReset(); 
   Lcd_Init(); 
-  
-  sleep(10000);
+
+//  SendWord(BLACK); 
+//  Address_set(0, 0, 271, 471); 
+//  for(i=0; i< 271*471; i++)
+//   SendCommand(WRITEDATA); 
+
+  Address_set(0,0,300,100);   
+  SendWord(RED);  
+  for(i=0; i< 250 * 100; i++)
+  SendCommand(WRITEDATA);  
 } 
   
-   
 
 int
 main ()
@@ -43,10 +52,11 @@ main ()
     }
 
  ssd1963Init(); 
+ return 0; 
 
-  SendDisplayReset();
+//  SendDisplayReset();
 
-  TFT_Init();
+//  TFT_Init();
 
   TFT_Fill (YELLOW);
   TFT_Set_Address (0, 0, 239, 319);
@@ -134,10 +144,10 @@ CreateButton (WORD x1, WORD y1, WORD x2, WORD y2, WORD border, WORD backcolor,
 void
 WriteCommandData (unsigned int Wcommand, unsigned int Wdata)
 {
-  SendWord (Wcommand);
-  SendCommand (WRITECMD);
-  SendWord (Wdata);
-  SendCommand (WRITEDATA);
+  SendWord(Wcommand);
+  SendCommand(WRITECMD);
+  SendWord(Wdata);
+  SendCommand(WRITEDATA);
 }
 
 
@@ -203,8 +213,8 @@ Write_Command (unsigned int Wcommand)
 void
 Write_Data (unsigned int Wdata)
 {
-  SendWord (Wdata);
-  SendCommand (WRITEDATA);
+  SendWord(Wdata);
+  SendCommand(WRITEDATA);
 }
 
 

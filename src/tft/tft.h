@@ -54,5 +54,10 @@ extern int SendWord(int data);
 extern int SendCommand(CMDTYPE); 
 extern int MapGPIO();
 extern void SendDisplayReset(); 
+extern void userMode();
+
+extern void Lcd_Init();
+extern void Address_set(unsigned, unsigned, unsigned, unsigned); 
+
 
 #endif /*TFT_H_*/
