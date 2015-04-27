@@ -21,7 +21,7 @@ char *phrase = "0123";
 void ssd1963Init()
 {
   int i;
-  int x = 400; 
+  int x = 450; 
   int y = 200; 
 
   Init_ssd1963(); 
@@ -32,7 +32,7 @@ void ssd1963Init()
    SendCommand(WRITEDATA); 
 
   Address_set(0,0,x,y);   
-  Write_Data(GREEN);  
+  Write_Data(RED | GREEN );  
   for(i=0; i< x * y; i++)
     SendCommand(WRITEDATA);  
 } 

@@ -60,6 +60,7 @@ extern void SendDisplayReset();
 extern void userMode();
 
 extern void Init_ssd1963();
+extern void TFT_Write_Data(unsigned char, unsigned char); 
 extern void Address_set(unsigned, unsigned, unsigned, unsigned); 
 
 

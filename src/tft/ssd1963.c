@@ -19,13 +19,6 @@ Version 2.2  www.elecfreaks.com
 #include <unistd.h>
 #include "tft.h"
 
-/* Touch IO  */
-#define DCLK     6
-#define CS       5  
-#define DIN      4 
-#define DOUT     3
-#define IRQ      2 
-
 unsigned int  HDP=479;
 unsigned int  HT=531;
 unsigned int  HPS=43;
@@ -47,30 +40,8 @@ struct pix_
 
 struct pix_ Tp_pix;	
 
-void userMode() {
-    int i = 0, pacy = 1; 
-    int ly,lx; 
-                    lx=HDP-((Tp_pix.x-380)*10/69);
-				if(lx>HDP) lx=HDP;
-    				ly=VDP-((Tp_pix.y-600)*10/111);
-                                    if(ly>VDP) ly=VDP;
-    				Address_set(lx,ly,lx+2,ly+2);
-                                switch(pacy)
-                                {
-                                  case 0: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x00);  break;   //Red
-                                  case 1: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xE0);  break;   //Yellow
-                                  case 2: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xFF);  break;   //White 
-                                  case 3: for(i=0; i<7; i++)  Lcd_Write_Data(0x05,0x1F);  break;   //Blue
-                                  case 4: for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x1F);  break;   //Blue-2
-                                  case 5: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x1F);  break;   //Magenta
-                                  case 6: for(i=0; i<7; i++)  Lcd_Write_Data(0x07,0xE0);  break;   //Green
-                                  case 7: for(i=0; i<7; i++)  Lcd_Write_Data(0x7F,0xFF);  break;   //Cyan
-                                  defoult:for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x00);  break;   //Black
-                                }
-}
-
  
-void Lcd_Writ_Bus(char VH,char VL)
+void Lcd_Writ_Bus(unsigned char VH,unsigned char VL)
 {
   SendWord((int)((VH<<8)&0xff00) + (int)VL);
   SendCommand(WRITEDATA); 
@@ -90,6 +61,31 @@ void LCD_WR_REG(int da)
 {	
     Write_Command((da>>8) + (da & 0xff));
 }
+
+
+void userMode() {
+    int i = 0, pacy = 1; 
+    int ly,lx; 
+                    lx=HDP-((Tp_pix.x-380)*10/69);
+				if(lx>HDP) lx=HDP;
+    				ly=VDP-((Tp_pix.y-600)*10/111);
+                                    if(ly>VDP) ly=VDP;
+    				Address_set(lx,ly,lx+2,ly+2);
+                                switch(pacy)
+                                {
+                                  case 0: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x00);  break;   //Red
+                                  case 1: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xE0);  break;   //Yellow
+                                  case 2: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xFF);  break;   //White 
+                                  case 3: for(i=0; i<7; i++)  Lcd_Write_Data(0x05,0x1F);  break;   //Blue
+                                  case 4: for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x1F);  break;   //Blue-2
+                                  case 5: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x1F);  break;   //Magenta
+                                  case 6: for(i=0; i<7; i++)  Lcd_Write_Data(0x07,0xE0);  break;   //Green
+                                  case 7: for(i=0; i<7; i++)  Lcd_Write_Data(0x7F,0xFF);  break;   //Cyan
+                                  default:for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x00);  break;   //Black
+                                }
+}
+
+ 
 
 void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2)
 {
@@ -224,12 +220,3 @@ unsigned char Makpix(struct pix_ pix1,struct pix_ pix2) //Filtering
 }
 
 
-void setup()
-{
-  int p; 
- 
-  Init_ssd1963();     
-  Pant(0x00, 0x00);  
-  usleep(500 * 1000);
-}
- 
