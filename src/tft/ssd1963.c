@@ -63,30 +63,6 @@ void LCD_WR_REG(int da)
 }
 
 
-void userMode() {
-    int i = 0, pacy = 1; 
-    int ly,lx; 
-                    lx=HDP-((Tp_pix.x-380)*10/69);
-				if(lx>HDP) lx=HDP;
-    				ly=VDP-((Tp_pix.y-600)*10/111);
-                                    if(ly>VDP) ly=VDP;
-    				Address_set(lx,ly,lx+2,ly+2);
-                                switch(pacy)
-                                {
-                                  case 0: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x00);  break;   //Red
-                                  case 1: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xE0);  break;   //Yellow
-                                  case 2: for(i=0; i<7; i++)  Lcd_Write_Data(0xFF,0xFF);  break;   //White 
-                                  case 3: for(i=0; i<7; i++)  Lcd_Write_Data(0x05,0x1F);  break;   //Blue
-                                  case 4: for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x1F);  break;   //Blue-2
-                                  case 5: for(i=0; i<7; i++)  Lcd_Write_Data(0xF8,0x1F);  break;   //Magenta
-                                  case 6: for(i=0; i<7; i++)  Lcd_Write_Data(0x07,0xE0);  break;   //Green
-                                  case 7: for(i=0; i<7; i++)  Lcd_Write_Data(0x7F,0xFF);  break;   //Cyan
-                                  default:for(i=0; i<7; i++)  Lcd_Write_Data(0x00,0x00);  break;   //Black
-                                }
-}
-
- 
-
 void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2)
 {
     Write_Command(0x002A);		//Set Column Address	

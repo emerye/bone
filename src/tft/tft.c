@@ -12,6 +12,7 @@
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
+volatile unsigned int gDispProc = SSD1963; 
 
 unsigned int xPos;
 void *gpio_addr = NULL;
@@ -21,20 +22,40 @@ char *phrase = "0123";
 void ssd1963Init()
 {
   int i;
-  int x = 450; 
-  int y = 200; 
+  int x = XMAXPIXEL + 1; 
+  int y = YMAXPIXEL + 1; 
 
   Init_ssd1963(); 
 
-  Address_set(0, 0, 479, 271); 
+  Address_set(0, 0, x , y); 
   Write_Data(BLACK); 
-  for(i=0; i< 272*480; i++)
+  printf("Pix %d\n", x*y); 
+  for(i=0; i< x*(y+1); i++) {
    SendCommand(WRITEDATA); 
+  } 
+   
+  TFT_FillDisp(GREEN); 
+  sleep(3); 
+
+while(1) {
+  Address_set(0, 0, x, y);   
+  Write_Data(RED | GREEN );  
+  for(i=0; i< (x * (y + 1)) ; i++)
+    SendCommand(WRITEDATA);  
+  usleep(1000 * 100); 
 
   Address_set(0,0,x,y);   
-  Write_Data(RED | GREEN );  
-  for(i=0; i< x * y; i++)
+  Write_Data(BLUE);  
+  for(i=0; i< x * (y + 10) ; i++)
     SendCommand(WRITEDATA);  
+  usleep(1000 * 100); 
+
+  Address_set(250,250,300,270);   
+  Write_Data(BLUE | RED);  
+  for(i=0; i< 50 * (50  + 10) ; i++)
+    SendCommand(WRITEDATA);  
+  usleep(1000 * 100); 
+}
 } 
 
 int
@@ -58,15 +79,15 @@ main ()
 
 //  TFT_Init();
 
-  TFT_Fill (YELLOW);
+  TFT_FillDisp (YELLOW);
   TFT_Set_Address (0, 0, 239, 319);
   usleep (1000 * 100);
 
-  TFT_Fill (GREEN);
+  TFT_FillDisp (GREEN);
   usleep (1000 * 100);
 
   TFT_Set_Address (0, 0, 239, 319);
-  TFT_Fill (RED);
+  TFT_FillDisp (RED);
   usleep (1000 * 100);
 
   Write_Data (BLACK);
@@ -84,7 +105,7 @@ main ()
 	    iCount = 32;
 	}
     }
-  TFT_Fill (BLACK);
+  TFT_FillDisp (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
 
 
@@ -226,29 +247,38 @@ DelayMsec (unsigned int delay)
 
 
 void
-TFT_Set_Address (unsigned int PX1, unsigned int PY1, unsigned int PX2,
-		 unsigned int PY2)
+TFT_Set_Address (unsigned int px1, unsigned int py1, unsigned int px2,
+		 unsigned int py2)
 {
-  WriteCommandData (0x0044, (PX2 << 8) + PX1);	//Horizonal RAM Address Position
-  WriteCommandData (0x0045, PY1);	// Vertical RAM address start
-  WriteCommandData (0x0046, PY2);	// Vertical RAM address end
-  WriteCommandData (0x004E, PX1);	// Set GDDRAM X address
-  WriteCommandData (0x004F, PY1);	// Set GDDRAM Y address
+  switch(gDispProc) {
+    case 0:  //ssd1289
+  WriteCommandData (0x0044, (px2 << 8) + px1);	//Horizonal RAM Address Position
+  WriteCommandData (0x0045, py1);	// Vertical RAM address start
+  WriteCommandData (0x0046, py2);	// Vertical RAM address end
+  WriteCommandData (0x004E, py1);	// Set GDDRAM X address
+  WriteCommandData (0x004F, py1);	// Set GDDRAM Y address
   Write_Command (0x0022);
+  break; 
+   case SSD1963: {
+	Address_set(px1, py1, px2, py2); 
+  break;
+
+  }
+}
 }
 
 
 void
-TFT_Fill (unsigned int color)
+TFT_FillDisp (unsigned int color)
 {
   unsigned int i, j;
 
-  TFT_Set_Address (0, 0, 239, 319);
-  Write_Data (color);
-  for (i = 0; i <= 319; i++)
+  TFT_Set_Address (0, 0, XMAXPIXEL, YMAXPIXEL);
+  Write_Data(color);
+  for (i = 0; i <=XMAXPIXEL; i++)
     {
-      for (j = 0; j <= 239; j++)
-	SendCommand (WRITEDATA);
+      for (j = 0; j <= YMAXPIXEL; j++)
+     	SendCommand(WRITEDATA);
     }
 }
 
@@ -748,7 +778,7 @@ TestLargeFont (void)
   char mydigit = '0';
 
 
-  TFT_Fill (BLACK);
+  TFT_FillDisp (BLACK);
 
   yStart = 230;
 

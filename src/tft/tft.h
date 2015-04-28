@@ -14,8 +14,10 @@
 #define CYAN   0x07FF
 #define MAGENTA 0xF81F
 
-#define XRES  489
-#define YRES  272
+//480 x 272
+#define XMAXPIXEL  479 
+#define YMAXPIXEL  271 
+#define SSD1963		 1
 
 typedef enum
 {
@@ -27,6 +29,7 @@ typedef enum
 //Global
 extern void *gpio_addr; 
 extern int mmapFD;
+extern volatile unsigned gDispProc; 
 
 extern void TFT_Init(void);
 extern void DelayMsec(unsigned int delay);
@@ -34,7 +37,7 @@ extern void Write_Command(unsigned int Wcommand);
 extern void Write_Data(unsigned int Wdata);
 extern void WriteCommandData(unsigned int Wcommand, unsigned int Wdata);
 extern void TFT_Set_Address(unsigned int PX1, unsigned int PY1, unsigned int PX2, unsigned int PY2);
-extern void TFT_Fill(unsigned int color);
+extern void TFT_FillDisp(unsigned int color);
 extern unsigned int Set_color(unsigned char r, unsigned char g, unsigned char b);
 extern void TFT_Text(char * S, WORD x, WORD y, BYTE DimFont, WORD Fcolor, WORD Bcolor);
 extern void TFT_Char(char C1, unsigned int x, unsigned int y, unsigned char DimFont, unsigned int Fcolor, unsigned int Bcolor);
@@ -57,11 +60,9 @@ extern int SendWord(int data);
 extern int SendCommand(CMDTYPE); 
 extern int MapGPIO();
 extern void SendDisplayReset(); 
-extern void userMode();
 
 extern void Init_ssd1963();
 extern void TFT_Write_Data(unsigned char, unsigned char); 
-extern void Address_set(unsigned, unsigned, unsigned, unsigned); 
-
+extern void Address_set(unsigned x1, unsigned y1, unsigned x2, unsigned y2); 
 
 #endif /*TFT_H_*/
