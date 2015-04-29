@@ -12,51 +12,54 @@
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
-volatile unsigned int gDispProc = SSD1963; 
+
+volatile unsigned int gDispProc = SSD1963;
 
 unsigned int xPos;
 void *gpio_addr = NULL;
 int mmapFD;
 char *phrase = "0123";
 
-void ssd1963Init()
+void
+ssd1963Init ()
 {
   int i;
-  int x = XMAXPIXEL + 1; 
-  int y = YMAXPIXEL + 1; 
+  int x = XMAXPIXEL + 1;
+  int y = YMAXPIXEL + 1;
 
-  Init_ssd1963(); 
+  Init_ssd1963 ();
 
-  Address_set(0, 0, x , y); 
-  Write_Data(BLACK); 
-  printf("Pix %d\n", x*y); 
-  for(i=0; i< x*(y+1); i++) {
-   SendCommand(WRITEDATA); 
-  } 
-   
-  TFT_FillDisp(GREEN); 
-  sleep(3); 
+  Address_set (0, 0, x, y);
+  Write_Data (BLACK);
+  printf ("Pix %d\n", x * y);
+  for (i = 0; i < x * (y + 1); i++)
+    {
+      SendCommand (WRITEDATA);
+    }
+  TFT_FillDisp (GREEN);
 
-while(1) {
-  Address_set(0, 0, x, y);   
-  Write_Data(RED | GREEN );  
-  for(i=0; i< (x * (y + 1)) ; i++)
-    SendCommand(WRITEDATA);  
-  usleep(1000 * 100); 
+  TFT_Char32 ('1', 100, 100, RED, BLACK);
+  sleep (1);
 
-  Address_set(0,0,x,y);   
-  Write_Data(BLUE);  
-  for(i=0; i< x * (y + 10) ; i++)
-    SendCommand(WRITEDATA);  
-  usleep(1000 * 100); 
+  Address_set (0, 0, x, y);
+  Write_Data (RED | GREEN);
+  for (i = 0; i < (x * (y + 1)); i++)
+    SendCommand (WRITEDATA);
+  usleep (1000 * 100);
 
-  Address_set(250,250,300,270);   
-  Write_Data(BLUE | RED);  
-  for(i=0; i< 50 * (50  + 10) ; i++)
-    SendCommand(WRITEDATA);  
-  usleep(1000 * 100); 
+  Address_set (0, 0, x, y);
+  Write_Data (BLUE);
+  for (i = 0; i < x * (y + 10); i++)
+    SendCommand (WRITEDATA);
+  usleep (1000 * 100);
+
+  Address_set (250, 250, 300, 270);
+  Write_Data (BLUE | RED);
+  for (i = 0; i < 50 * (50 + 10); i++)
+    SendCommand (WRITEDATA);
+  usleep (1000 * 100);
 }
-} 
+
 
 int
 main ()
@@ -69,14 +72,11 @@ main ()
   retval = MapGPIO ();
   if (retval < 0)
     {
-      printf("Error attempting to map GPIO1.\n");
+      printf ("Error attempting to map GPIO1.\n");
     }
-
- ssd1963Init(); 
- return 0; 
+  ssd1963Init ();
 
 //  SendDisplayReset();
-
 //  TFT_Init();
 
   TFT_FillDisp (YELLOW);
@@ -95,7 +95,7 @@ main ()
 
   Write_Data (WHITE);
   iCount = 32;
-  for (yLine = 0; yLine < 320; yLine += 16)
+  for (yLine = 0; yLine < 260; yLine += 16)
     {
       for (xPos = 0; xPos < 240; xPos += 16)
 	{
@@ -108,11 +108,10 @@ main ()
   TFT_FillDisp (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
 
-
-  TFT_Rectangle (0, 100, 100 , 300, RED);
+//  TFT_Rectangle (0, 0, 100, 260, RED);
 
   TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
-
+  sleep (2);
   close (mmapFD);
   return 0;
 }
@@ -165,60 +164,60 @@ CreateButton (WORD x1, WORD y1, WORD x2, WORD y2, WORD border, WORD backcolor,
 void
 WriteCommandData (unsigned int Wcommand, unsigned int Wdata)
 {
-  SendWord(Wcommand);
-  SendCommand(WRITECMD);
-  SendWord(Wdata);
-  SendCommand(WRITEDATA);
+  SendWord (Wcommand);
+  SendCommand (WRITECMD);
+  SendWord (Wdata);
+  SendCommand (WRITEDATA);
 }
 
 
 void
-TFT_Init (void)
+TFT_Init (void)			//ssd1289
 {
-  WriteCommandData(0x0000, 0x0001);
-  WriteCommandData(0x0003, 0xA8A4);
-  WriteCommandData(0x000C, 0x0000);
-  WriteCommandData(0x000D, 0x800C);
-  WriteCommandData(0x000E, 0x2B00);
-  WriteCommandData(0x001E, 0x00B7);
-  WriteCommandData(0x0001, 0x2B3F);
-  WriteCommandData(0x0002, 0x0600);
-  WriteCommandData(0x0010, 0x0000);
+  WriteCommandData (0x0000, 0x0001);
+  WriteCommandData (0x0003, 0xA8A4);
+  WriteCommandData (0x000C, 0x0000);
+  WriteCommandData (0x000D, 0x800C);
+  WriteCommandData (0x000E, 0x2B00);
+  WriteCommandData (0x001E, 0x00B7);
+  WriteCommandData (0x0001, 0x2B3F);
+  WriteCommandData (0x0002, 0x0600);
+  WriteCommandData (0x0010, 0x0000);
   //Vertical
-  WriteCommandData(0x0011, 0x6070);
+  WriteCommandData (0x0011, 0x6070);
   //Horz
 //  WriteCommandData (0x0011, 0x6078);
-  WriteCommandData(0x0005, 0x0000);
-  WriteCommandData(0x0006, 0x0000);
-  WriteCommandData(0x0016, 0xEF1C);
-  WriteCommandData(0x0017, 0x0003);
-  WriteCommandData(0x0007, 0x0233);
-  WriteCommandData(0x000B, 0x0000);
-  WriteCommandData(0x000F, 0x0000);
-  WriteCommandData(0x0041, 0x0000);
-  WriteCommandData(0x0042, 0x0000);
-  WriteCommandData(0x0048, 0x0000);
-  WriteCommandData(0x0049, 0x013F);
-  WriteCommandData(0x004A, 0x0000);
-  WriteCommandData(0x004B, 0x0000);
-  WriteCommandData(0x0044, 0xEF95);
-  WriteCommandData(0x0045, 0x0000);
-  WriteCommandData(0x0046, 0x013F);
-  WriteCommandData(0x0030, 0x0707);
-  WriteCommandData(0x0031, 0x0204);
-  WriteCommandData(0x0032, 0x0204);
-  WriteCommandData(0x0033, 0x0502);
-  WriteCommandData(0x0034, 0x0507);
-  WriteCommandData(0x0035, 0x0204);
-  WriteCommandData(0x0036, 0x0204);
-  WriteCommandData(0x0037, 0x0502);
-  WriteCommandData(0x003A, 0x0302);
-  WriteCommandData(0x003B, 0x0302);
-  WriteCommandData(0x0023, 0x0000);
-  WriteCommandData(0x0024, 0x0000);
-  WriteCommandData(0x0025, 0x8000);
-  WriteCommandData(0x004f, 0x0000);
-  WriteCommandData(0x004e, 0x0000);
+  WriteCommandData (0x0005, 0x0000);
+  WriteCommandData (0x0006, 0x0000);
+  WriteCommandData (0x0016, 0xEF1C);
+  WriteCommandData (0x0017, 0x0003);
+  WriteCommandData (0x0007, 0x0233);
+  WriteCommandData (0x000B, 0x0000);
+  WriteCommandData (0x000F, 0x0000);
+  WriteCommandData (0x0041, 0x0000);
+  WriteCommandData (0x0042, 0x0000);
+  WriteCommandData (0x0048, 0x0000);
+  WriteCommandData (0x0049, 0x013F);
+  WriteCommandData (0x004A, 0x0000);
+  WriteCommandData (0x004B, 0x0000);
+  WriteCommandData (0x0044, 0xEF95);
+  WriteCommandData (0x0045, 0x0000);
+  WriteCommandData (0x0046, 0x013F);
+  WriteCommandData (0x0030, 0x0707);
+  WriteCommandData (0x0031, 0x0204);
+  WriteCommandData (0x0032, 0x0204);
+  WriteCommandData (0x0033, 0x0502);
+  WriteCommandData (0x0034, 0x0507);
+  WriteCommandData (0x0035, 0x0204);
+  WriteCommandData (0x0036, 0x0204);
+  WriteCommandData (0x0037, 0x0502);
+  WriteCommandData (0x003A, 0x0302);
+  WriteCommandData (0x003B, 0x0302);
+  WriteCommandData (0x0023, 0x0000);
+  WriteCommandData (0x0024, 0x0000);
+  WriteCommandData (0x0025, 0x8000);
+  WriteCommandData (0x004f, 0x0000);
+  WriteCommandData (0x004e, 0x0000);
   Write_Command (0x0022);
 }
 
@@ -234,8 +233,8 @@ Write_Command (unsigned int Wcommand)
 void
 Write_Data (unsigned int Wdata)
 {
-  SendWord(Wdata);
-  SendCommand(WRITEDATA);
+  SendWord (Wdata);
+  SendCommand (WRITEDATA);
 }
 
 
@@ -250,21 +249,23 @@ void
 TFT_Set_Address (unsigned int px1, unsigned int py1, unsigned int px2,
 		 unsigned int py2)
 {
-  switch(gDispProc) {
-    case 0:  //ssd1289
-  WriteCommandData (0x0044, (px2 << 8) + px1);	//Horizonal RAM Address Position
-  WriteCommandData (0x0045, py1);	// Vertical RAM address start
-  WriteCommandData (0x0046, py2);	// Vertical RAM address end
-  WriteCommandData (0x004E, py1);	// Set GDDRAM X address
-  WriteCommandData (0x004F, py1);	// Set GDDRAM Y address
-  Write_Command (0x0022);
-  break; 
-   case SSD1963: {
-	Address_set(px1, py1, px2, py2); 
-  break;
+  switch (gDispProc)
+    {
+    case 0:			//ssd1289
+      WriteCommandData (0x0044, (px2 << 8) + px1);	//Horizonal RAM Address Position
+      WriteCommandData (0x0045, py1);	// Vertical RAM address start
+      WriteCommandData (0x0046, py2);	// Vertical RAM address end
+      WriteCommandData (0x004E, py1);	// Set GDDRAM X address
+      WriteCommandData (0x004F, py1);	// Set GDDRAM Y address
+      Write_Command (0x0022);
+      break;
+    case SSD1963:
+      {
+	Address_set (px1, py1, px2, py2);
+	break;
 
-  }
-}
+      }
+    }
 }
 
 
@@ -274,11 +275,11 @@ TFT_FillDisp (unsigned int color)
   unsigned int i, j;
 
   TFT_Set_Address (0, 0, XMAXPIXEL, YMAXPIXEL);
-  Write_Data(color);
-  for (i = 0; i <=XMAXPIXEL; i++)
+  Write_Data (color);
+  for (i = 0; i <= XMAXPIXEL; i++)
     {
       for (j = 0; j <= YMAXPIXEL; j++)
-     	SendCommand(WRITEDATA);
+	SendCommand (WRITEDATA);
     }
 }
 
@@ -298,7 +299,6 @@ Set_color (unsigned char r, unsigned char g, unsigned char b)
 void
 TFT_Text (char *S, WORD x, WORD y, BYTE DimFont, WORD Fcolor, WORD Bcolor)
 {
-
   BYTE length, k;
   WORD buffer[24] = { 0 };
   BYTE charcount = 0;
@@ -339,10 +339,8 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
   BYTE length, k;
   WORD buffer[10] = { 0 };
   BYTE charcount = 0;
-  BYTE iCount;
 
   length = strlen (S);
-
   while (*S != 0)
     {
       buffer[charcount] = *S;
@@ -350,24 +348,16 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
       charcount++;
     }
 
-
   for (k = 0; k < length; k++)
     {
-      //Erase area in between characters
-      TFT_Set_Address ((x + 32), y, (x + 35), y + 32);
-      Write_Data (Bcolor);
-      for (iCount = 0; iCount < 4 * 32; iCount++)
-	{
-	  Write_Command (WRITEDATA);
-	}
-      TFT_32Char (buffer[k], x, y, Fcolor, Bcolor);
-      x = x + 36;
+      TFT_Char32 (buffer[k], x, y, Fcolor, Bcolor);
+      x = x + 40;
     }
 }
 
 
 void
-TFT_32Char (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    unsigned int Bcolor)
 {
 
@@ -379,11 +369,11 @@ TFT_32Char (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
   ptrFont = (unsigned char *) FONT_32x32;
   Cptrfont = (C1 - 0x30) * 128;
   ptrFont = ptrFont + Cptrfont;
-  Set_GDRAM_Address (x, y);
 
+  TFT_Set_Address (x, y, x + 31, y + 31);
   for (i = 0; i < 32; i++)
     {
-      Set_GDRAM_Address (x, y + i);
+      //   Set_GDRAM_Address (x, y + i);
       for (k = 0; k < 4; k++)
 	{
 	  for (lineCount = 0; lineCount < 8; lineCount++)
@@ -398,7 +388,7 @@ TFT_32Char (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    }
 	  ptrFont++;
 	}
-    }
+  }
 }
 
 void
@@ -511,7 +501,7 @@ TFT_Box (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
 	{
 	  SendCommand (WRITEDATA);
 	}
-  }
+    }
 }
 
 
@@ -553,49 +543,27 @@ TFT_Line (unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2,
       else
 
 	{
-
 	  addy = 1;
-
 	}
 
-
-
       if (dx >= dy)
-
 	{
-
 	  P = (2 * dy) - dx;
-
 	  for (i = 1; i < dx + 2; i++)
-
 	    {
-
 	      TFT_Dot (x, y, color);
-
 	      if (P < 0)
-
 		{
-
 		  P = P + (2 * dy);
-
 		  x = (x + addx);
-
 		}
-
 	      else
-
 		{
-
 		  P = P + (2 * dy) - (2 * dx);
-
 		  x = x + addx;
-
 		  y = y + addy;
-
 		}
-
 	    }
-
 	}
 
       else
@@ -762,56 +730,34 @@ TFT_Circle (WORD x, WORD y, BYTE radius, BYTE fill, WORD color)
 void
 Set_GDRAM_Address (int x1, int y1)
 {
-
   WriteCommandData (0x004E, x1);	// Set GDDRAM X address
   WriteCommandData (0x004F, y1);	// Set GDDRAM Y address
   Write_Command (0x22);
-
 }
 
 void
 TestLargeFont (void)
 {
-
   int yStart, iCount;
-
   char mydigit = '0';
 
-
   TFT_FillDisp (BLACK);
-
   yStart = 230;
-
   for (iCount = 0; iCount < 2; iCount++)
-
     {
-
-      TFT_32Char (mydigit, 0, yStart, WHITE, BLUE);
-
+      TFT_Char32 (mydigit, 0, yStart, WHITE, BLUE);
       mydigit = mydigit + 1;
-
-      TFT_32Char (mydigit, 36, yStart, WHITE, BLUE);
-
+      TFT_Char32 (mydigit, 36, yStart, WHITE, BLUE);
       mydigit = mydigit + 1;
-
-      TFT_32Char (mydigit, 72, yStart, WHITE, BLACK);
-
+      TFT_Char32 (mydigit, 72, yStart, WHITE, BLACK);
       mydigit = mydigit + 1;
-
-      TFT_32Char (mydigit, 146, yStart, WHITE, BLACK);
-
+      TFT_Char32 (mydigit, 146, yStart, WHITE, BLACK);
       mydigit = mydigit + 1;
-
-      TFT_32Char (mydigit, 182, yStart, WHITE, BLACK);
-
+      TFT_Char32 (mydigit, 182, yStart, WHITE, BLACK);
       mydigit = mydigit + 1;
-
       yStart += 36;
-
     }
-
   TFT_Text32 ("012345", 0, 230, GREEN, RED);
-
 }
 
 

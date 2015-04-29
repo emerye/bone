@@ -51,7 +51,7 @@ extern void TFT_Rectangle(unsigned int x1, unsigned int y1, unsigned int x2, uns
 extern void CreateButton(WORD x1, WORD y1, WORD x2, WORD y2, WORD border, WORD backcolor, char *btnText);
 extern void Set_GDRAM_Address(int xi, int y1);
 
-extern void TFT_32Char(char C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
+extern void TFT_Char32(char C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
 extern void TFT_Text32(char * S, WORD x, WORD y, WORD Fcolor, WORD Bcolor);
 extern void TestLargeFont(void);
 
