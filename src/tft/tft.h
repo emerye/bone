@@ -28,8 +28,11 @@ typedef enum
 
 //Global
 extern void *gpio_addr; 
-extern int mmapFD;
+extern int mmapFD;      ///MMap file descriptor
+extern int spiFD;   	//SPI file descriptor 
 extern volatile unsigned gDispProc; 
+extern int Init_SPI(void); 
+extern int SPISend(unsigned int fd, int data); 
 
 extern void TFT_Init(void);
 extern void DelayMsec(unsigned int delay);

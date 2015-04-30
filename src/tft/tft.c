@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <time.h>
 #include "tftFonts.h"
 #include "AD7843.h"
 #include "tft.h"
@@ -17,8 +18,35 @@ volatile unsigned int gDispProc = SSD1963;
 
 unsigned int xPos;
 void *gpio_addr = NULL;
-int mmapFD;
+int mmapFD;			//mmap file descriptor
+int spiFD;			//spi file descriptor
 char *phrase = "0123";
+
+
+char *
+CurrentTime (void)
+{
+  char *ascTime;
+  time_t seconds;
+  struct tm *bTime;
+  char dispTime[30];
+  char minutes[10];
+
+  seconds = time (NULL);
+  bTime = localtime (&seconds);
+  ascTime = (char *) malloc (30);
+  ascTime = asctime (bTime);
+  printf ("Time is %s\n", ascTime);
+
+  sprintf (dispTime, "%02d", bTime->tm_hour);
+  sprintf (minutes, "%02d", bTime->tm_min);
+  strcat (dispTime, minutes);
+  printf ("Time is %s\n", dispTime);
+  strcpy (ascTime, dispTime);
+
+  return (ascTime);
+}
+
 
 void
 ssd1963Init ()
@@ -26,9 +54,11 @@ ssd1963Init ()
   int i;
   int x = XMAXPIXEL + 1;
   int y = YMAXPIXEL + 1;
+  char *currentTime;
 
   Init_ssd1963 ();
 
+  currentTime = CurrentTime ();
   Address_set (0, 0, x, y);
   Write_Data (BLACK);
   printf ("Pix %d\n", x * y);
@@ -37,6 +67,9 @@ ssd1963Init ()
       SendCommand (WRITEDATA);
     }
   TFT_FillDisp (GREEN);
+
+  TFT_Text32 (phrase, 200, 150, GREEN, RED);
+  sleep (1);
 
   TFT_Char32 ('1', 100, 100, RED, BLACK);
   sleep (1);
@@ -58,6 +91,14 @@ ssd1963Init ()
   for (i = 0; i < 50 * (50 + 10); i++)
     SendCommand (WRITEDATA);
   usleep (1000 * 100);
+
+  while (1)
+    {
+      currentTime = CurrentTime ();
+      TFT_Text32 (currentTime, 100, 100, WHITE, BLACK);
+      printf ("Current time in main %s\n", currentTime);
+      sleep (2);
+    }
 }
 
 
@@ -74,6 +115,12 @@ main ()
     {
       printf ("Error attempting to map GPIO1.\n");
     }
+  retval = Init_SPI ();
+  if (retval < 0)
+    {
+      printf ("Error opening SPI file.\n");
+    }
+
   ssd1963Init ();
 
 //  SendDisplayReset();
@@ -112,6 +159,7 @@ main ()
 
   TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
   sleep (2);
+  close (spiFD);
   close (mmapFD);
   return 0;
 }
@@ -154,6 +202,7 @@ CreateButton (WORD x1, WORD y1, WORD x2, WORD y2, WORD border, WORD backcolor,
   count++;
   TFT_Rectangle (x1 + count, y1 + count, x2 + count, y2 - count, border);
   TFT_Box (x1 + count, y1 + count, x2 - count, y2 - count, backcolor);
+  TFT_Box (x1 + count, y1 + count, x2 - count, y2 - count, backcolor);
   count++;
   textX = x1 + ((x2 - x1) / 2) - (strlen (btnText) * 8);
   textY = y1 - 8 + (y2 - y1) / 2;
@@ -164,9 +213,11 @@ CreateButton (WORD x1, WORD y1, WORD x2, WORD y2, WORD border, WORD backcolor,
 void
 WriteCommandData (unsigned int Wcommand, unsigned int Wdata)
 {
-  SendWord (Wcommand);
+  //SendWord (Wcommand);
+  SPISend (spiFD, Wcommand);
   SendCommand (WRITECMD);
-  SendWord (Wdata);
+  //SendWord (Wdata);
+  SPISend (spiFD, Wdata);
   SendCommand (WRITEDATA);
 }
 
@@ -225,7 +276,8 @@ TFT_Init (void)			//ssd1289
 void
 Write_Command (unsigned int Wcommand)
 {
-  SendWord (Wcommand);
+  //SendWord (Wcommand);
+  SPISend (spiFD, Wcommand);
   SendCommand (WRITECMD);
 }
 
@@ -233,7 +285,8 @@ Write_Command (unsigned int Wcommand)
 void
 Write_Data (unsigned int Wdata)
 {
-  SendWord (Wdata);
+  //SendWord (Wdata);
+  SPISend (spiFD, Wdata);
   SendCommand (WRITEDATA);
 }
 
@@ -335,10 +388,11 @@ TFT_Text (char *S, WORD x, WORD y, BYTE DimFont, WORD Fcolor, WORD Bcolor)
 void
 TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
 {
-
   BYTE length, k;
   WORD buffer[10] = { 0 };
   BYTE charcount = 0;
+  int WIDTH = 40;
+  int HEIGHT = 36, i;
 
   length = strlen (S);
   while (*S != 0)
@@ -346,6 +400,15 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
       buffer[charcount] = *S;
       S++;
       charcount++;
+    }
+
+  //Erase all
+  TFT_Set_Address (x, y, x + length * WIDTH, y + HEIGHT);
+  Write_Data (Bcolor);
+
+  for (i = 0; i < (length * WIDTH * HEIGHT); i++)
+    {
+      SendCommand (WRITEDATA);
     }
 
   for (k = 0; k < length; k++)
@@ -388,7 +451,7 @@ TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    }
 	  ptrFont++;
 	}
-  }
+    }
 }
 
 void

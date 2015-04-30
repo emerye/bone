@@ -39,6 +39,7 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
   return status;
 }
 
+
 int
 SendWord (int data)
 //main ()
@@ -100,5 +101,75 @@ SendWord (int data)
   fflush (stdout);		//need to flush the output, no \n
 
   close (fd);			//close the file
+  return 0;
+}
+
+
+int
+Init_SPI (void)
+{
+  unsigned int fd;		//file handle and loop counter
+  uint8_t bits = 8, mode = 3;	//8-bits per word, SPI mode 3
+  uint32_t speed = 1000000;	//Speed is 1 MHz
+
+  // The following calls set up the SPI bus properties
+  if ((fd = open (SPI_PATH, O_RDWR)) < 0)
+    {
+      perror ("SPI Error: Can't open device.");
+      return -1;
+    }
+  spiFD = fd;
+  if (ioctl (fd, SPI_IOC_WR_MODE, &mode) == -1)
+    {
+      perror ("SPI: Can't set SPI mode.");
+      return -1;
+    }
+  if (ioctl (fd, SPI_IOC_RD_MODE, &mode) == -1)
+    {
+      perror ("SPI: Can't get SPI mode.");
+      return -1;
+    }
+  if (ioctl (fd, SPI_IOC_WR_BITS_PER_WORD, &bits) == -1)
+    {
+      perror ("SPI: Can't set bits per word.");
+      return -1;
+    }
+  if (ioctl (fd, SPI_IOC_RD_BITS_PER_WORD, &bits) == -1)
+    {
+      perror ("SPI: Can't get bits per word.");
+      return -1;
+    }
+  if (ioctl (fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1)
+    {
+      perror ("SPI: Can't set max speed HZ");
+      return -1;
+    }
+  if (ioctl (fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1)
+    {
+      perror ("SPI: Can't get max speed HZ.");
+      return -1;
+    }
+  return 0;
+}
+
+
+//SPI file descriptor and 16 bit word 
+int
+SPISend (unsigned int fd, int data)
+{
+  unsigned char send[20];
+  unsigned char receive[20];
+
+
+  data = data & 0xFFFF;
+  send[0] = (unsigned char) ((data >> 8) & 0xFF);
+  send[1] = (unsigned char) (data & 0xFF);
+  // This function can send and receive data, just sending here
+  if (transfer (fd, (unsigned char *) &send[0], &receive[0], 2) == -1)
+    {
+      perror ("Failed to update the display");
+      return -1;
+    }
+  fflush (stdout);		//need to flush the output, no \n
   return 0;
 }
