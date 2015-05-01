@@ -82,6 +82,9 @@ ssd1963Init ()
   usleep (1000 * 100);
 
   TFT_FillDisp(BLUE); 
+  TFT_Char48('B', 200, 200, BLACK, BLUE); 
+  sleep(3); 
+
   TFT_Text(message, 10, 30, 16, BLACK, BLUE); 
   while (1)
     {
@@ -414,7 +417,6 @@ void
 TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    unsigned int Bcolor)
 {
-
   unsigned char *ptrFont;
   unsigned int Cptrfont;
   unsigned int k, i, lineCount;
@@ -444,6 +446,42 @@ TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	}
     }
 }
+
+
+void
+TFT_Char48 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+	    unsigned int Bcolor)
+{
+  unsigned char *ptrFont;
+  unsigned int Cptrfont;
+  unsigned int k, i, lineCount;
+  volatile unsigned char cbit;
+
+  ptrFont = (unsigned char *) FONT_59_48;
+  Cptrfont = (C1 - 0x20) * 528;
+  ptrFont = ptrFont + Cptrfont;
+
+  TFT_Set_Address (x, y, x + 59, y + 66);
+  for (i = 0; i < 66; i++)
+    {
+      for (k = 0; k < 8; k++)
+	{
+	  for (lineCount = 0; lineCount < 8; lineCount++)
+	    {
+          if ( (k == 7) && (lineCount > 3) ) break;  
+	      cbit = (*ptrFont << lineCount) & 0x80;
+	      if (cbit == 0x80)
+		Write_Data (Fcolor);
+	      else
+		{
+		  Write_Data (Bcolor);
+		}
+	    }
+	  ptrFont++;
+	}
+    }
+}
+
 
 void
 TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
