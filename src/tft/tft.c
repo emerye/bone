@@ -48,20 +48,7 @@ ssd1963Init ()
 
   Init_ssd1963 ();
 
-  Address_set (0, 0, x, y);
-  Write_Data (BLACK);
-  printf ("Pix %d\n", x * y);
-  for (i = 0; i < x * (y + 1); i++)
-    {
-      SendCommand (WRITEDATA);
-    }
-  TFT_FillDisp (GREEN);
-
-  TFT_Text32 (phrase, 200, 150, GREEN, RED);
-  sleep (1);
-
-  TFT_Char32 ('1', 100, 100, RED, BLACK);
-  sleep (1);
+  TFT_FillDisp (BLACK);
 
   Address_set (0, 0, x, y);
   Write_Data (RED | GREEN);
@@ -82,7 +69,7 @@ ssd1963Init ()
   usleep (1000 * 100);
 
   TFT_FillDisp(BLUE); 
-  TFT_Char48('B', 200, 200, BLACK, BLUE); 
+  TFT_Char48('0', 320, 100, BLACK, BLUE); 
   sleep(3); 
 
   TFT_Text(message, 10, 30, 16, BLACK, BLUE); 
