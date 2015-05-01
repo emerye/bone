@@ -88,7 +88,6 @@ ssd1963Init ()
       CurrentTime (&hours[0], &minutes[0]);
       TFT_Text32 (hours, 100, 100, WHITE, BLUE);
       TFT_Text32 (minutes, 200, 100, WHITE, BLUE);
-      printf ("Current time in main %s %s\n", hours, minutes);
       sleep (2);
     }
 }
