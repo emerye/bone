@@ -67,5 +67,6 @@ extern void SendDisplayReset();
 extern void Init_ssd1963();
 extern void TFT_Write_Data(unsigned char, unsigned char); 
 extern void Address_set(unsigned x1, unsigned y1, unsigned x2, unsigned y2); 
+extern void CurrentTime(char *hours, char *minutes); 
 
 #endif /*TFT_H_*/

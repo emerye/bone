@@ -23,28 +23,16 @@ int spiFD;			//spi file descriptor
 char *phrase = "0123";
 
 
-char *
-CurrentTime (void)
+void
+CurrentTime(char *hours, char *minutes)
 {
-  char *ascTime;
   time_t seconds;
   struct tm *bTime;
-  char dispTime[30];
-  char minutes[10];
 
   seconds = time (NULL);
   bTime = localtime (&seconds);
-  ascTime = (char *) malloc (30);
-  ascTime = asctime (bTime);
-  printf ("Time is %s\n", ascTime);
-
-  sprintf (dispTime, "%02d", bTime->tm_hour);
+  sprintf (hours, "%02d", bTime->tm_hour);
   sprintf (minutes, "%02d", bTime->tm_min);
-  strcat (dispTime, minutes);
-  printf ("Time is %s\n", dispTime);
-  strcpy (ascTime, dispTime);
-
-  return (ascTime);
 }
 
 
@@ -54,11 +42,12 @@ ssd1963Init ()
   int i;
   int x = XMAXPIXEL + 1;
   int y = YMAXPIXEL + 1;
-  char *currentTime;
+  char hours[30];
+  char minutes[30];
+  char *message = "Hi Wanda. Graton Friday."; 
 
   Init_ssd1963 ();
 
-  currentTime = CurrentTime ();
   Address_set (0, 0, x, y);
   Write_Data (BLACK);
   printf ("Pix %d\n", x * y);
@@ -92,11 +81,14 @@ ssd1963Init ()
     SendCommand (WRITEDATA);
   usleep (1000 * 100);
 
+  TFT_FillDisp(BLUE); 
+  TFT_Text(message, 10, 30, 16, BLACK, BLUE); 
   while (1)
     {
-      currentTime = CurrentTime ();
-      TFT_Text32 (currentTime, 100, 100, WHITE, BLACK);
-      printf ("Current time in main %s\n", currentTime);
+      CurrentTime (&hours[0], &minutes[0]);
+      TFT_Text32 (hours, 100, 100, WHITE, BLUE);
+      TFT_Text32 (minutes, 200, 100, WHITE, BLUE);
+      printf ("Current time in main %s %s\n", hours, minutes);
       sleep (2);
     }
 }
@@ -403,8 +395,8 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
     }
 
   //Erase all
-  TFT_Set_Address (x, y, x + length * WIDTH, y + HEIGHT);
-  Write_Data (Bcolor);
+//  TFT_Set_Address (x, y, x + length * WIDTH, y + HEIGHT);
+//  Write_Data (Bcolor);
 
   for (i = 0; i < (length * WIDTH * HEIGHT); i++)
     {
