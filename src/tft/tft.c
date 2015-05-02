@@ -74,6 +74,8 @@ ssd1963Init ()
 
   TFT_Char72 ('0', 320, 180, WHITE, BLUE);
 
+  TFT_Text72 ("Hi Wanda", 10, 170, WHITE, BLUE);
+
   TFT_Text (message, 10, 30, 16, BLACK, BLUE);
   while (1)
     {
@@ -137,8 +139,6 @@ main ()
     }
   TFT_FillDisp (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
-
-//  TFT_Rectangle (0, 0, 100, 260, RED);
 
   TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
   sleep (2);
@@ -385,10 +385,6 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
       charcount++;
     }
 
-  //Erase all
-//  TFT_Set_Address (x, y, x + length * WIDTH, y + HEIGHT);
-//  Write_Data (Bcolor);
-
   for (i = 0; i < (length * WIDTH * HEIGHT); i++)
     {
       SendCommand (WRITEDATA);
@@ -398,6 +394,36 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
     {
       TFT_Char32 (buffer[k], x, y, Fcolor, Bcolor);
       x = x + 40;
+    }
+}
+
+
+void
+TFT_Text72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
+{
+  BYTE length, k;
+  WORD buffer[10] = { 0 };
+  BYTE charcount = 0;
+  int WIDTH = 89;
+  int HEIGHT = 96, i;
+
+  length = strlen (S);
+  while (*S != 0)
+    {
+      buffer[charcount] = *S;
+      S++;
+      charcount++;
+    }
+
+  for (i = 0; i < (length * WIDTH * HEIGHT); i++)
+    {
+      SendCommand (WRITEDATA);
+    }
+
+  for (k = 0; k < length; k++)
+    {
+      TFT_Char72 (buffer[k], x, y, Fcolor, Bcolor);
+      x = x + 89;
     }
 }
 
@@ -418,7 +444,6 @@ TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
   TFT_Set_Address (x, y, x + 31, y + 31);
   for (i = 0; i < 32; i++)
     {
-      //   Set_GDRAM_Address (x, y + i);
       for (k = 0; k < 4; k++)
 	{
 	  for (lineCount = 0; lineCount < 8; lineCount++)
