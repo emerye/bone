@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <time.h>
 #include "tftFonts.h"
+#include "sansserif72.h"
 #include "AD7843.h"
 #include "tft.h"
 
@@ -24,7 +25,7 @@ char *phrase = "0123";
 
 
 void
-CurrentTime(char *hours, char *minutes)
+CurrentTime (char *hours, char *minutes)
 {
   time_t seconds;
   struct tm *bTime;
@@ -44,7 +45,7 @@ ssd1963Init ()
   int y = YMAXPIXEL + 1;
   char hours[30];
   char minutes[30];
-  char *message = "Hi Wanda. Graton Friday."; 
+  char *message = "Hi Wanda. Graton Friday.";
 
   Init_ssd1963 ();
 
@@ -68,11 +69,12 @@ ssd1963Init ()
     SendCommand (WRITEDATA);
   usleep (1000 * 100);
 
-  TFT_FillDisp(BLUE); 
-  TFT_Char48('0', 320, 100, BLACK, BLUE); 
-  sleep(3); 
+  TFT_FillDisp (BLUE);
+  TFT_Char48 ('0', 320, 100, RED, BLUE);
 
-  TFT_Text(message, 10, 30, 16, BLACK, BLUE); 
+  TFT_Char72 ('0', 320, 180, WHITE, BLUE);
+
+  TFT_Text (message, 10, 30, 16, BLACK, BLUE);
   while (1)
     {
       CurrentTime (&hours[0], &minutes[0]);
@@ -455,7 +457,44 @@ TFT_Char48 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	{
 	  for (lineCount = 0; lineCount < 8; lineCount++)
 	    {
-          if ( (k == 7) && (lineCount > 3) ) break;  
+	      if ((k == 7) && (lineCount > 3))
+		break;
+	      cbit = (*ptrFont << lineCount) & 0x80;
+	      if (cbit == 0x80)
+		Write_Data (Fcolor);
+	      else
+		{
+		  Write_Data (Bcolor);
+		}
+	    }
+	  ptrFont++;
+	}
+    }
+}
+
+
+void
+TFT_Char72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+	    unsigned int Bcolor)
+{
+  unsigned char *ptrFont;
+  unsigned int Cptrfont;
+  unsigned int k, i, lineCount;
+  volatile unsigned char cbit;
+
+  ptrFont = (unsigned char *) FONT72;
+  Cptrfont = (C1 - 0x20) * 1152;
+  ptrFont = ptrFont + Cptrfont;
+
+  TFT_Set_Address (x, y, x + 89, y + 96);
+  for (i = 0; i < 96; i++)
+    {
+      for (k = 0; k < 12; k++)
+	{
+	  for (lineCount = 0; lineCount < 8; lineCount++)
+	    {
+	      if ((k == 11) && (lineCount > 1))
+		break;
 	      cbit = (*ptrFont << lineCount) & 0x80;
 	      if (cbit == 0x80)
 		Write_Data (Fcolor);
@@ -482,7 +521,6 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
   unsigned int font16x16[16];
   unsigned int k, i, x_new, print1, print2;
   unsigned int print3;
-
 
   switch (DimFont)
     {
@@ -526,7 +564,6 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
 
       }
       break;
-
 
     case 16:
       {
