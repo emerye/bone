@@ -67,9 +67,11 @@ extern void SendDisplayReset();
 extern void Init_ssd1963();
 extern void TFT_Write_Data(unsigned char, unsigned char); 
 extern void Address_set(unsigned x1, unsigned y1, unsigned x2, unsigned y2); 
-extern void CurrentTime(char *hours, char *minutes); 
+extern void CurrentTime(int *hours, int  *minutes); 
 extern void TFT_Char48(char C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
 extern void TFT_Char72(char C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
+extern void TFT_AltChar72(char C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
 extern void TFT_Text72(char *C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
+extern void TFT_AltText72(char *C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
 
 #endif /*TFT_H_*/

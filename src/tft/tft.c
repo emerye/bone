@@ -25,63 +25,33 @@ char *phrase = "0123";
 
 
 void
-CurrentTime (char *hours, char *minutes)
+CurrentTime (int *hours, int *minutes)
 {
   time_t seconds;
   struct tm *bTime;
 
   seconds = time (NULL);
   bTime = localtime (&seconds);
-  sprintf (hours, "%02d", bTime->tm_hour);
-  sprintf (minutes, "%02d", bTime->tm_min);
+  *hours = bTime->tm_hour;
+  if (*hours > 12) *hours = *hours - 12; 
+  *minutes = bTime->tm_min;
 }
 
 
 void
 ssd1963Init ()
 {
-  int i;
-  int x = XMAXPIXEL + 1;
-  int y = YMAXPIXEL + 1;
-  char hours[30];
-  char minutes[30];
-  char *message = "Hi Wanda. Graton Friday.";
+  int hours = 0, minutes = 0;
+  char dispTime[30]; 
 
   Init_ssd1963 ();
-
-  TFT_FillDisp (BLACK);
-
-  Address_set (0, 0, x, y);
-  Write_Data (RED | GREEN);
-  for (i = 0; i < (x * (y + 1)); i++)
-    SendCommand (WRITEDATA);
-  usleep (1000 * 100);
-
-  Address_set (0, 0, x, y);
-  Write_Data (BLUE);
-  for (i = 0; i < x * (y + 10); i++)
-    SendCommand (WRITEDATA);
-  usleep (1000 * 100);
-
-  Address_set (250, 250, 300, 270);
-  Write_Data (BLUE | RED);
-  for (i = 0; i < 50 * (50 + 10); i++)
-    SendCommand (WRITEDATA);
-  usleep (1000 * 100);
-
   TFT_FillDisp (BLUE);
-  TFT_Char48 ('0', 320, 100, RED, BLUE);
 
-  TFT_Char72 ('0', 320, 180, WHITE, BLUE);
-
-  TFT_Text72 ("Hi Wanda", 10, 170, WHITE, BLUE);
-
-  TFT_Text (message, 10, 30, 16, BLACK, BLUE);
   while (1)
     {
-      CurrentTime (&hours[0], &minutes[0]);
-      TFT_Text32 (hours, 100, 100, WHITE, BLUE);
-      TFT_Text32 (minutes, 200, 100, WHITE, BLUE);
+      CurrentTime (&hours, &minutes);
+      sprintf(dispTime, "%d:%02d", hours, minutes); 
+      TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
       sleep (2);
     }
 }
@@ -399,6 +369,36 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
 
 
 void
+TFT_AltText72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
+{
+  BYTE length, k;
+  WORD buffer[10] = { 0 };
+  BYTE charcount = 0;
+  int WIDTH = 72;
+  int HEIGHT = 96, i;
+
+  length = strlen (S);
+  while (*S != 0)
+    {
+      buffer[charcount] = *S;
+      S++;
+      charcount++;
+    }
+
+  for (i = 0; i < (length * WIDTH * HEIGHT); i++)
+    {
+      SendCommand (WRITEDATA);
+    }
+
+  for (k = 0; k < length; k++)
+    {
+      TFT_AltChar72 (buffer[k], x, y, Fcolor, Bcolor);
+      x = x + WIDTH - 8; ;
+    }
+}
+
+
+void
 TFT_Text72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
 {
   BYTE length, k;
@@ -497,7 +497,7 @@ TFT_Char48 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
     }
 }
 
-
+//Fone 72  89 bits across  96 bytes down
 void
 TFT_Char72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    unsigned int Bcolor)
@@ -530,6 +530,59 @@ TFT_Char72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    }
 	  ptrFont++;
 	}
+    }
+}
+
+//Font 72  89 bits across  96 bytes down
+//This skip the first byte and last 9 bits. The font is 72 bits wide. 
+void
+TFT_AltChar72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+	       unsigned int Bcolor)
+{
+  unsigned char *ptrFont;
+  unsigned int Cptrfont;
+  unsigned int k, i, lineCount;
+  volatile unsigned char cbit;
+
+  ptrFont = (unsigned char *) FONT72;
+  Cptrfont = (C1 - 0x20) * 1152;
+  ptrFont = ptrFont + Cptrfont;
+
+  TFT_Set_Address (x, y, x + (89 - 8 - 2 - 8), y + 96);
+  for (i = 0; i < 96; i++)
+    {
+      for (k = 0; k < 12; k++)
+	  {
+	  if (k == 0)
+	    {
+	      ptrFont++;
+	      continue;
+	    }
+      if (k > 9) 
+		{
+ 		  ptrFont++;
+          continue; 
+        }
+
+	  for (lineCount = 0; lineCount < 8; lineCount++)
+	    {
+	      if ((k == 11) && (lineCount > 1))
+		{
+              break;
+		}
+
+	      cbit = (*ptrFont << lineCount) & 0x80;
+	      if (cbit == 0x80)
+		{
+		  Write_Data (Fcolor);
+		}
+	      else
+		{
+		  Write_Data (Bcolor);
+		}
+	    }
+   	 ptrFont++;
+	  }
     }
 }
 
