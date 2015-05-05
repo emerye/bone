@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <time.h>
 #include "tftFonts.h"
+#include "sansserif72.h"
 #include "AD7843.h"
 #include "tft.h"
 
@@ -24,70 +25,33 @@ char *phrase = "0123";
 
 
 void
-CurrentTime(char *hours, char *minutes)
+CurrentTime (int *hours, int *minutes)
 {
   time_t seconds;
   struct tm *bTime;
 
   seconds = time (NULL);
   bTime = localtime (&seconds);
-  sprintf (hours, "%02d", bTime->tm_hour);
-  sprintf (minutes, "%02d", bTime->tm_min);
+  *hours = bTime->tm_hour;
+  if (*hours > 12) *hours = *hours - 12; 
+  *minutes = bTime->tm_min;
 }
 
 
 void
 ssd1963Init ()
 {
-  int i;
-  int x = XMAXPIXEL + 1;
-  int y = YMAXPIXEL + 1;
-  char hours[30];
-  char minutes[30];
-  char *message = "Hi Wanda. Graton Friday."; 
+  int hours = 0, minutes = 0;
+  char dispTime[30]; 
 
   Init_ssd1963 ();
+  TFT_FillDisp (BLUE);
 
-  Address_set (0, 0, x, y);
-  Write_Data (BLACK);
-  printf ("Pix %d\n", x * y);
-  for (i = 0; i < x * (y + 1); i++)
-    {
-      SendCommand (WRITEDATA);
-    }
-  TFT_FillDisp (GREEN);
-
-  TFT_Text32 (phrase, 200, 150, GREEN, RED);
-  sleep (1);
-
-  TFT_Char32 ('1', 100, 100, RED, BLACK);
-  sleep (1);
-
-  Address_set (0, 0, x, y);
-  Write_Data (RED | GREEN);
-  for (i = 0; i < (x * (y + 1)); i++)
-    SendCommand (WRITEDATA);
-  usleep (1000 * 100);
-
-  Address_set (0, 0, x, y);
-  Write_Data (BLUE);
-  for (i = 0; i < x * (y + 10); i++)
-    SendCommand (WRITEDATA);
-  usleep (1000 * 100);
-
-  Address_set (250, 250, 300, 270);
-  Write_Data (BLUE | RED);
-  for (i = 0; i < 50 * (50 + 10); i++)
-    SendCommand (WRITEDATA);
-  usleep (1000 * 100);
-
-  TFT_FillDisp(BLUE); 
-  TFT_Text(message, 10, 30, 16, BLACK, BLUE); 
   while (1)
     {
-      CurrentTime (&hours[0], &minutes[0]);
-      TFT_Text32 (hours, 100, 100, WHITE, BLUE);
-      TFT_Text32 (minutes, 200, 100, WHITE, BLUE);
+      CurrentTime (&hours, &minutes);
+      sprintf(dispTime, "%d:%02d", hours, minutes); 
+      TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
       sleep (2);
     }
 }
@@ -145,8 +109,6 @@ main ()
     }
   TFT_FillDisp (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
-
-//  TFT_Rectangle (0, 0, 100, 260, RED);
 
   TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
   sleep (2);
@@ -393,10 +355,6 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
       charcount++;
     }
 
-  //Erase all
-//  TFT_Set_Address (x, y, x + length * WIDTH, y + HEIGHT);
-//  Write_Data (Bcolor);
-
   for (i = 0; i < (length * WIDTH * HEIGHT); i++)
     {
       SendCommand (WRITEDATA);
@@ -411,10 +369,69 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
 
 
 void
+TFT_AltText72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
+{
+  BYTE length, k;
+  WORD buffer[10] = { 0 };
+  BYTE charcount = 0;
+  int WIDTH = 72;
+  int HEIGHT = 96, i;
+
+  length = strlen (S);
+  while (*S != 0)
+    {
+      buffer[charcount] = *S;
+      S++;
+      charcount++;
+    }
+
+  for (i = 0; i < (length * WIDTH * HEIGHT); i++)
+    {
+      SendCommand (WRITEDATA);
+    }
+
+  for (k = 0; k < length; k++)
+    {
+      TFT_AltChar72 (buffer[k], x, y, Fcolor, Bcolor);
+      x = x + WIDTH - 8; ;
+    }
+}
+
+
+void
+TFT_Text72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
+{
+  BYTE length, k;
+  WORD buffer[10] = { 0 };
+  BYTE charcount = 0;
+  int WIDTH = 89;
+  int HEIGHT = 96, i;
+
+  length = strlen (S);
+  while (*S != 0)
+    {
+      buffer[charcount] = *S;
+      S++;
+      charcount++;
+    }
+
+  for (i = 0; i < (length * WIDTH * HEIGHT); i++)
+    {
+      SendCommand (WRITEDATA);
+    }
+
+  for (k = 0; k < length; k++)
+    {
+      TFT_Char72 (buffer[k], x, y, Fcolor, Bcolor);
+      x = x + 89;
+    }
+}
+
+
+void
 TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 	    unsigned int Bcolor)
 {
-
   unsigned char *ptrFont;
   unsigned int Cptrfont;
   unsigned int k, i, lineCount;
@@ -427,7 +444,6 @@ TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
   TFT_Set_Address (x, y, x + 31, y + 31);
   for (i = 0; i < 32; i++)
     {
-      //   Set_GDRAM_Address (x, y + i);
       for (k = 0; k < 4; k++)
 	{
 	  for (lineCount = 0; lineCount < 8; lineCount++)
@@ -445,6 +461,132 @@ TFT_Char32 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
     }
 }
 
+
+void
+TFT_Char48 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+	    unsigned int Bcolor)
+{
+  unsigned char *ptrFont;
+  unsigned int Cptrfont;
+  unsigned int k, i, lineCount;
+  volatile unsigned char cbit;
+
+  ptrFont = (unsigned char *) FONT_59_48;
+  Cptrfont = (C1 - 0x20) * 528;
+  ptrFont = ptrFont + Cptrfont;
+
+  TFT_Set_Address (x, y, x + 59, y + 66);
+  for (i = 0; i < 66; i++)
+    {
+      for (k = 0; k < 8; k++)
+	{
+	  for (lineCount = 0; lineCount < 8; lineCount++)
+	    {
+	      if ((k == 7) && (lineCount > 3))
+		break;
+	      cbit = (*ptrFont << lineCount) & 0x80;
+	      if (cbit == 0x80)
+		Write_Data (Fcolor);
+	      else
+		{
+		  Write_Data (Bcolor);
+		}
+	    }
+	  ptrFont++;
+	}
+    }
+}
+
+//Fone 72  89 bits across  96 bytes down
+void
+TFT_Char72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+	    unsigned int Bcolor)
+{
+  unsigned char *ptrFont;
+  unsigned int Cptrfont;
+  unsigned int k, i, lineCount;
+  volatile unsigned char cbit;
+
+  ptrFont = (unsigned char *) FONT72;
+  Cptrfont = (C1 - 0x20) * 1152;
+  ptrFont = ptrFont + Cptrfont;
+
+  TFT_Set_Address (x, y, x + 89, y + 96);
+  for (i = 0; i < 96; i++)
+    {
+      for (k = 0; k < 12; k++)
+	{
+	  for (lineCount = 0; lineCount < 8; lineCount++)
+	    {
+	      if ((k == 11) && (lineCount > 1))
+		break;
+	      cbit = (*ptrFont << lineCount) & 0x80;
+	      if (cbit == 0x80)
+		Write_Data (Fcolor);
+	      else
+		{
+		  Write_Data (Bcolor);
+		}
+	    }
+	  ptrFont++;
+	}
+    }
+}
+
+//Font 72  89 bits across  96 bytes down
+//This skip the first byte and last 9 bits. The font is 72 bits wide. 
+void
+TFT_AltChar72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
+	       unsigned int Bcolor)
+{
+  unsigned char *ptrFont;
+  unsigned int Cptrfont;
+  unsigned int k, i, lineCount;
+  volatile unsigned char cbit;
+
+  ptrFont = (unsigned char *) FONT72;
+  Cptrfont = (C1 - 0x20) * 1152;
+  ptrFont = ptrFont + Cptrfont;
+
+  TFT_Set_Address (x, y, x + (89 - 8 - 2 - 8), y + 96);
+  for (i = 0; i < 96; i++)
+    {
+      for (k = 0; k < 12; k++)
+	  {
+	  if (k == 0)
+	    {
+	      ptrFont++;
+	      continue;
+	    }
+      if (k > 9) 
+		{
+ 		  ptrFont++;
+          continue; 
+        }
+
+	  for (lineCount = 0; lineCount < 8; lineCount++)
+	    {
+	      if ((k == 11) && (lineCount > 1))
+		{
+              break;
+		}
+
+	      cbit = (*ptrFont << lineCount) & 0x80;
+	      if (cbit == 0x80)
+		{
+		  Write_Data (Fcolor);
+		}
+	      else
+		{
+		  Write_Data (Bcolor);
+		}
+	    }
+   	 ptrFont++;
+	  }
+    }
+}
+
+
 void
 TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
 	  unsigned int Fcolor, unsigned int Bcolor)
@@ -457,7 +599,6 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
   unsigned int font16x16[16];
   unsigned int k, i, x_new, print1, print2;
   unsigned int print3;
-
 
   switch (DimFont)
     {
@@ -501,7 +642,6 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
 
       }
       break;
-
 
     case 16:
       {
