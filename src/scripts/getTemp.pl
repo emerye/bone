@@ -1,0 +1,77 @@
+#!/usr/bin/perl -w
+use strict; 
+use warnings; 
+use JSON qw( decode_json ); 
+
+my $OUTFILE = "./exttemp.txt";
+
+my ($outFile, $ret, $wgetcmd, $fh, $completefile, @lines, $temperature,
+	$wgetfile, $jsonString); 
+
+$wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
+
+#print("$wgetcmd",  "\n"); 
+
+$ret = system($wgetcmd); 
+print ("Return value:  ",  $ret, "\n"); 
+
+open ($fh, "<", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
+while(<$fh>) {
+  push @lines, $_ ; 
+}
+close($fh); 
+
+foreach ( @lines ) {
+  if (/Temperature/)
+  {
+    #print "Start position $-[0] Endposition $+[0] \n"; 
+    $temperature = substr($_, $+[0] + 2, 5); 
+    print $temperature;  
+  }
+}
+
+`rm $OUTFILE`;
+
+$OUTFILE = 'cweather.json'; 
+
+$wgetcmd = "wget -O " . $OUTFILE . ' http://api.openweathermap.org/data/2.5/weather?q=Fremont'; 
+
+$ret = system($wgetcmd); 
+print ("Return value:  ",  $ret, "\n"); 
+
+#JSON
+$jsonString = "";
+open ($fh, "<", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
+while(<$fh>) {
+  $jsonString = $jsonString .  $_ ; 
+}
+close($fh); 
+
+#
+$OUTFILE = 'wdata.txt';
+open ($fh, ">", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
+my $decoded = decode_json($jsonString); 
+
+print $fh "sunrise = " . $decoded->{'sys'}{'sunrise'} . "\n";
+print $fh "sunset = " . $decoded->{'sys'}{'sunset'} . "\n";
+print $fh "message = " . $decoded->{'sys'}{'message'} . "\n";
+
+my @weather = @{ $decoded->{'weather'} }; 
+foreach my $f ( @weather )  {
+  print $fh "id=" .  $f->{ 'id' } . "\n"; 
+  print $fh "main=" . $f->{ 'main' } . "\n"; 
+  print $fh "description=" . $f->{ 'description' } . "\n"; 
+  print $fh "icon=" . $f->{ 'icon' } . "\n"; 
+}
+
+print $fh "pressure=" . $decoded->{'main'}{'pressure'} . "\n";
+print $fh "sea_level=" . $decoded->{'main'}{'sea_level'} . "\n";
+print $fh "grnd_level=" . $decoded->{'main'}{'grnd_level'} . "\n";
+print $fh "humidity=" . $decoded->{'main'}{'humidity'} . "\n";
+
+print $fh "windspeed=" . $decoded->{'wind'}{'speed'} . "\n";
+print $fh "winddeg=" . $decoded->{'wind'}{'deg'} . "\n";
+
+
+close($fh); 
+

@@ -29,11 +29,20 @@ CurrentTime (int *hours, int *minutes)
 {
   time_t seconds;
   struct tm *bTime;
+  int lclHours;
 
   seconds = time (NULL);
   bTime = localtime (&seconds);
-  *hours = bTime->tm_hour;
-  if (*hours > 12) *hours = *hours - 12; 
+  lclHours = bTime->tm_hour;
+  *hours = lclHours;
+  if (lclHours > 12)
+    {
+      *hours = lclHours - 12;
+    }
+  if (lclHours == 0)
+    {
+      *hours = 12;
+    }
   *minutes = bTime->tm_min;
 }
 
@@ -42,15 +51,30 @@ void
 ssd1963Init ()
 {
   int hours = 0, minutes = 0;
-  char dispTime[30]; 
+  char dispTime[30];
+  int i;
+  int lastHour = 0;
+
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
 
+  TFT_AltText72 ("1 a", 0, 120, BLUE, WHITE);
+
   while (1)
     {
       CurrentTime (&hours, &minutes);
-      sprintf(dispTime, "%d:%02d", hours, minutes); 
+      if ((lastHour == 12 && hours == 1))
+	{
+	  Write_Data (BLUE);
+	  TFT_Set_Address (0, 0, 72 * 5, 96);
+	  for (i = 0; i < 72 * 5 * 97; i++)
+	    {
+	      Write_Command (WRITEDATA);
+	    }
+	}
+      sprintf (dispTime, "%2d:%02d", hours, minutes);
+      printf ("Time %s\n", dispTime);
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
       sleep (2);
     }
@@ -393,7 +417,7 @@ TFT_AltText72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
   for (k = 0; k < length; k++)
     {
       TFT_AltChar72 (buffer[k], x, y, Fcolor, Bcolor);
-      x = x + WIDTH - 8; ;
+      x = x + WIDTH - 8;;
     }
 }
 
@@ -552,23 +576,23 @@ TFT_AltChar72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
   for (i = 0; i < 96; i++)
     {
       for (k = 0; k < 12; k++)
-	  {
+	{
 	  if (k == 0)
 	    {
 	      ptrFont++;
 	      continue;
 	    }
-      if (k > 9) 
-		{
- 		  ptrFont++;
-          continue; 
-        }
+	  if (k > 9)
+	    {
+	      ptrFont++;
+	      continue;
+	    }
 
 	  for (lineCount = 0; lineCount < 8; lineCount++)
 	    {
 	      if ((k == 11) && (lineCount > 1))
 		{
-              break;
+		  break;
 		}
 
 	      cbit = (*ptrFont << lineCount) & 0x80;
@@ -581,8 +605,8 @@ TFT_AltChar72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 		  Write_Data (Bcolor);
 		}
 	    }
-   	 ptrFont++;
-	  }
+	  ptrFont++;
+	}
     }
 }
 
