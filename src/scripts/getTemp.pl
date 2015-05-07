@@ -6,7 +6,7 @@ use JSON qw( decode_json );
 my $OUTFILE = "./exttemp.txt";
 
 my ($outFile, $ret, $wgetcmd, $fh, $completefile, @lines, $temperature,
-	$wgetfile, $jsonString); 
+	$wgetfile, $jsonString, $minutes, $hours); 
 
 $wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
 
@@ -52,8 +52,28 @@ $OUTFILE = 'wdata.txt';
 open ($fh, ">", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
 my $decoded = decode_json($jsonString); 
 
-print $fh "sunrise = " . $decoded->{'sys'}{'sunrise'} . "\n";
-print $fh "sunset = " . $decoded->{'sys'}{'sunset'} . "\n";
+my $sunrise = $decoded->{'sys'}{'sunrise'};
+($minutes,$hours) = (localtime($sunrise))[1,2];  
+printf $fh "sunrisehour=$hours" . "\n"; 
+if(length($minutes) == 1) 
+{
+ $minutes = "0".$minutes;  
+}
+printf $fh "sunriseminutes=$minutes" . "\n"; 
+
+my $sunset = $decoded->{'sys'}{'sunset'}; 
+($minutes,$hours) = (localtime($sunset))[1,2];  
+printf $fh "sunsethour=" . ($hours - 12) . "\n"; 
+
+if(length($minutes) == 1) 
+{
+ $minutes = "0".$minutes;  
+}
+printf $fh "sunsetminutes=$minutes" . "\n"; 
+
+printf $fh "indoorTemp=73\n"; 
+printf $fh "outdoorTemp=81\n"; 
+
 print $fh "message = " . $decoded->{'sys'}{'message'} . "\n";
 
 my @weather = @{ $decoded->{'weather'} }; 
@@ -71,7 +91,6 @@ print $fh "humidity=" . $decoded->{'main'}{'humidity'} . "\n";
 
 print $fh "windspeed=" . $decoded->{'wind'}{'speed'} . "\n";
 print $fh "winddeg=" . $decoded->{'wind'}{'deg'} . "\n";
-
 
 close($fh); 
 

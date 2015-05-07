@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@
 #include "AD7843.h"
 #include "tft.h"
 
-
+const char *wdataFile = "./wdata.txt"; 
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
@@ -23,6 +24,43 @@ int mmapFD;			//mmap file descriptor
 int spiFD;			//spi file descriptor
 char *phrase = "0123";
 
+
+int GetValue(const char *keyword, char *value) 
+{
+  FILE *fp; 
+  char line[256]; 
+  char *token; 
+  char *ptrChar = NULL;   
+
+  fp = fopen(wdataFile, "r"); 
+  if (fp == NULL) 
+{ 
+//  printf("Could not open wdata file.\n"); 
+  return -1; 
+}
+  while (fgets(line, sizeof(line), fp)) 
+{
+  if (strstr(line, keyword) != NULL)
+  {
+    token = strtok(line, "="); 
+    token = strtok(NULL, "="); 
+    ptrChar = token; 
+    while(*token != '\0') 
+	{ 
+      if (!isalnum(*token)) 
+		{ 
+         *token =  '\0';   
+        }
+      token++;  
+    }
+    strcpy(value, ptrChar); 
+    break; 
+  }
+}
+fclose(fp); 
+return 0; 
+}
+    
 
 void
 CurrentTime (int *hours, int *minutes)
@@ -47,20 +85,65 @@ CurrentTime (int *hours, int *minutes)
 }
 
 
+void DisplayFile(void) 
+{
+  int x = 20; 
+  int y = 110; 
+  int xwidth = 400; 
+  int yheight = 100; 
+  int ret,i; 
+  char buf1[30]; 
+  char buf2[30]; 
+  char sunrise[40], sunset[40]; 
+  char indoorTemp[40], outdoorTemp[40]; 
+
+  //Erase the entire region
+   Write_Data(BLUE); 
+   TFT_Set_Address (x, y, x + xwidth, y + yheight);
+	  for (i = 0; i < (xwidth - x) * (yheight - y); i++)
+	    {
+	      Write_Command (WRITEDATA);
+	    }
+
+  ret = GetValue("sunrisehour", buf1); 
+  ret = GetValue("sunriseminutes", buf2); 
+  sprintf(sunrise, "Sunrise: %s:%s AM", buf1, buf2); 
+  ret = GetValue("sunsethour", buf1); 
+  ret = GetValue("sunsetminutes", buf2); 
+  sprintf(sunset, "Sunset: %s:%s PM", buf1, buf2); 
+
+  ret = GetValue("indoorTemp", buf1);  
+  sprintf(indoorTemp, "Indoor Temp: %s deg", buf1); 
+
+  ret = GetValue("outdoorTemp", buf1);  
+  sprintf(outdoorTemp, "Outdoor Temp: %s deg", buf1); 
+
+  TFT_Text(sunrise, x, y, 16, WHITE, BLUE);  
+  y += 20; 
+  TFT_Text(sunset, x, y, 16, WHITE, BLUE);  
+  y += 20; 
+  TFT_Text(indoorTemp, x, y, 16, WHITE, BLUE);  
+  y += 20; 
+  TFT_Text(outdoorTemp, x, y, 16, WHITE, BLUE);  
+
+}  
+  
+
+
 void
 ssd1963Init ()
 {
-  int hours = 0, minutes = 0;
+  int ret;
   char dispTime[30];
   int i;
-  int lastHour = 0;
-
+  char value[30]; 
+  int hours, minutes;
+  int lastHour = 0; 
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
 
-  TFT_AltText72 ("1 a", 0, 120, BLUE, WHITE);
-
+  DisplayFile(); 
   while (1)
     {
       CurrentTime (&hours, &minutes);
@@ -74,7 +157,6 @@ ssd1963Init ()
 	    }
 	}
       sprintf (dispTime, "%2d:%02d", hours, minutes);
-      printf ("Time %s\n", dispTime);
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
       sleep (2);
     }
