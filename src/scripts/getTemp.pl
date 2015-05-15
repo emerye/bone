@@ -1,12 +1,16 @@
 #!/usr/bin/perl -w
 use strict; 
 use warnings; 
+
 use JSON qw( decode_json ); 
 
 my $OUTFILE = "./exttemp.txt";
 
 my ($outFile, $ret, $wgetcmd, $fh, $completefile, @lines, $temperature,
 	$wgetfile, $jsonString, $minutes, $hours); 
+
+#Copy outside temp from bone
+`scp bone:/root/bone/temperature.log outsidetemp.txt`; 
 
 $wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
 
@@ -26,6 +30,7 @@ foreach ( @lines ) {
   {
     #print "Start position $-[0] Endposition $+[0] \n"; 
     $temperature = substr($_, $+[0] + 2, 5); 
+    $temperature =~ s/\s+//; 
     print $temperature;  
   }
 }
@@ -72,7 +77,7 @@ if(length($minutes) == 1)
 printf $fh "sunsetminutes=$minutes" . "\n"; 
 
 printf $fh "indoorTemp=73\n"; 
-printf $fh "outdoorTemp=81\n"; 
+printf $fh "outdoorTemp=$temperature\n"; 
 
 print $fh "message = " . $decoded->{'sys'}{'message'} . "\n";
 

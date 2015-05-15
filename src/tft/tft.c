@@ -91,7 +91,7 @@ void DisplayFile(void)
   int y = 110; 
   int xwidth = 400; 
   int yheight = 100; 
-  int ret,i; 
+  int i; 
   char buf1[30]; 
   char buf2[30]; 
   char sunrise[40], sunset[40]; 
@@ -105,17 +105,17 @@ void DisplayFile(void)
 	      Write_Command (WRITEDATA);
 	    }
 
-  ret = GetValue("sunrisehour", buf1); 
-  ret = GetValue("sunriseminutes", buf2); 
+  GetValue("sunrisehour", buf1); 
+  GetValue("sunriseminutes", buf2); 
   sprintf(sunrise, "Sunrise: %s:%s AM", buf1, buf2); 
-  ret = GetValue("sunsethour", buf1); 
-  ret = GetValue("sunsetminutes", buf2); 
+  GetValue("sunsethour", buf1); 
+  GetValue("sunsetminutes", buf2); 
   sprintf(sunset, "Sunset: %s:%s PM", buf1, buf2); 
 
-  ret = GetValue("indoorTemp", buf1);  
+   GetValue("indoorTemp", buf1);  
   sprintf(indoorTemp, "Indoor Temp: %s deg", buf1); 
 
-  ret = GetValue("outdoorTemp", buf1);  
+  GetValue("outdoorTemp", buf1);  
   sprintf(outdoorTemp, "Outdoor Temp: %s deg", buf1); 
 
   TFT_Text(sunrise, x, y, 16, WHITE, BLUE);  
@@ -133,10 +133,8 @@ void DisplayFile(void)
 void
 ssd1963Init ()
 {
-  int ret;
   char dispTime[30];
   int i;
-  char value[30]; 
   int hours, minutes;
   int lastHour = 0; 
 
@@ -158,6 +156,7 @@ ssd1963Init ()
 	}
       sprintf (dispTime, "%2d:%02d", hours, minutes);
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
+      DisplayFile(); 
       sleep (2);
     }
 }
