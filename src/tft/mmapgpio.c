@@ -136,6 +136,10 @@ SendDisplayReset()
   gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
   gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
 
+  *gpio_setdataout_addr = GPIO60;	//Set line high. 
+  usleep(1000 * 15);  
+  *gpio_cleardataout_addr = GPIO60;	//Set line low
+  usleep(1000 * 25);  
   *gpio_setdataout_addr = GPIO60;	//Set line. 
   usleep(1000 * 15);  
   *gpio_cleardataout_addr = GPIO60;	//Set line low

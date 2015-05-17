@@ -46,7 +46,7 @@ SendWord (int data)
 {
   unsigned int fd;		//file handle and loop counter
   uint8_t bits = 8, mode = 3;	//8-bits per word, SPI mode 3
-  uint32_t speed = 1000000;	//Speed is 1 MHz
+  uint32_t speed = 12000000;	//Speed is 1 MHz
   unsigned char send[20];
   unsigned char receive[20];
 

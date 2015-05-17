@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@
 #include "AD7843.h"
 #include "tft.h"
 
-
+const char *wdataFile = "./wdata.txt"; 
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
@@ -24,34 +25,138 @@ int spiFD;			//spi file descriptor
 char *phrase = "0123";
 
 
+int GetValue(const char *keyword, char *value) 
+{
+  FILE *fp; 
+  char line[256]; 
+  char *token; 
+  char *ptrChar = NULL;   
+
+  fp = fopen(wdataFile, "r"); 
+  if (fp == NULL) 
+{ 
+//  printf("Could not open wdata file.\n"); 
+  return -1; 
+}
+  while (fgets(line, sizeof(line), fp)) 
+{
+  if (strstr(line, keyword) != NULL)
+  {
+    token = strtok(line, "="); 
+    token = strtok(NULL, "="); 
+    ptrChar = token; 
+    while(*token != '\0') 
+	{ 
+      if (!isalnum(*token)) 
+		{ 
+         *token =  '\0';   
+        }
+      token++;  
+    }
+    strcpy(value, ptrChar); 
+    break; 
+  }
+}
+fclose(fp); 
+return 0; 
+}
+    
+
 void
 CurrentTime (int *hours, int *minutes)
 {
   time_t seconds;
   struct tm *bTime;
+  int lclHours;
 
   seconds = time (NULL);
   bTime = localtime (&seconds);
-  *hours = bTime->tm_hour;
-  if (*hours > 12) *hours = *hours - 12; 
+  lclHours = bTime->tm_hour;
+  *hours = lclHours;
+  if (lclHours > 12)
+    {
+      *hours = lclHours - 12;
+    }
+  if (lclHours == 0)
+    {
+      *hours = 12;
+    }
   *minutes = bTime->tm_min;
 }
+
+
+void DisplayFile(void) 
+{
+  int x = 20; 
+  int y = 110; 
+  int xwidth = 400; 
+  int yheight = 100; 
+  int i; 
+  char buf1[30]; 
+  char buf2[30]; 
+  char sunrise[40], sunset[40]; 
+  char indoorTemp[40], outdoorTemp[40]; 
+
+  //Erase the entire region
+   Write_Data(BLUE); 
+   TFT_Set_Address (x, y, x + xwidth, y + yheight);
+	  for (i = 0; i < (xwidth - x) * (yheight - y); i++)
+	    {
+	      Write_Command (WRITEDATA);
+	    }
+
+  GetValue("sunrisehour", buf1); 
+  GetValue("sunriseminutes", buf2); 
+  sprintf(sunrise, "Sunrise: %s:%s AM", buf1, buf2); 
+  GetValue("sunsethour", buf1); 
+  GetValue("sunsetminutes", buf2); 
+  sprintf(sunset, "Sunset: %s:%s PM", buf1, buf2); 
+
+   GetValue("indoorTemp", buf1);  
+  sprintf(indoorTemp, "Indoor Temp: %s deg", buf1); 
+
+  GetValue("outdoorTemp", buf1);  
+  sprintf(outdoorTemp, "Outdoor Temp: %s deg", buf1); 
+
+  TFT_Text(sunrise, x, y, 16, WHITE, BLUE);  
+  y += 20; 
+  TFT_Text(sunset, x, y, 16, WHITE, BLUE);  
+  y += 20; 
+  TFT_Text(indoorTemp, x, y, 16, WHITE, BLUE);  
+  y += 20; 
+  TFT_Text(outdoorTemp, x, y, 16, WHITE, BLUE);  
+
+}  
+  
 
 
 void
 ssd1963Init ()
 {
-  int hours = 0, minutes = 0;
-  char dispTime[30]; 
+  char dispTime[30];
+  int i;
+  int hours, minutes;
+  int lastHour = 0; 
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
 
+  DisplayFile(); 
   while (1)
     {
       CurrentTime (&hours, &minutes);
-      sprintf(dispTime, "%d:%02d", hours, minutes); 
+      if ((lastHour == 12 && hours == 1))
+	{
+	  Write_Data (BLUE);
+	  TFT_Set_Address (0, 0, 72 * 5, 96);
+	  for (i = 0; i < 72 * 5 * 97; i++)
+	    {
+	      Write_Command (WRITEDATA);
+	    }
+	}
+      sprintf (dispTime, "%2d:%02d", hours, minutes);
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
+      DisplayFile(); 
       sleep (2);
     }
 }
@@ -393,7 +498,7 @@ TFT_AltText72 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
   for (k = 0; k < length; k++)
     {
       TFT_AltChar72 (buffer[k], x, y, Fcolor, Bcolor);
-      x = x + WIDTH - 8; ;
+      x = x + WIDTH - 8;;
     }
 }
 
@@ -552,23 +657,23 @@ TFT_AltChar72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
   for (i = 0; i < 96; i++)
     {
       for (k = 0; k < 12; k++)
-	  {
+	{
 	  if (k == 0)
 	    {
 	      ptrFont++;
 	      continue;
 	    }
-      if (k > 9) 
-		{
- 		  ptrFont++;
-          continue; 
-        }
+	  if (k > 9)
+	    {
+	      ptrFont++;
+	      continue;
+	    }
 
 	  for (lineCount = 0; lineCount < 8; lineCount++)
 	    {
 	      if ((k == 11) && (lineCount > 1))
 		{
-              break;
+		  break;
 		}
 
 	      cbit = (*ptrFont << lineCount) & 0x80;
@@ -581,8 +686,8 @@ TFT_AltChar72 (char C1, unsigned int x, unsigned int y, unsigned int Fcolor,
 		  Write_Data (Bcolor);
 		}
 	    }
-   	 ptrFont++;
-	  }
+	  ptrFont++;
+	}
     }
 }
 
