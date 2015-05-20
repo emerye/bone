@@ -12,17 +12,50 @@
 #include "tft.h"
 
 const char *wdataFile = "./wdata.txt"; 
+const char *rgbin = "./images/50x50.565"; 
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
-
 volatile unsigned int gDispProc = SSD1963;
-
 unsigned int xPos;
 void *gpio_addr = NULL;
 int mmapFD;			//mmap file descriptor
 int spiFD;			//spi file descriptor
 char *phrase = "0123";
+
+
+void WriteIcon(const char *fileName, int x, int y) 
+{
+FILE *fp; 
+int pixelValue; 
+int height = 49, width = 49; 
+int count = 0; 
+
+fp = fopen(fileName, "rb"); 
+if(fp == NULL) 
+{
+  printf("Could not open binary file %s\n", fileName); 
+  return;
+}
+
+TFT_Set_Address(x, y, x + width, y + height);  
+Write_Command(0x36); 
+Write_Data(0); 
+Write_Command(0x2C); 
+
+
+while ( (fread(&pixelValue, 2, 1, fp)) != 0) 
+{
+  pixelValue = pixelValue & 0xFFFF; 
+///  if(pixelValue <  0x06FF) pixelValue = 0x00FF; 
+
+  Write_Data(pixelValue); 
+  Write_Command(0x3C); 
+//  printf("Pixel Count: %d  %08x\n", count, pixelValue);  
+  count += 1; 
+}
+fclose(fp); 
+} 
 
 
 int GetValue(const char *keyword, char *value) 
@@ -35,7 +68,7 @@ int GetValue(const char *keyword, char *value)
   fp = fopen(wdataFile, "r"); 
   if (fp == NULL) 
 { 
-//  printf("Could not open wdata file.\n"); 
+  printf("Could not open wdata file.\n"); 
   return -1; 
 }
   while (fgets(line, sizeof(line), fp)) 
@@ -125,10 +158,8 @@ void DisplayFile(void)
   TFT_Text(indoorTemp, x, y, 16, WHITE, BLUE);  
   y += 20; 
   TFT_Text(outdoorTemp, x, y, 16, WHITE, BLUE);  
-
 }  
   
-
 
 void
 ssd1963Init ()
@@ -137,13 +168,56 @@ ssd1963Init ()
   int i;
   int hours, minutes;
   int lastHour = 0; 
+  int xpos = 0; 
+  int ypos = 200; 
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
-
+ 
   DisplayFile(); 
-  while (1)
-    {
+
+while(1) {
+ 
+ xpos = 0; 
+   
+ Write_Data(BLUE); 
+ TFT_Set_Address (xpos, ypos, 400, ypos + 60);
+   for (i = 0; i < (400 * 60); i++)
+	    {
+	      Write_Data(BLUE);
+	    }
+
+
+ WriteIcon("./images/01d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+ WriteIcon("./images/02d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+
+ WriteIcon("./images/09d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+
+ WriteIcon("./images/11d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+
+ WriteIcon("./images/13d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+
+ WriteIcon("./images/11d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+
+ WriteIcon("./images/50d.565", xpos, ypos);  
+ sleep(1); 
+ xpos += 50; 
+
+ WriteIcon("./images/50d.565", xpos, ypos);  
+ sleep(1); 
+
       CurrentTime (&hours, &minutes);
       if ((lastHour == 12 && hours == 1))
 	{

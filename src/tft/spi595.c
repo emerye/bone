@@ -25,7 +25,7 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
   transfer.tx_buf = (unsigned long) send;	//the buffer for sending data
   transfer.rx_buf = (unsigned long) receive;	//the buffer for receiving data
   transfer.len = length;	//the length of buffer
-  transfer.speed_hz = 16000000;	//the speed in Hz
+  transfer.speed_hz = 12000000;	//the speed in Hz
   transfer.bits_per_word = 8;	//bits per word
   transfer.delay_usecs = 0;	//delay in us
 
@@ -93,7 +93,7 @@ SendWord (int data)
   send[0] = (unsigned char) ((data >> 8) & 0xFF);
   send[1] = (unsigned char) (data & 0xFF);
   // This function can send and receive data, just sending here
-  if (transfer (fd, (unsigned char *) &send[0], &receive[1], 2) == -1)
+  if (transfer (fd, (unsigned char *) &send[0], &receive[0], 2) == -1)
     {
       perror ("Failed to update the display");
       return -1;

@@ -123,6 +123,8 @@ SendCommand (CMDTYPE cmdType)
       break;
     }
   *gpio_setdataout_addr = GPIO51;	//Write high   
+  *gpio_setdataout_addr = GPIO50;	//Command high 
+  
   return 0;
 }
 
@@ -148,47 +150,3 @@ SendDisplayReset()
   usleep(1000 * 25);  
 }
 
-
-
-
-/*
-//Send commands. 
-int
-mmapGPIO(CMDTYPE cmd)  
-//main (int argc, char *argv[])
-{
-  void *gpio_addr = NULL;
-  volatile unsigned int *gpio_oe_addr = NULL;
-  volatile unsigned int *gpio_setdataout_addr = NULL;
-  volatile unsigned int *gpio_cleardataout_addr = NULL;
-  unsigned int reg;
-  volatile int setData;
-
-  int fd = open ("/dev/mem", O_RDWR);
-
-  gpio_addr = mmap (0, GPIO1_SIZE, PROT_READ | PROT_WRITE,
-		    MAP_SHARED, fd, GPIO1_START_ADDR);
-
-  gpio_oe_addr = gpio_addr + GPIO_OE;
-  gpio_setdataout_addr = gpio_addr + GPIO_SETDATAOUT;
-  gpio_cleardataout_addr = gpio_addr + GPIO_CLEARDATAOUT;
-
-  if (gpio_addr == MAP_FAILED)
-    {
-      printf ("Unable to map GPIO\n");
-      exit (1);
-    }
-
-  reg = *gpio_oe_addr;
-
-  setData = (GPIO48 + GPIO50 + GPIO51 + GPIO60);
-
-  //Configures registers for output
-  //Y  reg = reg & (0xFFFFFFFF - (PIN + 1<<18);
-  reg = reg & (0xFFFFFFFF - setData);
-  *gpio_oe_addr = reg;
-  SendCommand(cmd);
-  close (fd);
-  return 0;
-}
-*/
