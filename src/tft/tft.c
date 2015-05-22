@@ -10,6 +10,7 @@
 #include "sansserif72.h"
 #include "AD7843.h"
 #include "tft.h"
+// TFT Resolution is 480x272 
 
 const char *wdataFile = "./wdata.txt"; 
 const char *rgbin = "./images/50x50.565"; 
@@ -24,11 +25,10 @@ int spiFD;			//spi file descriptor
 char *phrase = "0123";
 
 
-void WriteIcon(const char *fileName, int x, int y) 
+void WriteIcon(const char *fileName, int xpos, int ypos, int width, int height) 
 {
 FILE *fp; 
 int pixelValue; 
-int height = 49, width = 49; 
 int count = 0; 
 
 fp = fopen(fileName, "rb"); 
@@ -38,16 +38,11 @@ if(fp == NULL)
   return;
 }
 
-TFT_Set_Address(x, y, x + width, y + height);  
-Write_Command(0x36); 
-Write_Data(0); 
-Write_Command(0x2C); 
-
+TFT_Set_Address(xpos, ypos, xpos + width, ypos + height);  
 
 while ( (fread(&pixelValue, 2, 1, fp)) != 0) 
 {
   pixelValue = pixelValue & 0xFFFF; 
-///  if(pixelValue <  0x06FF) pixelValue = 0x00FF; 
 
   Write_Data(pixelValue); 
   Write_Command(0x3C); 
@@ -170,10 +165,10 @@ ssd1963Init ()
   int lastHour = 0; 
   int xpos = 0; 
   int ypos = 200; 
+  int width, height; 
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
- 
   DisplayFile(); 
 
 while(1) {
@@ -187,36 +182,29 @@ while(1) {
 	      Write_Data(BLUE);
 	    }
 
-
- WriteIcon("./images/01d.565", xpos, ypos);  
- sleep(1); 
- xpos += 50; 
- WriteIcon("./images/02d.565", xpos, ypos);  
- sleep(1); 
+ width = 49; height = 49;  
+ WriteIcon("./images/01d.565", xpos, ypos, width, height);  
  xpos += 50; 
 
- WriteIcon("./images/09d.565", xpos, ypos);  
- sleep(1); 
+ WriteIcon("./images/02d.565", xpos, ypos, width, height);  
  xpos += 50; 
 
- WriteIcon("./images/11d.565", xpos, ypos);  
- sleep(1); 
+ WriteIcon("./images/09d.565", xpos, ypos, width, height);  
  xpos += 50; 
 
- WriteIcon("./images/13d.565", xpos, ypos);  
- sleep(1); 
+ WriteIcon("./images/11d.565", xpos, ypos, width, height);  
  xpos += 50; 
 
- WriteIcon("./images/11d.565", xpos, ypos);  
- sleep(1); 
+ WriteIcon("./images/13d.565", xpos, ypos, width, height);  
  xpos += 50; 
 
- WriteIcon("./images/50d.565", xpos, ypos);  
- sleep(1); 
+ WriteIcon("./images/11d.565", xpos, ypos, width, height);  
  xpos += 50; 
 
- WriteIcon("./images/50d.565", xpos, ypos);  
- sleep(1); 
+ WriteIcon("./images/50d.565", xpos, ypos, width, height);  
+
+ WriteIcon("./images/cooper120x160.565", 350, 0, 119, 159); 
+ sleep(3); 
 
       CurrentTime (&hours, &minutes);
       if ((lastHour == 12 && hours == 1))
@@ -232,7 +220,11 @@ while(1) {
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
       DisplayFile(); 
       sleep (2);
-    }
+    
+
+//  WriteIcon("./images/bot463x272.565", 0, 0, 462, 271); 
+  sleep(6); 
+ }
 }
 
 
@@ -1135,37 +1127,3 @@ TestLargeFont (void)
 
 
 
-
-/*
-sub procedure TFT_Image(dim pos_x,pos_y,dim_x,dim_y as word,dim const picture as ^byte)
-dim k,i,x,y,temp as word
-TFT_CS  = 0
-x =pos_x
-y =pos_y
-
-temp = picture^
-picture = picture +1
-temp = (temp << 8)
-temp = temp + picture^
-picture = picture +1
-
-TFT_Set_Address(pos_x,pos_y,dim_x,dim_y)
-
-for k = 0 to dim_y - 1
-for i = 0 to dim_x - 1
-
-TFT_Set_Address(x,y,x,y)
-Write_Data(temp)
-temp = picture^
-picture = picture +1
-temp = (temp << 8)
-temp = temp + picture^
-picture = picture +1
-inc(x)
-next i
-x = 0
-inc(y)
-next k
-TFT_CS  = 1
-end sub
-*/
