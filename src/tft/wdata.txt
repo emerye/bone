@@ -1,0 +1,17 @@
+sunrisehour=5
+sunriseminutes=58
+sunsethour=8
+sunsetminutes=10
+indoorTemp=73
+outdoorTemp=56
+message = 0.0228
+id=500
+main=Rain
+description=light rain
+icon=10n
+pressure=1004.56
+sea_level=1023.25
+grnd_level=1004.56
+humidity=93
+windspeed=1.2
+winddeg=348.503
