@@ -11,3 +11,7 @@ ompiled Object files
 *.lai
 *.la
 *.a
+
+# Other files
+*.txt
+*.log
