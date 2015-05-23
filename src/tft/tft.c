@@ -39,14 +39,11 @@ if(fp == NULL)
 }
 
 TFT_Set_Address(xpos, ypos, xpos + width, ypos + height);  
-
 while ( (fread(&pixelValue, 2, 1, fp)) != 0) 
 {
   pixelValue = pixelValue & 0xFFFF; 
-
   Write_Data(pixelValue); 
   Write_Command(0x3C); 
-//  printf("Pixel Count: %d  %08x\n", count, pixelValue);  
   count += 1; 
 }
 fclose(fp); 
@@ -125,7 +122,6 @@ void DisplayFile(void)
   char sunrise[40], sunset[40]; 
   char indoorTemp[40], outdoorTemp[40]; 
 
-  //Erase the entire region
    Write_Data(BLUE); 
    TFT_Set_Address (x, y, x + xwidth, y + yheight);
 	  for (i = 0; i < (xwidth - x) * (yheight - y); i++)
@@ -154,7 +150,53 @@ void DisplayFile(void)
   y += 20; 
   TFT_Text(outdoorTemp, x, y, 16, WHITE, BLUE);  
 }  
-  
+
+
+void TestIcons() 
+{  
+
+int xpos = 0; int ypos = 200;
+int width = 49, height = 49; 
+int i = 0; 
+char *fileNames [] =  { "./images/01d.565",
+   "./images/01n.565", 
+   "./images/02d.565", 
+   "./images/02n.565", 
+   "./images/03d.565", 
+   "./images/03n.565", 
+   "./images/04d.565", 
+   "./images/04n.565", 
+   "./images/09d.565", 
+   "./images/09n.565", 
+   "./images/10d.565", 
+   "./images/10n.565", 
+   "./images/11d.565", 
+   "./images/11n.565", 
+   "./images/13d.565", 
+   "./images/13n.565", 
+   "./images/50d.565", 
+   "./images/50n.565", 
+ }; 
+
+ int farrayLength; 
+
+ farrayLength = sizeof(fileNames)/sizeof(int *); 
+
+ width = 49; height = 49;  
+ ypos = 150; 
+ for (i=0; i<farrayLength/2; i++) {
+ WriteIcon(fileNames[i], xpos, ypos, width, height);  
+ xpos += 50; 
+ }
+ 
+ xpos = 0; 
+ ypos = 200; 
+ for (i=farrayLength/2; i<farrayLength; i++) {
+ WriteIcon(fileNames[i], xpos, ypos, width, height);  
+ xpos += 50; 
+ }
+}
+
 
 void
 ssd1963Init ()
@@ -163,9 +205,6 @@ ssd1963Init ()
   int i;
   int hours, minutes;
   int lastHour = 0; 
-  int xpos = 0; 
-  int ypos = 200; 
-  int width, height; 
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
@@ -175,36 +214,9 @@ while(1) {
  
  xpos = 0; 
    
- Write_Data(BLUE); 
- TFT_Set_Address (xpos, ypos, 400, ypos + 60);
-   for (i = 0; i < (400 * 60); i++)
-	    {
-	      Write_Data(BLUE);
-	    }
-
- width = 49; height = 49;  
- WriteIcon("./images/01d.565", xpos, ypos, width, height);  
- xpos += 50; 
-
- WriteIcon("./images/02d.565", xpos, ypos, width, height);  
- xpos += 50; 
-
- WriteIcon("./images/09d.565", xpos, ypos, width, height);  
- xpos += 50; 
-
- WriteIcon("./images/11d.565", xpos, ypos, width, height);  
- xpos += 50; 
-
- WriteIcon("./images/13d.565", xpos, ypos, width, height);  
- xpos += 50; 
-
- WriteIcon("./images/11d.565", xpos, ypos, width, height);  
- xpos += 50; 
-
- WriteIcon("./images/50d.565", xpos, ypos, width, height);  
-
- WriteIcon("./images/cooper120x160.565", 350, 0, 119, 159); 
- sleep(3); 
+ TestIcons(); 
+ sleep(5); 
+// DisplayCurrentIcon(350, 220); 
 
       CurrentTime (&hours, &minutes);
       if ((lastHour == 12 && hours == 1))
@@ -220,11 +232,24 @@ while(1) {
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
       DisplayFile(); 
       sleep (2);
-    
 
-//  WriteIcon("./images/bot463x272.565", 0, 0, 462, 271); 
-  sleep(6); 
  }
+}
+
+
+void DisplayCurrentIcon(int x, int y)
+{
+  char currentIcon[100]; 
+  char fileName[200]; 
+ 
+  if (GetValue("icon", currentIcon)) 
+    puts("Could not get icon value.\n"); 
+
+  strcat(currentIcon, ".565"); 
+  strcpy(fileName, "./images/"); 
+  strcat(fileName, currentIcon); 
+  WriteIcon(fileName, x, y, 49, 49);  
+  
 }
 
 
