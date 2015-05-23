@@ -12,11 +12,12 @@
 #include "tft.h"
 // TFT Resolution is 480x272 
 
-const char *wdataFile = "./wdata.txt"; 
-const char *rgbin = "./images/50x50.565"; 
+const char *wdataFile = "./wdata.txt";
+const char *rgbin = "./images/50x50.565";
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
+
 volatile unsigned int gDispProc = SSD1963;
 unsigned int xPos;
 void *gpio_addr = NULL;
@@ -25,67 +26,68 @@ int spiFD;			//spi file descriptor
 char *phrase = "0123";
 
 
-void WriteIcon(const char *fileName, int xpos, int ypos, int width, int height) 
+void
+WriteIcon (const char *fileName, int xpos, int ypos, int width, int height)
 {
-FILE *fp; 
-int pixelValue; 
-int count = 0; 
+  FILE *fp;
+  int pixelValue;
+  int count = 0;
 
-fp = fopen(fileName, "rb"); 
-if(fp == NULL) 
-{
-  printf("Could not open binary file %s\n", fileName); 
-  return;
-}
-
-TFT_Set_Address(xpos, ypos, xpos + width, ypos + height);  
-while ( (fread(&pixelValue, 2, 1, fp)) != 0) 
-{
-  pixelValue = pixelValue & 0xFFFF; 
-  Write_Data(pixelValue); 
-  Write_Command(0x3C); 
-  count += 1; 
-}
-fclose(fp); 
-} 
-
-
-int GetValue(const char *keyword, char *value) 
-{
-  FILE *fp; 
-  char line[256]; 
-  char *token; 
-  char *ptrChar = NULL;   
-
-  fp = fopen(wdataFile, "r"); 
-  if (fp == NULL) 
-{ 
-  printf("Could not open wdata file.\n"); 
-  return -1; 
-}
-  while (fgets(line, sizeof(line), fp)) 
-{
-  if (strstr(line, keyword) != NULL)
-  {
-    token = strtok(line, "="); 
-    token = strtok(NULL, "="); 
-    ptrChar = token; 
-    while(*token != '\0') 
-	{ 
-      if (!isalnum(*token)) 
-		{ 
-         *token =  '\0';   
-        }
-      token++;  
+  fp = fopen (fileName, "rb");
+  if (fp == NULL)
+    {
+      printf ("Could not open binary file %s\n", fileName);
+      return;
     }
-    strcpy(value, ptrChar); 
-    break; 
-  }
+  TFT_Set_Address (xpos, ypos, xpos + width, ypos + height);
+  while ((fread (&pixelValue, 2, 1, fp)) != 0)
+    {
+      pixelValue = pixelValue & 0xFFFF;
+      Write_Data (pixelValue);
+      Write_Command (0x3C);
+      count += 1;
+    }
+  fclose (fp);
 }
-fclose(fp); 
-return 0; 
+
+
+int
+GetValue (const char *keyword, char *value)
+{
+  FILE *fp;
+  char line[256];
+  char *token;
+  char *ptrChar = NULL;
+
+  fp = fopen (wdataFile, "r");
+  if (fp == NULL)
+    {
+      printf ("Could not open wdata file.\n");
+      return -1;
+    }
+  while (fgets (line, sizeof (line), fp))
+    {
+      if (strstr (line, keyword) != NULL)
+	{
+	  token = strtok (line, "=");
+	  token = strtok (NULL, "=");
+	  ptrChar = token;
+	  while (*token != '\0')
+	    {
+	      if (!isalnum (*token))
+		{
+		  *token = '\0';
+		}
+	      token++;
+	    }
+	  strcpy (value, ptrChar);
+	  break;
+	}
+    }
+  fclose (fp);
+  return 0;
 }
-    
+
 
 void
 CurrentTime (int *hours, int *minutes)
@@ -109,147 +111,108 @@ CurrentTime (int *hours, int *minutes)
   *minutes = bTime->tm_min;
 }
 
-
-void DisplayFile(void) 
+//Display weather data file
+void
+DisplayWeatherFile(int x, int y)
 {
-  int x = 20; 
-  int y = 110; 
-  int xwidth = 400; 
-  int yheight = 100; 
-  int i; 
-  char buf1[30]; 
-  char buf2[30]; 
-  char sunrise[40], sunset[40]; 
-  char indoorTemp[40], outdoorTemp[40]; 
+  int xwidth = 400;
+  int yheight = 100;
+  int i;
+  char buf1[30];
+  char buf2[30];
+  char sunrise[40], sunset[40];
+  char indoorTemp[40], outdoorTemp[40];
 
-   Write_Data(BLUE); 
-   TFT_Set_Address (x, y, x + xwidth, y + yheight);
-	  for (i = 0; i < (xwidth - x) * (yheight - y); i++)
-	    {
-	      Write_Command (WRITEDATA);
-	    }
+  Write_Data (BLUE);
+  TFT_Set_Address (x, y, x + xwidth, y + yheight);
+  for (i = 0; i < (xwidth - x) * (yheight - y); i++)
+    {
+      Write_Command (WRITEDATA);
+    }
 
-  GetValue("sunrisehour", buf1); 
-  GetValue("sunriseminutes", buf2); 
-  sprintf(sunrise, "Sunrise: %s:%s AM", buf1, buf2); 
-  GetValue("sunsethour", buf1); 
-  GetValue("sunsetminutes", buf2); 
-  sprintf(sunset, "Sunset: %s:%s PM", buf1, buf2); 
+  GetValue ("sunrisehour", buf1);
+  GetValue ("sunriseminutes", buf2);
+  sprintf (sunrise, "Sunrise: %s:%s AM", buf1, buf2);
+  GetValue ("sunsethour", buf1);
+  GetValue ("sunsetminutes", buf2);
+  sprintf (sunset, "Sunset: %s:%s PM", buf1, buf2);
 
-   GetValue("indoorTemp", buf1);  
-  sprintf(indoorTemp, "Indoor Temp: %s deg", buf1); 
+  GetValue ("indoorTemp", buf1);
+  sprintf (indoorTemp, "Indoor Temp: %s deg", buf1);
 
-  GetValue("outdoorTemp", buf1);  
-  sprintf(outdoorTemp, "Outdoor Temp: %s deg", buf1); 
+  GetValue ("outdoorTemp", buf1);
+  sprintf (outdoorTemp, "Outdoor Temp: %s deg", buf1);
 
-  TFT_Text(sunrise, x, y, 16, WHITE, BLUE);  
-  y += 20; 
-  TFT_Text(sunset, x, y, 16, WHITE, BLUE);  
-  y += 20; 
-  TFT_Text(indoorTemp, x, y, 16, WHITE, BLUE);  
-  y += 20; 
-  TFT_Text(outdoorTemp, x, y, 16, WHITE, BLUE);  
-}  
-
-
-void TestIcons() 
-{  
-
-int xpos = 0; int ypos = 200;
-int width = 49, height = 49; 
-int i = 0; 
-char *fileNames [] =  { "./images/01d.565",
-   "./images/01n.565", 
-   "./images/02d.565", 
-   "./images/02n.565", 
-   "./images/03d.565", 
-   "./images/03n.565", 
-   "./images/04d.565", 
-   "./images/04n.565", 
-   "./images/09d.565", 
-   "./images/09n.565", 
-   "./images/10d.565", 
-   "./images/10n.565", 
-   "./images/11d.565", 
-   "./images/11n.565", 
-   "./images/13d.565", 
-   "./images/13n.565", 
-   "./images/50d.565", 
-   "./images/50n.565", 
- }; 
-
- int farrayLength; 
-
- farrayLength = sizeof(fileNames)/sizeof(int *); 
-
- width = 49; height = 49;  
- ypos = 150; 
- for (i=0; i<farrayLength/2; i++) {
- WriteIcon(fileNames[i], xpos, ypos, width, height);  
- xpos += 50; 
- }
- 
- xpos = 0; 
- ypos = 200; 
- for (i=farrayLength/2; i<farrayLength; i++) {
- WriteIcon(fileNames[i], xpos, ypos, width, height);  
- xpos += 50; 
- }
+  TFT_Text (sunrise, x, y, 16, WHITE, BLUE);
+  y += 20;
+  TFT_Text (sunset, x, y, 16, WHITE, BLUE);
+  y += 20;
+  TFT_Text (indoorTemp, x, y, 16, WHITE, BLUE);
+  y += 20;
+  TFT_Text (outdoorTemp, x, y, 16, WHITE, BLUE);
 }
 
 
 void
-ssd1963Init ()
+TestIcons ()
 {
-  char dispTime[30];
-  int i;
-  int hours, minutes;
-  int lastHour = 0; 
+  int xpos = 0;
+  int ypos = 200;
+  int width = 49, height = 49;
+  int i = 0;
+  char *fileNames[] = { "./images/01d.565",
+    "./images/01n.565",
+    "./images/02d.565",
+    "./images/02n.565",
+    "./images/03d.565",
+    "./images/03n.565",
+    "./images/04d.565",
+    "./images/04n.565",
+    "./images/09d.565",
+    "./images/09n.565",
+    "./images/10d.565",
+    "./images/10n.565",
+    "./images/11d.565",
+    "./images/11n.565",
+    "./images/13d.565",
+    "./images/13n.565",
+    "./images/50d.565",
+    "./images/50n.565",
+  };
+  int farrayLength;
 
-  Init_ssd1963 ();
-  TFT_FillDisp (BLUE);
-  DisplayFile(); 
-
-while(1) {
- 
- xpos = 0; 
-   
- TestIcons(); 
- sleep(5); 
-// DisplayCurrentIcon(350, 220); 
-
-      CurrentTime (&hours, &minutes);
-      if ((lastHour == 12 && hours == 1))
-	{
-	  Write_Data (BLUE);
-	  TFT_Set_Address (0, 0, 72 * 5, 96);
-	  for (i = 0; i < 72 * 5 * 97; i++)
-	    {
-	      Write_Command (WRITEDATA);
-	    }
-	}
-      sprintf (dispTime, "%2d:%02d", hours, minutes);
-      TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
-      DisplayFile(); 
-      sleep (2);
-
- }
+  farrayLength = sizeof (fileNames) / sizeof (int *);
+  width = 49;
+  height = 49;
+  ypos = 150;
+  for (i = 0; i < farrayLength / 2; i++)
+    {
+      WriteIcon (fileNames[i], xpos, ypos, width, height);
+      xpos += 50;
+    }
+  xpos = 0;
+  ypos = 200;
+  for (i = farrayLength / 2; i < farrayLength; i++)
+    {
+      WriteIcon (fileNames[i], xpos, ypos, width, height);
+      xpos += 50;
+    }
 }
 
 
-void DisplayCurrentIcon(int x, int y)
+void
+DisplayCurrentIcon (int x, int y)
 {
-  char currentIcon[100]; 
-  char fileName[200]; 
- 
-  if (GetValue("icon", currentIcon)) 
-    puts("Could not get icon value.\n"); 
+  char currentIcon[100];
+  char fileName[100];
 
-  strcat(currentIcon, ".565"); 
-  strcpy(fileName, "./images/"); 
-  strcat(fileName, currentIcon); 
-  WriteIcon(fileName, x, y, 49, 49);  
-  
+  if (GetValue ("icon", currentIcon))
+    puts ("Could not get icon value.\n");
+
+  strcat (currentIcon, ".565");
+  strcpy (fileName, "./images/");
+  strcat (fileName, currentIcon);
+  WriteIcon (fileName, x, y, 49, 49);
 }
 
 
@@ -260,6 +223,10 @@ main ()
   unsigned long int iCount = 40;
   unsigned int yLine = 9;
   int xPos = 0;
+  char dispTime[30];
+  int i;
+  int hours, minutes;
+  int lastHour = 0;
 
   retval = MapGPIO ();
   if (retval < 0)
@@ -272,10 +239,31 @@ main ()
       printf ("Error opening SPI file.\n");
     }
 
-  ssd1963Init ();
+  Init_ssd1963 ();
+  TFT_FillDisp (BLUE);
 
-//  SendDisplayReset();
-//  TFT_Init();
+  while (1)
+    {
+
+    DisplayCurrentIcon(350, 0); 
+  DisplayWeatherFile (20, 120);
+      CurrentTime (&hours, &minutes);
+      if ((lastHour == 12 && hours == 1))
+	{
+	  Write_Data (BLUE);
+	  TFT_Set_Address (0, 0, 72 * 5, 96);
+	  for (i = 0; i < 72 * 5 * 97; i++)
+	    {
+	      Write_Command (WRITEDATA);
+	    }
+	}
+      sprintf (dispTime, "%2d:%02d", hours, minutes);
+      TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
+      DisplayWeatherFile (20, 120);
+      sleep (2);
+
+    }
+
 
   TFT_FillDisp (YELLOW);
   TFT_Set_Address (0, 0, 239, 319);
@@ -1149,6 +1137,3 @@ TestLargeFont (void)
     }
   TFT_Text32 ("012345", 0, 230, GREEN, RED);
 }
-
-
-
