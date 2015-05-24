@@ -18,6 +18,9 @@ void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
 
+char gindoorTemp[10]; 
+char goutdoorTemp[10]; 
+
 volatile unsigned int gDispProc = SSD1963;
 unsigned int xPos;
 void *gpio_addr = NULL;
@@ -80,6 +83,7 @@ GetValue (const char *keyword, char *value)
 		}
 	      token++;
 	    }
+      strcpy(value, ""); 
 	  strcpy (value, ptrChar);
 	  break;
 	}
@@ -113,7 +117,7 @@ CurrentTime (int *hours, int *minutes)
 
 //Display weather data file
 void
-DisplayWeatherFile(int x, int y)
+DisplayWeatherFile (int x, int y)
 {
   int xwidth = 400;
   int yheight = 100;
@@ -136,11 +140,13 @@ DisplayWeatherFile(int x, int y)
   GetValue ("sunsethour", buf1);
   GetValue ("sunsetminutes", buf2);
   sprintf (sunset, "Sunset: %s:%s PM", buf1, buf2);
-
+  
   GetValue ("indoorTemp", buf1);
+  strcpy(gindoorTemp, buf1);  
   sprintf (indoorTemp, "Indoor Temp: %s deg", buf1);
 
   GetValue ("outdoorTemp", buf1);
+  strcpy(goutdoorTemp, buf1);  
   sprintf (outdoorTemp, "Outdoor Temp: %s deg", buf1);
 
   TFT_Text (sunrise, x, y, 16, WHITE, BLUE);
@@ -223,11 +229,15 @@ main ()
   unsigned long int iCount = 40;
   unsigned int yLine = 9;
   int xPos = 0;
+  int yPos; 
   char dispTime[30];
   int i;
   int hours, minutes;
   int lastHour = 0;
+  char sBuffer[30];  
+  FILE *lockFile; 
 
+  remove("lock.txt"); 
   retval = MapGPIO ();
   if (retval < 0)
     {
@@ -244,9 +254,31 @@ main ()
 
   while (1)
     {
+      lockFile =  fopen("lock.txt", "w"); 
+      if (lockFile == NULL) {
+        puts("Could not create lockfile.\n");
+      } 
+      fprintf(lockFile, "Locked\n"); 
+      fclose(lockFile); 
 
-    DisplayCurrentIcon(350, 0); 
-  DisplayWeatherFile (20, 120);
+      yPos = 130; 
+      DisplayCurrentIcon (420, yPos);
+      DisplayWeatherFile (40, 190);
+      strcpy(sBuffer, ""); 
+      
+      xPos = 0;
+      TFT_Text("Indoor", xPos, yPos, 16, WHITE, BLUE); 
+      xPos += 100; 
+      strcpy(sBuffer, gindoorTemp); 
+      TFT_Text32(sBuffer, xPos, yPos, RED, BLUE); 
+      xPos += 100; 
+      TFT_Text("Outdoor", xPos, yPos, 16, WHITE, BLUE); 
+      xPos += 120; 
+      strcpy(sBuffer, goutdoorTemp); 
+      TFT_Text32(sBuffer, xPos, yPos, RED, BLUE);  
+
+      remove("lock.txt");  
+
       CurrentTime (&hours, &minutes);
       if ((lastHour == 12 && hours == 1))
 	{
@@ -259,42 +291,36 @@ main ()
 	}
       sprintf (dispTime, "%2d:%02d", hours, minutes);
       TFT_AltText72 (dispTime, 0, 0, WHITE, BLUE);
-      DisplayWeatherFile (20, 120);
       sleep (2);
 
     }
 
-
   TFT_FillDisp (YELLOW);
-  TFT_Set_Address (0, 0, 239, 319);
   usleep (1000 * 100);
 
   TFT_FillDisp (GREEN);
   usleep (1000 * 100);
 
-  TFT_Set_Address (0, 0, 239, 319);
   TFT_FillDisp (RED);
   usleep (1000 * 100);
 
-  Write_Data (BLACK);
-  TFT_Set_Address (0, 0, 239, 319);
-
-  Write_Data (WHITE);
   iCount = 32;
   for (yLine = 0; yLine < 260; yLine += 16)
     {
       for (xPos = 0; xPos < 240; xPos += 16)
 	{
-	  TFT_Char ((char) iCount, xPos, yLine, 16, BLACK, WHITE);
+	  TFT_Char ((char) iCount, xPos, yLine, 16, BLUE, WHITE);
 	  iCount++;
 	  if (iCount > 127)
 	    iCount = 32;
 	}
     }
+  sleep(2); 
   TFT_FillDisp (BLACK);
   TFT_Text ("This is a line.", 0, 250, 16, BLUE, BLACK);
-
-  TFT_Text32 (phrase, 0, 50, WHITE, BLACK);
+  sleep(2); 
+  TFT_Text (phrase, 0, 110, 16, GREEN , BLACK);
+  TFT_Text ("Hello", 0, 50, 8, BLUE, BLACK);
   sleep (2);
   close (spiFD);
   close (mmapFD);
@@ -548,6 +574,31 @@ TFT_Text32 (char *S, WORD x, WORD y, WORD Fcolor, WORD Bcolor)
     {
       TFT_Char32 (buffer[k], x, y, Fcolor, Bcolor);
       x = x + 40;
+    }
+}
+
+
+void
+TFT_Text48 (char *S, int x, int y, int Fcolor, int  Bcolor)
+{
+  BYTE length, k;
+  WORD buffer[10] = { 0 };
+  BYTE charcount = 0;
+  int WIDTH = 50;
+
+  length = strlen (S);
+  while (*S != 0)
+    {
+      buffer[charcount] = *S;
+      S++;
+      charcount++;
+    }
+
+
+  for (k = 0; k < length; k++)
+    {
+      TFT_Char48 (buffer[k], x, y, Fcolor, Bcolor);
+      x = x + WIDTH;
     }
 }
 
@@ -808,14 +859,14 @@ TFT_Char (char C1, unsigned int x, unsigned int y, unsigned char DimFont,
 		print2 = print1 >> 7;
 		if (print2 == 1)
 		  {
-		    TFT_Dot (x_new, y_new, Fcolor);
+		   TFT_Dot (x_new, y_new, Fcolor);
 		    x_new++;
 		  }
 		else
 		  {
 		    TFT_Dot (x_new, y_new, Bcolor);
 		    x_new++;
-		    TFT_Set_Address (x_new, y, x_new, y);
+		    //TFT_Set_Address (x_new, y, x_new, y);
 		  }
 		font8x8[i] = font8x8[i] << 1;
 	      }

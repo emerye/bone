@@ -4,13 +4,13 @@ use warnings;
 
 use JSON qw( decode_json ); 
 
-my $OUTFILE = "./exttemp.txt";
+my $OUTFILE = "/root/bone/src/scripts/exttemp.txt";
 
 my ($outFile, $ret, $wgetcmd, $fh, $completefile, @lines, $temperature,
 	$wgetfile, $jsonString, $minutes, $hours); 
 
 #Copy outside temp from bone
-`scp bone:/root/bone/temperature.log outsidetemp.txt`; 
+`scp bone:/root/bone/temperature.log /root/bone/src/scripts/outsidetemp.txt`; 
 
 $wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
 
@@ -37,7 +37,7 @@ foreach ( @lines ) {
 
 `rm $OUTFILE`;
 
-$OUTFILE = 'cweather.json'; 
+$OUTFILE = '/root/bone/src/scripts/cweather.json'; 
 
 $wgetcmd = "wget -O " . $OUTFILE . ' http://api.openweathermap.org/data/2.5/weather?q=Fremont'; 
 
@@ -53,7 +53,12 @@ while(<$fh>) {
 close($fh); 
 
 #
-$OUTFILE = 'wdata.txt';
+if (-e "/root/bone/src/tft/lock.txt") 
+{
+  exit(); 
+}
+
+$OUTFILE = '/root/bone/src/tft/wdata.txt';
 open ($fh, ">", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
 my $decoded = decode_json($jsonString); 
 

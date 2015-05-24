@@ -75,5 +75,6 @@ extern void TFT_Text72(char *C1, unsigned int x, unsigned int y, unsigned int Fc
 extern void TFT_AltText72(char *C1, unsigned int x, unsigned int y, unsigned int Fcolor, unsigned int Bcolor);
 
 void DisplayCurrentIcon(int x, int y); 
+void TFT_Text48(char *S, int x, int y, int Fcolor, int Bcolor); 
 
 #endif /*TFT_H_*/
