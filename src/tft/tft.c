@@ -134,9 +134,13 @@ DisplayWeatherFile (int x, int y)
       Write_Command (WRITEDATA);
     }
 
+  strcpy(buf1,""); 
+  strcpy(buf2,""); 
   GetValue ("sunrisehour", buf1);
   GetValue ("sunriseminutes", buf2);
   sprintf (sunrise, "Sunrise: %s:%s AM", buf1, buf2);
+  strcpy(buf1,""); 
+  strcpy(buf2,""); 
   GetValue ("sunsethour", buf1);
   GetValue ("sunsetminutes", buf2);
   sprintf (sunset, "Sunset: %s:%s PM", buf1, buf2);
@@ -145,6 +149,7 @@ DisplayWeatherFile (int x, int y)
   strcpy(gindoorTemp, buf1);  
   sprintf (indoorTemp, "Indoor Temp: %s deg", buf1);
 
+  //This is not in this file.  
   GetValue ("outdoorTemp", buf1);
   strcpy(goutdoorTemp, buf1);  
   sprintf (outdoorTemp, "Outdoor Temp: %s deg", buf1);
@@ -152,10 +157,6 @@ DisplayWeatherFile (int x, int y)
   TFT_Text (sunrise, x, y, 16, WHITE, BLUE);
   y += 20;
   TFT_Text (sunset, x, y, 16, WHITE, BLUE);
-  y += 20;
-  TFT_Text (indoorTemp, x, y, 16, WHITE, BLUE);
-  y += 20;
-  TFT_Text (outdoorTemp, x, y, 16, WHITE, BLUE);
 }
 
 
@@ -221,6 +222,28 @@ DisplayCurrentIcon (int x, int y)
   WriteIcon (fileName, x, y, 49, 49);
 }
 
+int GetOutsideTemperature() 
+{
+  int retval; 
+  FILE *fp; 
+  char  fContent[256]; 
+  int outTemp; 
+
+  retval = system("scp bone:/root/bone/temperature.log /root/bone/src/tft/outsidetemp.txt > /dev/null 2>&1" );  
+  if (retval < 0 ) 
+{
+  puts("Copy of outsidetemp.txt from bone failed.\n"); 
+  return (32); 
+}
+  if ((fp = fopen("outsidetemp.txt", "r")) != NULL) 
+  {
+    fgets(fContent, 256, fp); 
+    outTemp = atoi(fContent);       
+    return outTemp; 
+  } 
+return 0; 
+ }
+ 
 
 int
 main ()
@@ -228,7 +251,7 @@ main ()
   int retval;
   unsigned long int iCount = 40;
   unsigned int yLine = 9;
-  int xPos = 0;
+  int xPos = 0, outTemp;
   int yPos; 
   char dispTime[30];
   int i;
@@ -251,9 +274,10 @@ main ()
 
   Init_ssd1963 ();
   TFT_FillDisp (BLUE);
-
+ 
   while (1)
     {
+      outTemp = GetOutsideTemperature();  
       lockFile =  fopen("lock.txt", "w"); 
       if (lockFile == NULL) {
         puts("Could not create lockfile.\n");
@@ -263,19 +287,20 @@ main ()
 
       yPos = 130; 
       DisplayCurrentIcon (420, yPos);
-      DisplayWeatherFile (40, 190);
+      DisplayWeatherFile (40, 230);
       strcpy(sBuffer, ""); 
       
       xPos = 0;
       TFT_Text("Indoor", xPos, yPos, 16, WHITE, BLUE); 
       xPos += 100; 
       strcpy(sBuffer, gindoorTemp); 
-      TFT_Text32(sBuffer, xPos, yPos, RED, BLUE); 
+      TFT_Text32(sBuffer, xPos, yPos, WHITE, BLUE); 
       xPos += 100; 
       TFT_Text("Outdoor", xPos, yPos, 16, WHITE, BLUE); 
       xPos += 120; 
-      strcpy(sBuffer, goutdoorTemp); 
-      TFT_Text32(sBuffer, xPos, yPos, RED, BLUE);  
+      sprintf(sBuffer, "%d", outTemp );  
+     // strcpy(sBuffer, itoa(outTemp)); 
+      TFT_Text32(sBuffer, xPos, yPos, WHITE, BLUE);  
 
       remove("lock.txt");  
 
