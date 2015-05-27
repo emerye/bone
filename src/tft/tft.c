@@ -6,14 +6,17 @@
 #include <math.h>
 #include <unistd.h>
 #include <time.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
 #include "tftFonts.h"
 #include "sansserif72.h"
 #include "AD7843.h"
 #include "tft.h"
 // TFT Resolution is 480x272 
 
-const char *wdataFile = "./wdata.txt";
-const char *rgbin = "./images/50x50.565";
+const char *wdataFile = "/root/bone/src/tft/wdata.txt";
+const char *rgbin = "/root/bone/src/tft/images/50x50.565";
 void CreateButtons ();
 char sBuffer[39] = { 0 };
 char tBuffer[30] = { 0 };
@@ -217,7 +220,7 @@ DisplayCurrentIcon (int x, int y)
     puts ("Could not get icon value.\n");
 
   strcat (currentIcon, ".565");
-  strcpy (fileName, "./images/");
+  strcpy (fileName, "/root/bone/src/tft/images/");
   strcat (fileName, currentIcon);
   WriteIcon (fileName, x, y, 49, 49);
 }
@@ -235,7 +238,7 @@ int GetOutsideTemperature()
   puts("Copy of outsidetemp.txt from bone failed.\n"); 
   return (32); 
 }
-  if ((fp = fopen("outsidetemp.txt", "r")) != NULL) 
+  if ((fp = fopen("/root/bone/src/tft/outsidetemp.txt", "r")) != NULL) 
   {
     fgets(fContent, 256, fp); 
     outTemp = atoi(fContent);       
@@ -245,13 +248,71 @@ return 0;
  }
  
 
+
+//Read TMP100. Return temp 
+int InsideTemp()
+{
+  int r;
+  int fd;
+  unsigned char value[4];
+  __u8 wrdata[20];
+  float tempC;
+  int tempF;
+
+  char *dev = "/dev/i2c-1";
+  int addr = 0x48;              //TMP100 with A0 and A1 low
+
+  fd = open (dev, O_RDWR);
+  if (fd < 0)
+    {
+      perror ("Opening i2c device node.\n");
+      return -1;
+    }
+
+  r = ioctl (fd, I2C_SLAVE, addr);
+  if (r < 0)
+    perror ("Selecting i2c device.\n");
+
+  //TMP100 12 bit resolution
+  wrdata[0] = 0x60;
+  r = i2c_smbus_write_i2c_block_data (fd, 0x1, 1, wrdata);
+  if (r < 0)
+    {
+      perror ("Error writing to config register.\n");
+    }
+
+  r = i2c_smbus_write_i2c_block_data (fd, 0x0, 0, wrdata);
+  if (r < 0)
+    {
+      perror ("Error writing config register to output temperature.\n");
+    }
+
+      usleep (500 * 1000);
+      r = i2c_smbus_read_i2c_block_data (fd, 0, 2, value);
+      if (r < 0)
+        {
+          perror ("reading i2c device\n");
+          return (99); 
+        }
+      else
+        {
+          tempC = (((value[1] >> 4) & 0xFF) * 0.0625) + (int) value[0];
+          tempF = (int) (tempC * 9.0 / 5.0 + 32);
+//          printf("Deg C %f  Deg F %d \n", tempC, tempF);
+        }
+  close (fd);
+  return (tempF);
+}
+
+//************************************************************
+
 int
 main ()
 {
   int retval;
   unsigned long int iCount = 40;
   unsigned int yLine = 9;
-  int xPos = 0, outTemp;
+  int xPos = 0, outTemp, inTemp;
   int yPos; 
   char dispTime[30];
   int i;
@@ -260,7 +321,7 @@ main ()
   char sBuffer[30];  
   FILE *lockFile; 
 
-  remove("lock.txt"); 
+  remove("/root/bone/src/tft/lock.txt"); 
   retval = MapGPIO ();
   if (retval < 0)
     {
@@ -278,9 +339,13 @@ main ()
   while (1)
     {
       outTemp = GetOutsideTemperature();  
-      lockFile =  fopen("lock.txt", "w"); 
+      inTemp = InsideTemp();  
+
+      lockFile =  fopen("/root/bone/src/tft/lock.txt", "w"); 
       if (lockFile == NULL) {
         puts("Could not create lockfile.\n");
+        sleep(1); 
+        continue; 
       } 
       fprintf(lockFile, "Locked\n"); 
       fclose(lockFile); 
@@ -293,16 +358,17 @@ main ()
       xPos = 0;
       TFT_Text("Indoor", xPos, yPos, 16, WHITE, BLUE); 
       xPos += 100; 
-      strcpy(sBuffer, gindoorTemp); 
+      
+      sprintf(sBuffer, "%d", inTemp );  
       TFT_Text32(sBuffer, xPos, yPos, WHITE, BLUE); 
       xPos += 100; 
+
       TFT_Text("Outdoor", xPos, yPos, 16, WHITE, BLUE); 
       xPos += 120; 
       sprintf(sBuffer, "%d", outTemp );  
-     // strcpy(sBuffer, itoa(outTemp)); 
       TFT_Text32(sBuffer, xPos, yPos, WHITE, BLUE);  
 
-      remove("lock.txt");  
+      remove("/root/bone/src/tft/lock.txt");  
 
       CurrentTime (&hours, &minutes);
       if ((lastHour == 12 && hours == 1))

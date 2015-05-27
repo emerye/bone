@@ -9,33 +9,30 @@ my $OUTFILE = "/root/bone/src/scripts/exttemp.txt";
 my ($outFile, $ret, $wgetcmd, $fh, $completefile, @lines, $temperature,
 	$wgetfile, $jsonString, $minutes, $hours); 
 
-#Copy outside temp from bone
-`scp bone:/root/bone/temperature.log /root/bone/src/scripts/outsidetemp.txt`; 
 
-$wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
+#$wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
 
 #print("$wgetcmd",  "\n"); 
 
-$ret = system($wgetcmd); 
-print ("Return value:  ",  $ret, "\n"); 
+#$ret = system($wgetcmd); 
+#print ("Return value:  ",  $ret, "\n"); 
 
-open ($fh, "<", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
-while(<$fh>) {
-  push @lines, $_ ; 
-}
-close($fh); 
+#open ($fh, "<", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
+#while(<$fh>) {
+#  push @lines, $_ ; 
+#}
+#close($fh); 
 
-foreach ( @lines ) {
-  if (/Temperature/)
-  {
+#foreach ( @lines ) {
+#  if (/Temperature/)
+#  {
     #print "Start position $-[0] Endposition $+[0] \n"; 
-    $temperature = substr($_, $+[0] + 2, 5); 
-    $temperature =~ s/\s+//; 
-    print $temperature;  
-  }
-}
+#    $temperature = substr($_, $+[0] + 2, 5); 
+#    $temperature =~ s/\s+//; 
+#    print $temperature;  
+#  }
+#}
 
-`rm $OUTFILE`;
 
 $OUTFILE = '/root/bone/src/scripts/cweather.json'; 
 
@@ -43,6 +40,11 @@ $wgetcmd = "wget -O " . $OUTFILE . ' http://api.openweathermap.org/data/2.5/weat
 
 $ret = system($wgetcmd); 
 print ("Return value:  ",  $ret, "\n"); 
+
+if ($ret != 0) 
+{
+  exit(); 
+}
 
 #JSON
 $jsonString = "";
@@ -80,9 +82,6 @@ if(length($minutes) == 1)
  $minutes = "0".$minutes;  
 }
 printf $fh "sunsetminutes=$minutes" . "\n"; 
-
-printf $fh "indoorTemp=73\n"; 
-printf $fh "outdoorTemp=$temperature\n"; 
 
 print $fh "message = " . $decoded->{'sys'}{'message'} . "\n";
 

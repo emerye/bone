@@ -18,6 +18,5 @@ tft.o: tft.c tft.h
 ssd1963.o: ssd1963.c tft.h 
 	$(CC) $(CFLAGS) -o ssd1963.o -c ssd1963.c 
 
-
 clean:
 	 rm -f tft tft.o mmapgpio.o spi595.o ssd1963.o  
