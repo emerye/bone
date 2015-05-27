@@ -242,6 +242,7 @@ int GetOutsideTemperature()
   {
     fgets(fContent, 256, fp); 
     outTemp = atoi(fContent);       
+    fclose(fp); 
     return outTemp; 
   } 
 return 0; 
@@ -292,6 +293,7 @@ int InsideTemp()
       if (r < 0)
         {
           perror ("reading i2c device\n");
+          close(fd); 
           return (99); 
         }
       else
@@ -326,11 +328,13 @@ main ()
   if (retval < 0)
     {
       printf ("Error attempting to map GPIO1.\n");
+      return (-2); 
     }
   retval = Init_SPI ();
   if (retval < 0)
     {
       printf ("Error opening SPI file.\n");
+      return -3; 
     }
 
   Init_ssd1963 ();
@@ -344,7 +348,7 @@ main ()
       lockFile =  fopen("/root/bone/src/tft/lock.txt", "w"); 
       if (lockFile == NULL) {
         puts("Could not create lockfile.\n");
-        sleep(1); 
+        sleep(2); 
         continue; 
       } 
       fprintf(lockFile, "Locked\n"); 
