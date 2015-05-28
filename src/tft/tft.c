@@ -355,7 +355,7 @@ main ()
       fclose(lockFile); 
 
       yPos = 130; 
-      DisplayCurrentIcon (420, yPos);
+      DisplayCurrentIcon (420, 10);
       DisplayWeatherFile (40, 230);
       strcpy(sBuffer, ""); 
       
@@ -364,13 +364,13 @@ main ()
       xPos += 100; 
       
       sprintf(sBuffer, "%d", inTemp );  
-      TFT_Text32(sBuffer, xPos, yPos, WHITE, BLUE); 
-      xPos += 100; 
+      TFT_AltText72(sBuffer, xPos, yPos, WHITE, BLUE); 
+      xPos += 130; 
 
       TFT_Text("Outdoor", xPos, yPos, 16, WHITE, BLUE); 
-      xPos += 120; 
+      xPos += 100; 
       sprintf(sBuffer, "%d", outTemp );  
-      TFT_Text32(sBuffer, xPos, yPos, WHITE, BLUE);  
+      TFT_AltText72(sBuffer, xPos, yPos, WHITE, BLUE);  
 
       remove("/root/bone/src/tft/lock.txt");  
 
