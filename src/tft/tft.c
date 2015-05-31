@@ -362,13 +362,12 @@ main ()
       xPos = 0;
       TFT_Text("Indoor", xPos, yPos, 16, WHITE, BLUE); 
       xPos += 100; 
-      
       sprintf(sBuffer, "%d", inTemp );  
       TFT_AltText72(sBuffer, xPos, yPos, WHITE, BLUE); 
-      xPos += 130; 
+      xPos += 160; 
 
-      TFT_Text("Outdoor", xPos, yPos, 16, WHITE, BLUE); 
-      xPos += 100; 
+      TFT_Text("Out", xPos, yPos, 16, WHITE, BLUE); 
+      xPos += 60; 
       sprintf(sBuffer, "%d", outTemp );  
       TFT_AltText72(sBuffer, xPos, yPos, WHITE, BLUE);  
 
