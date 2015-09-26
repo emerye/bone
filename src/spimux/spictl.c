@@ -17,37 +17,13 @@
 
 #define SPI_PATH "/dev/spidev1.0"
 
-int
-transfer (int fd, unsigned char send[], unsigned char receive[], int length)
-{
-  struct spi_ioc_transfer transfer;	//the transfer structure
-  transfer.tx_buf = (unsigned long) send;	//the buffer for sending data
-  transfer.rx_buf = (unsigned long) receive;	//the buffer for receiving data
-  transfer.len = length;	//the length of buffer
-  transfer.speed_hz = 8000000;	//the speed in Hz
-  transfer.bits_per_word = 8;	//bits per word
-  transfer.delay_usecs = 0;	//delay in us
-
-  // send the SPI message (all of the above fields, inc. buffers)
-  int status = ioctl (fd, SPI_IOC_MESSAGE (1), &transfer);
-  if (status < 0)
-    {
-      perror ("SPI: SPI_IOC_MESSAGE Failed");
-      return -1;
-    }
-  return status;
-}
+static unsigned int fd; 
 
 int
-main ()
+initSPI()
 {
-  unsigned int fd, i = 0;	//file handle and loop counter
-  unsigned char  null = 0x00;	//sending only a single char
   uint8_t bits = 8, mode = 3;	//8-bits per word, SPI mode 3
   uint32_t speed = 12000000;	//Speed is 1 MHz
-  int j;
-  unsigned char cSendData[50];
-  unsigned char cReceiveData[50];
 
   // The following calls set up the SPI bus properties
   if ((fd = open (SPI_PATH, O_RDWR)) < 0)
@@ -91,7 +67,49 @@ main ()
   printf ("SPI Bits is: %d\n", bits);
   printf ("SPI Speed is: %d\n", speed);
   printf ("Counting through all of the LEDs:\n");
+ 
+  return 0; 
+}
 
+
+int
+transfer (int fd, unsigned char send[], unsigned char receive[], int length)
+{
+  struct spi_ioc_transfer transfer;	//the transfer structure
+  transfer.tx_buf = (unsigned long) send;	//the buffer for sending data
+  transfer.rx_buf = (unsigned long) receive;	//the buffer for receiving data
+  transfer.len = length;	//the length of buffer
+  transfer.speed_hz = 1200000;	//the speed in Hz
+  transfer.bits_per_word = 8;	//bits per word
+  transfer.delay_usecs = 0;	//delay in us
+
+  // send the SPI message (all of the above fields, inc. buffers)
+  int status = ioctl (fd, SPI_IOC_MESSAGE (1), &transfer);
+  if (status < 0)
+    {
+      perror ("SPI: SPI_IOC_MESSAGE Failed");
+      return -1;
+    }
+  return status;
+}
+
+
+int
+main ()
+{
+  unsigned int i = 0;	//file handle and loop counter
+  unsigned char null = 0x00;	//sending only a single char
+  int j;
+  int iretVal;
+  unsigned char cSendData[50];
+  unsigned char cReceiveData[50];
+
+  iretVal = initSPI(); 
+  if (iretVal) {
+    printf("Not able to open SPI device. Program will exit.\n"); 
+    return -1; 
+} 
+  
   memset (cReceiveData, 0, 50);
   for (j = 0; j < 1000; j++)
     {
@@ -101,9 +119,7 @@ main ()
 	  cSendData[1] = (char) ((i >> 8) & 0xFF);
 
 	  // This function can send and receive data, just sending here
-	  if (transfer
-	      (fd, (unsigned char *) &cSendData[0], &cReceiveData[0],
-	       2) == -1)
+	  if (transfer (fd, cSendData, cReceiveData, 2) == -1)
 	    {
 	      perror ("Failed to update the display");
 	      return -1;
