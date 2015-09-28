@@ -18,7 +18,7 @@ int main(){
    LCDCharacterDisplay display(busDevice, 16, 2); // Construct 16x2 LCD Display
    display.clear();                   // Clear the character LCD module
    display.home();                    // Move the cursor to the (0,0) position
-   display.print("EBB by D. Molloy"); // String to display on the first row
+   display.print("Test"); // String to display on the first row
    for(int x=0; x<=10000; x++){       // Do this 10,000 times
       s.str("");                      // clear the ostringstream object s
       display.setCursorPosition(1,3); // move the cursor to second row
