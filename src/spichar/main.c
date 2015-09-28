@@ -48,7 +48,10 @@ main ()
    puts("Failed to read temperature.\n"); 
   } else {
   printf("Temperature reading is %s\n",tempReading); 
+  WriteString(3,0,"             "); 
+  WriteString(3,0,tempReading); 
   }
+ sleep(1); 
 }
   close (i2cfd);    //Close i2c
   close (SPIfd);    //close spi 

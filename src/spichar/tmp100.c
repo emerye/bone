@@ -62,7 +62,7 @@ int ReadTemperature(char * tmpReading)
 	  tempC = (((value[1] >> 4) & 0xFF) * 0.0625) + (int) value[0];
 	  tempF = (tempC * 9.0 / 5.0 + 32);
           //printf("Deg C %f  Deg F %f \n", tempC, tempF);
-          sprintf(tmpReading, "%f",tempF); 
+          sprintf(tmpReading, "%.2f",tempF); 
 	}
   return (r);
 }
