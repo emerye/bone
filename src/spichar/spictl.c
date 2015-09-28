@@ -1,4 +1,4 @@
-/** SPI C Transfer Example, Written by Derek Molloy (www.derekmolloy.ie)
+/* SPI C Transfer Example, Written by Derek Molloy (www.derekmolloy.ie)
 *    for the book Exploring BeagleBone. Based on the spidev_test.c code
 *    example at www.kernel.org
 *
@@ -79,10 +79,9 @@ initSPI()
     }
 
   // Check that the properties have been set
-  printf ("SPI Mode is: %d\n", mode);
-  printf ("SPI Bits is: %d\n", bits);
-  printf ("SPI Speed is: %d\n", speed);
-  printf ("Counting through all of the LEDs:\n");
+//  printf ("SPI Mode is: %d\n", mode);
+//  printf ("SPI Bits is: %d\n", bits);
+//  printf ("SPI Speed is: %d\n", speed);
  
   return 0; 
 }
@@ -109,54 +108,3 @@ SPIWrite (int fd, unsigned char send[], unsigned char receive[], int length)
   return status;
 }
 
-
-int
-main ()
-{
-  //unsigned int i = 0;	//file handle and loop counter
-  //unsigned char null = 0x00;	//sending only a single char
-  //int j;
-  int iretVal;
- // unsigned char cSendData[50];
-  unsigned char cReceiveData[50];
-
-  iretVal = initSPI(); 
-  if (iretVal) {
-    printf("Not able to open SPI device. Program will exit.\n"); 
-    return -1; 
-} 
-  
-  memset (cReceiveData, 0, 50);
-  
- Setup4bit();  
- 
-
- WriteString(0,0,"Wanda Hughes is"); 
- WriteString(1,0,"missing Thunder"); 
- WriteString(2,0,"Velley Casino"); 
- WriteString(3,0,"When will you come?"); 
-
-/*
-  for (j = 0; j < 1000; j++)
-    {
-      for (i = 0; i < 0xFFFF; i++)
-	{
-	  cSendData[0] = (i & 0xFF);
-	  cSendData[1] = (char) ((i >> 8) & 0xFF);
-
-	  // This function can send and receive data, just sending here
-	  if (SPIWrite (SPIfd, cSendData, cReceiveData, 2) == -1)
-	    {
-	      perror ("Failed to update the display");
-	      return -1;
-	    }
-	  fflush (stdout);	//need to flush the output, no \n
-	}
-    }
-  i = 0;
-  SPIWrite (SPIfd, (unsigned char *) &i, &null, 1);
-*/
-
-  close (SPIfd);			//close the file
-  return 0;
-}
