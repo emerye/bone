@@ -61,15 +61,6 @@ main (int argc, char **argv)
   if (r < 0) 
 	perror("Error reading configuration register.\n"); 
 
-  printf("Value is %x\n", value[0]);  
-
-  r = i2c_smbus_write_i2c_block_data (fd, 0x0, 0, wrdata);
-  if (r < 0)
-    {
-      perror ("Error writing config register to output temperature.\n");
-    }
-
-
   while (1)
     {
       usleep (500 * 1000);
