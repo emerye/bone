@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <stdint.h>
 #include <linux/spi/spidev.h>
+#include <time.h>
 #include "spictl.h"
 #include "lcdchar.h"
 #include "tmp100.h"
@@ -16,10 +17,12 @@
 int
 main ()
 {
+  time_t rawTime; 
   int iretVal,i;
   unsigned char cReceiveData[50];
   char tempReading[50]; 
- 
+  struct tm *timeinfo;  
+  char *ptrLclTime; 
 
   iretVal = initSPI();
   if (iretVal) {
@@ -32,17 +35,18 @@ main ()
     printf("Not able to open I2C device. Program will exit.\n");
     return -1;
    }
-
  memset (cReceiveData, 0, 50);
-
 
  Setup4bit();
 
- WriteString(0,0,"Wanda Hughes is");
- WriteString(1,0,"missing Thunder");
-
- for (i=0; i<10; i++) 
+ for (i=0; i<1000000; i++) 
 {
+ time(&rawTime); 
+ timeinfo =localtime(&rawTime); 
+ ptrLclTime = asctime(timeinfo); 
+ WriteString(0,0, (char *) ptrLclTime);  
+ printf("Time: %s\n",ptrLclTime);  
+
  iretVal = ReadTemperature(tempReading); 
  if(iretVal < 0) {
    puts("Failed to read temperature.\n"); 

@@ -97,8 +97,6 @@ Setup4bit ()
   usleep (2000);
   WriteCmd (LCD_CURSOR_DISPLAY);
   usleep (100);
-//  WriteCmd (LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE | DISPLAY_CURSOR |
-//	    DISPLAY_CURSOR_POS);
   WriteCmd (LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE );  
 
   usleep (100);
@@ -133,7 +131,9 @@ void WriteString(int row, int ypos, char message[])
      address += 0x80; 
      WriteCmd(address); 
      for(i=0; i<stLength; i++) {
+     if (message[i] > 0x1f) {
 	WriteData(message[i]);
+        }
      }     
 } 
         
