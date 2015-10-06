@@ -46,9 +46,9 @@ int  main (void)
    prussdrv_map_prumem(PRUSS0_PRU0_DATARAM, &pru0DataMemory);
    pru0DataMemory_int = (unsigned int *) pru0DataMemory;
    // Use the first 4 bytes for the number of samples
-   *pru0DataMemory_int = 1000;
+   *pru0DataMemory_int = 50;
    // Use the second 4 bytes for the sample delay in ms
-   *(pru0DataMemory_int+1) = 100;   // 2 milli seconds between samples
+   *(pru0DataMemory_int+1) = 500;   // 2 milli seconds between samples
 
    // Load and execute binary on PRU
    prussdrv_exec_program (PRU_NUM, "./ultrasonic.bin");

@@ -1,4 +1,4 @@
-CC=gcc
+CC=gcc -lpthread -lprussdrv
 CFLAGS = -Wall -g
 OBJECTS = spictl.o lcdchar.o tmp100.o main.o 
 FILES = spictl.c lcdchar.c tmp100.c main.c 
