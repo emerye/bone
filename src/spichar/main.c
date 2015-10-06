@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
@@ -13,6 +14,31 @@
 #define TMP100ADDR 0x48
 #define SPI_PATH "/dev/spidev1.0"
 
+char *gpioExport = "/sys/class/gpio/export"; 
+int ledState; 
+
+void SetupGPIO() 
+{
+  system("echo 49 > /sys/class/gpio/export"); 
+}
+
+void LEDState() 
+{
+if (ledState ==  1) 
+{
+  ledState = 0; 
+  system("echo 1 > /sys/class/gpio/gpio49/value"); 
+}
+else 
+{
+  system("echo 0 > /sys/class/gpio/gpio49/value"); 
+  ledState = 1; 
+}
+
+  int gpioStatus = 0; 
+}
+  
+
 
 int
 main ()
@@ -21,8 +47,8 @@ main ()
   int iretVal,i;
   unsigned char cReceiveData[50];
   char tempReading[50]; 
+  char date[50]; 
   struct tm *timeinfo;  
-  char *ptrLclTime; 
 
   iretVal = initSPI();
   if (iretVal) {
@@ -38,14 +64,17 @@ main ()
  memset (cReceiveData, 0, 50);
 
  Setup4bit();
+ SetupGPIO(); 
 
  for (i=0; i<1000000; i++) 
 {
  time(&rawTime); 
  timeinfo =localtime(&rawTime); 
- ptrLclTime = asctime(timeinfo); 
- WriteString(0,0, (char *) ptrLclTime);  
- printf("Time: %s\n",ptrLclTime);  
+ strftime(date, 50, "%c", timeinfo); 
+ strftime(date, 50, "%r", timeinfo); 
+ WriteString(0,0, date);  
+
+ printf("Time: %s\n",date);  
 
  iretVal = ReadTemperature(tempReading); 
  if(iretVal < 0) {
@@ -56,6 +85,7 @@ main ()
   WriteString(3,0,tempReading); 
   }
  sleep(1); 
+ LEDState(); 
 }
   close (i2cfd);    //Close i2c
   close (SPIfd);    //close spi 
