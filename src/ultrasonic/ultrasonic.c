@@ -16,12 +16,14 @@ static unsigned int *pru0DataMemory_int;
 
 void *threadFunction(void *value){
    do {
+      usleep(1000); 
       int notimes = prussdrv_pru_wait_event (PRU_EVTOUT_1);
       unsigned int raw_distance = *(pru0DataMemory_int+2);
       float distin = ((float)raw_distance / (100 * 148));
       float distcm = ((float)raw_distance / (100 * 58));
-      printf("Distance is %f inches (%f cm)             \r", distin, distcm);
+      printf("Distance is %f inches in thread (%f cm)             \n", distin, distcm);
       prussdrv_pru_clear_event (PRU_EVTOUT_1, PRU0_ARM_INTERRUPT);
+      usleep(700000); 
    } while (1);
 }
 
@@ -48,7 +50,7 @@ int  main (void)
    // Use the first 4 bytes for the number of samples
    *pru0DataMemory_int = 50;
    // Use the second 4 bytes for the sample delay in ms
-   *(pru0DataMemory_int+1) = 500;   // 2 milli seconds between samples
+   *(pru0DataMemory_int+1) = 1000;   // 2 milli seconds between samples = 100
 
    // Load and execute binary on PRU
    prussdrv_exec_program (PRU_NUM, "./ultrasonic.bin");
