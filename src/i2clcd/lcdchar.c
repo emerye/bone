@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h> 
 #include "lcdchar.h"
-
 
 // Constants from the data sheet Command Table Instruction codes and timings
 #define LCD_CLEAR_DISPLAY 	0b00000001
@@ -25,6 +26,44 @@
 #define LCD_SHORT_DELAY			37
 #define LCD_ROW_OFFSET_ADDR		0x40
 
+//
+void WriteI2CNibble(unsigned char msbtoWrite, int cmd) 
+{
+ int ret; 
+ unsigned char bytetoWrite = BACKLED; 
+
+ if(cmd > 1) puts("Type is greater than 1 in function WriteI2CByte\n");  
+ 
+ bytetoWrite = bytetoWrite | (msbtoWrite & 0xF0 ) | ENABLE | cmd; 
+ ret = i2c_smbus_write_byte(i2cfd, bytetoWrite);       
+ if (ret < 0) 
+  puts("Failed to write byte 1 in WriteNibble.\n");
+ bytetoWrite &= ~ENABLE;  
+ ret = i2c_smbus_write_byte(i2cfd, bytetoWrite);       
+ if (ret < 0) 
+  puts("Failed to write byte 2 in WriteNibble\n");
+
+ bytetoWrite |= ENABLE;  
+ ret = i2c_smbus_write_byte(i2cfd, bytetoWrite);       
+ if (ret < 0) 
+  puts("Failed to write byte 3 in WriteNIbble.\n");
+}
+
+
+//Command = 0  Data = 1
+void WriteI2CByte(unsigned char bytetoWrite, int cmd) 
+{
+ int ret; 
+ unsigned char lower = (bytetoWrite << 4) & 0b11110000;
+ unsigned char upper = bytetoWrite & 0b11110000;
+
+ if(cmd > 1) puts("Type is greater than 1 in function WriteI2CByte\n");  
+
+ WriteI2CNibble(upper, cmd); 
+ WriteI2CNibble(lower, cmd); 
+}
+
+
 // Wiring Configuration for the 74HC595
 // D7 D6 D5 D4 0  0  E  RS  (on the display module)
 // H  G  F  E  D  C  B  A   (on the 74HC595)
@@ -46,21 +85,6 @@
  *
  * @param i The character to send as a command
  */
-void
-WriteCmd (char i)
-{
-  char upper = (i << 4) & 0b11110000;
-  char lower = i & 0b11110000;
-
-  // need to write the lower data and toggle the E bit
-  WriteSPIByte (lower | 0b00000010);	//lower 4 bits
-  usleep (1);			//sleep for at least 300ns
-  WriteSPIByte (lower | 0b00000000);	//lower 4 bits
-  // need to write the upper data and toggle the E bit
-  WriteSPIByte (upper | 0b00000010);	//lower 4 bits
-  usleep (1);			//sleep for at least 300ns
-  WriteSPIByte (upper | 0b00000000);	//lower 4 bits
-}
 
 /***
  * Initializes and sets up the display as described in the display data sheets.
@@ -70,38 +94,35 @@ WriteCmd (char i)
 void
 Setup4bit ()
 {
-  WriteSPIByte (0x32);		//Manual write of Wake up!(first)
-  usleep (LCD_LONG_DELAY);	//Sleep for at least 5ms
-  WriteSPIByte (0x30);		//Toggle the E bit, sends on falling edge
-  usleep (LCD_SHORT_DELAY);	//Sleep for at least 160us
-  WriteSPIByte (0x32);		//Manual write of Wake up! (second)
-  usleep (LCD_SHORT_DELAY);
-  WriteSPIByte (0x30);
-  usleep (LCD_SHORT_DELAY);
-  WriteSPIByte (0x32);		//Manual write of Wake up! (third)
-  usleep (LCD_SHORT_DELAY);
-  WriteSPIByte (0x30);
-  usleep (LCD_SHORT_DELAY);
-  WriteSPIByte (0x22);		//Set 4-bit mode
-  usleep (LCD_SHORT_DELAY);
-  WriteSPIByte (0x20);
-  usleep (LCD_SHORT_DELAY);
-  WriteCmd (0x28);		//Set 4-bit/2-line
+  usleep(20000);                //Wait 15msec after power on.   
+  WriteI2CNibble(0x30,0);	//Manual write of Wake up!(first)
+  usleep(LCD_LONG_DELAY);	//Sleep for at least 5ms
+
+  WriteI2CNibble(0x30,0);	//Toggle the E bit, sends on falling edge
+  usleep(LCD_SHORT_DELAY);	//Sleep for at least 160us
+
+  WriteI2CNibble(0x30,0);		//Manual write of Wake up! (second)
+  usleep(LCD_SHORT_DELAY);
+
+  WriteI2CNibble(0x20,0);       //Function set to 4 bit        	
+  usleep(LCD_SHORT_DELAY);
+
+  WriteI2CByte (0x28,0);		//Set 4-bit/2-line
   // Default Cursor, Display and Entry states set in the constructor
   usleep (100);
 
-  WriteCmd (LCD_CLEAR_DISPLAY);
+  WriteI2CByte(LCD_CLEAR_DISPLAY,0);
   usleep (2000);
-  WriteCmd (LCD_RETURN_HOME);
+  WriteI2CByte(LCD_RETURN_HOME,0);
   usleep (2000);
-  WriteCmd (LCD_CURSOR_DISPLAY);
+  WriteI2CByte(LCD_CURSOR_DISPLAY,0);
   usleep (100);
-  WriteCmd (LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE );  
+  WriteI2CByte(LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE,0 );  
 
   usleep (100);
-  WriteCmd (LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT);
+  WriteI2CByte(LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT, 0);
 
-  WriteCmd (LCD_RETURN_HOME);
+  WriteI2CByte(LCD_RETURN_HOME,0);
   usleep (2000);
 
 }
@@ -128,10 +149,10 @@ void WriteString(int row, int ypos, char message[])
       }
     
      address += 0x80; 
-     WriteCmd(address); 
+     WriteI2CByte((unsigned char)address,0); 
      for(i=0; i<stLength; i++) {
      if (message[i] > 0x1f) {
-	WriteData(message[i]);
+	WriteI2CByte(message[i],1);
         }
      }     
 } 
@@ -150,30 +171,13 @@ void WriteString(int row, int ypos, char message[])
  *
  * @param i The character to send as data to the display module
  */
-void
-WriteData (char c)
-{
-  // 4-bit mode. Send lower 4 bits followed by higher 4 bits
-  char upper = (c << 4) & 0b11110000;
-  char lower = c & 0b11110000;
-  // need to write the lower data and toggle the E bit
-  WriteSPIByte (lower | 0b00000011);	//lower 4 bits
-  usleep (1);			//sleep for at least 300ns
-  WriteSPIByte (lower | 0b00000001);	//lower 4 bits
-  // need to write the upper data and toggle the E bit
-  WriteSPIByte (upper | 0b00000011);	//lower 4 bits
-  usleep (1);			//sleep for at least 300ns
-  WriteSPIByte (upper | 0b00000001);	//lower 4 bits
-  usleep (1);
-}
-
 /***
  * Clears the display by passing the LCD_CLEAR_DISPLAY command
  */
 void
 DisplayClear ()
 {
-  WriteCmd (LCD_CLEAR_DISPLAY);
+  WriteI2CByte(LCD_CLEAR_DISPLAY,0);
   usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required
 }
 
@@ -183,7 +187,7 @@ DisplayClear ()
 void
 DisplayHome ()
 {
-  WriteCmd (LCD_RETURN_HOME);
+  WriteI2CByte(LCD_RETURN_HOME,0);
   usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required
 }
 

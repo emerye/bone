@@ -6,15 +6,14 @@
 #include "lcdchar.h"
 
 //install i2c-tools, libi2c-dev
-int i2caddr = 0x27; 
-unsigned char i2creg = 0; 
-int i2cfd; 
+int i2caddr = 0x27;
+unsigned char i2creg = 0;
+int i2cfd;
 
 int
 main (int argc, char **argv)
 {
   int r, i;
-  int i2cfd;
 
   char *dev = "/dev/i2c-1";
 
@@ -24,28 +23,14 @@ main (int argc, char **argv)
       perror ("Opening i2c device node.\n");
       return -1;
     }
-
   r = ioctl (i2cfd, I2C_SLAVE, i2caddr);
   if (r < 0)
     perror ("Selecting i2c device.\n");
 
-  for (i=0; i < 100; i++) {
-  i2creg |= 0x08; 
-  r = i2c_smbus_write_byte(i2cfd, i2creg);
-  if (r < 0)
-    {
-      perror ("Error writing to config register.\n");
-    }
-  usleep(100000); 
-    
-  i2creg &= ~0x08; 
-  r = i2c_smbus_write_byte(i2cfd, i2creg);
-  if (r < 0)
-    {
-      perror ("Error writing to config register.\n");
-    }
-  usleep(100000); 
- }
+  Setup4bit ();
+  WriteString (1, 1, "Hello");
+  WriteString (2, 0, "Good Luch"); 
+  sleep (1);
 
   close (i2cfd);
   return 0;
