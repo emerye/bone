@@ -53,7 +53,6 @@ void WriteI2CNibble(unsigned char msbtoWrite, int cmd)
 //Command = 0  Data = 1
 void WriteI2CByte(unsigned char bytetoWrite, int cmd) 
 {
- int ret; 
  unsigned char lower = (bytetoWrite << 4) & 0b11110000;
  unsigned char upper = bytetoWrite & 0b11110000;
 
@@ -175,7 +174,7 @@ void WriteString(int row, int ypos, char message[])
  * Clears the display by passing the LCD_CLEAR_DISPLAY command
  */
 void
-DisplayClear ()
+DisplayClear()
 {
   WriteI2CByte(LCD_CLEAR_DISPLAY,0);
   usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required

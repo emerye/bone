@@ -13,7 +13,7 @@ int i2cfd;
 int
 main (int argc, char **argv)
 {
-  int r, i;
+  int r;
 
   char *dev = "/dev/i2c-1";
 
@@ -29,8 +29,10 @@ main (int argc, char **argv)
 
   Setup4bit ();
   WriteString (1, 1, "Hello");
-  WriteString (2, 0, "Good Luch"); 
-  sleep (1);
+  WriteString (2, 0, "Good Luck at the casino."); 
+  sleep (2);
+  DisplayClear(); 
+  WriteString (1, 0, "Good Luck at the casino."); 
 
   close (i2cfd);
   return 0;
