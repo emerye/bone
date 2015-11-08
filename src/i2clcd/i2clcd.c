@@ -14,7 +14,6 @@ int
 main (int argc, char **argv)
 {
   int r;
-
   char *dev = "/dev/i2c-1";
 
   i2cfd = open (dev, O_RDWR);
@@ -28,11 +27,16 @@ main (int argc, char **argv)
     perror ("Selecting i2c device.\n");
 
   Setup4bit ();
-  WriteString (1, 1, "Hello");
-  WriteString (2, 0, "Good Luck at the casino."); 
-  sleep (2);
-  DisplayClear(); 
-  WriteString (1, 0, "Good Luck at the casino."); 
+
+//  WriteI2CByte(0x0F, 0); 
+
+  DisplayClear ();
+  sleep(2); 
+  WriteString (0, 5, "Hello");
+//  DisplayClear ();
+  WriteString (1, 0, "Hi Wanda.");
+//  DisplayClear ();
+  WriteString (2, 0, "Hello There");
 
   close (i2cfd);
   return 0;
