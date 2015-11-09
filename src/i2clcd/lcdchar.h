@@ -18,13 +18,9 @@
 extern int i2cfd;	//I2C file 
 extern int lcdreg;	//I2C file 
 
-void WriteI2CNibble(unsigned char, int); 
-void WriteI2CByte(unsigned char, int); 
-void WriteData(char); 
-void WriteCmd(char i); 
-void Setup4bit(void); 
-void DisplayClear(void); 
-void WriteString(int, int, char []); 
-
+extern void WriteI2CByte(unsigned char bytetoWrite, int cmd); 
+extern void Setup4bit(void); 
+extern void DisplayClear(void); 
+extern void WriteString(int row, int ypos, char message[]); 
 
 #endif /* LCDCHAR_H_ */

@@ -12,6 +12,7 @@ unsigned char i2creg = 0;
 int i2cfd;
 char timeBuff[50]; 
 char dateBuff[50]; 
+extern int i2cfd; 
 
 char * GetTime() 
 {

@@ -26,6 +26,7 @@
 #define LCD_SHORT_DELAY			37
 #define LCD_ROW_OFFSET_ADDR		0x40
 
+int i2cfd; 
 //
 void
 WriteI2CNibble (unsigned char msbtoWrite, int cmd)
@@ -69,7 +70,7 @@ WriteI2CByte (unsigned char bytetoWrite, int cmd)
 /**
 Setup 4 bit display
 */
-extern void
+void
 Setup4bit ()
 {
   usleep (20000);		//Wait 15msec after power on.   
@@ -106,7 +107,7 @@ Setup4bit ()
 }
 
 //Prints a string starting at position. 
-extern void
+void
 WriteString (int row, int ypos, char message[])
 {
   int stLength = strlen (message);
@@ -142,7 +143,7 @@ WriteString (int row, int ypos, char message[])
 /***
  * Clears the display by passing the LCD_CLEAR_DISPLAY command
  */
-extern void
+void
 DisplayClear ()
 {
   WriteI2CByte (LCD_CLEAR_DISPLAY, 0);
@@ -152,7 +153,7 @@ DisplayClear ()
 /***
  * Returns the cursor to the 00 address by passing the LCD_RETURN_HOME command
  */
-extern void
+void
 DisplayHome ()
 {
   WriteI2CByte (LCD_RETURN_HOME, 0);
