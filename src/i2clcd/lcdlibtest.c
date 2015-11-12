@@ -12,7 +12,6 @@ unsigned char i2creg = 0;
 int i2cfd;
 char timeBuff[50]; 
 char dateBuff[50]; 
-extern int i2cfd; 
 
 char * GetTime() 
 {
@@ -31,6 +30,7 @@ int
 main (int argc, char **argv)
 {
   int r;
+  int i2cfd; 
   char *dev = "/dev/i2c-1";
 
   i2cfd = open (dev, O_RDWR);
@@ -43,14 +43,14 @@ main (int argc, char **argv)
   if (r < 0)
     perror ("Selecting i2c device.\n");
 
-  Setup4bit ();
+  Setup4bit(i2cfd);
 
 //  WriteI2CByte(0x0F, 0); 
 
-  DisplayClear ();
+  DisplayClear (i2cfd);
   GetTime(); 
-  WriteString (0,0, dateBuff); 
-  WriteString (1,0, GetTime()); 
+  WriteString (i2cfd, 0,0, dateBuff); 
+  WriteString (i2cfd, 1,0, GetTime()); 
 
 //  DisplayClear ();
 //  WriteString (3, 0, "Hello There");
@@ -58,8 +58,8 @@ main (int argc, char **argv)
   while(1) 
   {
   	GetTime(); 
-  WriteString (0,0, dateBuff); 
-  WriteString (1,0, GetTime()); 
+  WriteString (i2cfd,0,0, dateBuff); 
+  WriteString (i2cfd, 1,0, GetTime()); 
   sleep(1); 
 }
 

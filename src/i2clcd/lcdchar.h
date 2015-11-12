@@ -15,12 +15,10 @@
 #define BIT6 0x40 
 #define BIT7 0x80 
 
-extern int i2cfd;	//I2C file 
-extern int lcdreg;	//I2C file 
 
-extern void WriteI2CByte(unsigned char bytetoWrite, int cmd); 
-extern void Setup4bit(void); 
-extern void DisplayClear(void); 
-extern void WriteString(int row, int ypos, char message[]); 
+extern void WriteI2CByte(int i2cfd, unsigned char bytetoWrite, int cmd); 
+extern void Setup4bit(int i2cfd); 
+extern void DisplayClear(int i2cfd); 
+extern void WriteString(int i2cfd, int row, int ypos, char message[]); 
 
 #endif /* LCDCHAR_H_ */

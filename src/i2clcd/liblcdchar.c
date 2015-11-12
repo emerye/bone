@@ -26,10 +26,9 @@
 #define LCD_SHORT_DELAY			37
 #define LCD_ROW_OFFSET_ADDR		0x40
 
-int i2cfd; 
 //
 void
-WriteI2CNibble (unsigned char msbtoWrite, int cmd)
+WriteI2CNibble (int i2cfd, unsigned char msbtoWrite, int cmd)
 {
   int ret;
   unsigned char bytetoWrite = BACKLED;
@@ -55,7 +54,7 @@ WriteI2CNibble (unsigned char msbtoWrite, int cmd)
 
 //Command = 0  Data = 1
 void
-WriteI2CByte (unsigned char bytetoWrite, int cmd)
+WriteI2CByte (int i2cfd, unsigned char bytetoWrite, int cmd)
 {
   unsigned char lower = (bytetoWrite << 4) & 0b11110000;
   unsigned char upper = bytetoWrite & 0b11110000;
@@ -63,52 +62,52 @@ WriteI2CByte (unsigned char bytetoWrite, int cmd)
   if (cmd > 1)
     puts ("Type is greater than 1 in function WriteI2CByte\n");
 
-  WriteI2CNibble (upper, cmd);
-  WriteI2CNibble (lower, cmd);
+  WriteI2CNibble (i2cfd, upper, cmd);
+  WriteI2CNibble (i2cfd, lower, cmd);
 }
 
 /**
 Setup 4 bit display
 */
 void
-Setup4bit ()
+Setup4bit (int i2cfd)
 {
   usleep (20000);		//Wait 15msec after power on.   
-  WriteI2CNibble (0x30, 0);	//Manual write of Wake up!(first)
+  WriteI2CNibble (i2cfd, 0x30, 0);	//Manual write of Wake up!(first)
   usleep (LCD_LONG_DELAY);	//Sleep for at least 5ms
 
-  WriteI2CNibble (0x30, 0);	//Toggle the E bit, sends on falling edge
+  WriteI2CNibble (i2cfd, 0x30, 0);	//Toggle the E bit, sends on falling edge
   usleep (LCD_SHORT_DELAY);	//Sleep for at least 160us
 
-  WriteI2CNibble (0x30, 0);	//Manual write of Wake up! (second)
+  WriteI2CNibble (i2cfd, 0x30, 0);	//Manual write of Wake up! (second)
   usleep (LCD_SHORT_DELAY);
 
-  WriteI2CNibble (0x20, 0);	//Function set to 4 bit         
+  WriteI2CNibble (i2cfd, 0x20, 0);	//Function set to 4 bit         
   usleep (LCD_SHORT_DELAY);
 
-  WriteI2CByte (0x28, 0);	//Set 4-bit/2-line
+  WriteI2CByte (i2cfd, 0x28, 0);	//Set 4-bit/2-line
   // Default Cursor, Display and Entry states set in the constructor
   usleep (100);
 
-  WriteI2CByte (LCD_CLEAR_DISPLAY, 0);
+  WriteI2CByte (i2cfd, LCD_CLEAR_DISPLAY, 0);
   usleep (2000);
-  WriteI2CByte (LCD_RETURN_HOME, 0);
+  WriteI2CByte (i2cfd, LCD_RETURN_HOME, 0);
   usleep (2000);
-  WriteI2CByte (LCD_CURSOR_DISPLAY, 0);
+  WriteI2CByte (i2cfd, LCD_CURSOR_DISPLAY, 0);
   usleep (100);
-  WriteI2CByte (LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE, 0);
+  WriteI2CByte (i2cfd, LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE, 0);
 
   usleep (100);
-  WriteI2CByte (LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT, 0);
+  WriteI2CByte (i2cfd, LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT, 0);
 
-  WriteI2CByte (LCD_RETURN_HOME, 0);
+  WriteI2CByte (i2cfd, LCD_RETURN_HOME, 0);
   usleep (2000);
 
 }
 
 //Prints a string starting at position. 
 void
-WriteString (int row, int ypos, char message[])
+WriteString (int i2cfd, int row, int ypos, char message[])
 {
   int stLength = strlen (message);
   int i, address;
@@ -129,12 +128,12 @@ WriteString (int row, int ypos, char message[])
       break;
     }
   address += 0x80;
-  WriteI2CByte ((unsigned char) address, 0);
+  WriteI2CByte (i2cfd, (unsigned char) address, 0);
   for (i = 0; i < stLength; i++)
     {
       if (message[i] > 0x1f)
 	{
-	  WriteI2CByte (message[i], 1);
+	  WriteI2CByte (i2cfd, message[i], 1);
 	}
     }
 }
@@ -144,9 +143,9 @@ WriteString (int row, int ypos, char message[])
  * Clears the display by passing the LCD_CLEAR_DISPLAY command
  */
 void
-DisplayClear ()
+DisplayClear (int i2cfd)
 {
-  WriteI2CByte (LCD_CLEAR_DISPLAY, 0);
+  WriteI2CByte (i2cfd, LCD_CLEAR_DISPLAY, 0);
   usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required
 }
 
@@ -154,9 +153,8 @@ DisplayClear ()
  * Returns the cursor to the 00 address by passing the LCD_RETURN_HOME command
  */
 void
-DisplayHome ()
+DisplayHome (int i2cfd)
 {
-  WriteI2CByte (LCD_RETURN_HOME, 0);
+  WriteI2CByte (i2cfd, LCD_RETURN_HOME, 0);
   usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required
 }
-

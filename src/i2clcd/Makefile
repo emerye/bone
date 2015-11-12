@@ -2,8 +2,8 @@ CC=gcc
 CFLAGS=-Wall -Werror
 OBJECTS = i2clcd.o lcdchar.o
 
-main: i2clcd.o lcdchar.o 
-	$(CC) $(CFLAGS) $(OBJECTS) -o i2clcd
+main:  liblcdchar.o 
+#	$(CC) $(CFLAGS) $(OBJECTS) -o i2clcd
 	$(CC) $(CFLAGS) -fPIC -c liblcdchar.c -o liblcdchar.o  
 	$(CC) $(CFLAGS) -shared -o liblcdchar.so liblcdchar.o 
 	mv liblcdchar.so /usr/local/lib
