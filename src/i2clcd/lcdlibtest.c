@@ -24,7 +24,20 @@ char * GetTime()
   strftime(dateBuff, 50, "%D", timeInfo); 
   return timeBuff; 
 }
- 
+
+
+void Display(int i2cfd, unsigned char tgtAddress) 
+{
+  int r; 
+
+  r = ioctl (i2cfd, I2C_SLAVE, tgtAddress);
+  if (r < 0) {
+    perror ("Selecting i2c device.\n");
+  }
+  GetTime(); 
+  WriteString (i2cfd, 0,0, dateBuff); 
+  WriteString (i2cfd, 1,0, GetTime()); 
+}
 
 int
 main (int argc, char **argv)
@@ -43,6 +56,13 @@ main (int argc, char **argv)
   if (r < 0)
     perror ("Selecting i2c device.\n");
 
+  Setup4bit(i2cfd);  
+  DisplayClear(i2cfd);
+  Display(i2cfd, 0x22);   
+
+  r = ioctl (i2cfd, I2C_SLAVE, i2caddr);
+  if (r < 0)
+    perror ("Selecting i2c device.\n");
   Setup4bit(i2cfd);
 
 //  WriteI2CByte(0x0F, 0); 
@@ -60,6 +80,9 @@ main (int argc, char **argv)
   	GetTime(); 
   WriteString (i2cfd,0,0, dateBuff); 
   WriteString (i2cfd, 1,0, GetTime()); 
+  
+  Display(i2cfd, 0x22);   
+  r = ioctl (i2cfd, I2C_SLAVE, i2caddr);
   sleep(1); 
 }
 
