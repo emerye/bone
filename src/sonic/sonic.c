@@ -49,12 +49,19 @@ int SetupI2C(int i2cAddr)
 void *threadFunction(void *value){
    char sBuffer[50]; 
    do {
-      int notimes = prussdrv_pru_wait_event (PRU_EVTOUT_1);
+      prussdrv_pru_wait_event (PRU_EVTOUT_1);
       unsigned int raw_distance = *(pru0DataMemory_int+2);
       float distin = ((float)raw_distance / (100 * 148));
       float distcm = ((float)raw_distance / (100 * 58));
       printf("Distance is %f inches (%f cm)             \r", distin, distcm);
+      if (distin >= 100.0) {
       sprintf(sBuffer, "%5.2f", distin);
+      } else if (distin >= 10.0) {
+      sprintf(sBuffer, " %4.2f", distin);
+      } else if (distin < 10.0) {
+      sprintf(sBuffer, "  %1.2f", distin);
+      }
+
       WriteString(gi2cfd, 1,0, sBuffer); 
       
       prussdrv_pru_clear_event (PRU_EVTOUT_1, PRU0_ARM_INTERRUPT);
