@@ -54,15 +54,23 @@ void *threadFunction(void *value){
       float distin = ((float)raw_distance / (100 * 148));
       float distcm = ((float)raw_distance / (100 * 58));
       printf("Distance is %f inches (%f cm)             \r", distin, distcm);
-      if (distin >= 100.0) {
+      if (distin >= 100.0 && distin < 200.0) {
       sprintf(sBuffer, "%5.2f", distin);
-      } else if (distin >= 10.0) {
-      sprintf(sBuffer, " %4.2f", distin);
-      } else if (distin < 10.0) {
-      sprintf(sBuffer, "  %1.2f", distin);
-      }
-
+      WriteString(gi2cfd, 1,0, "                   "); 
       WriteString(gi2cfd, 1,0, sBuffer); 
+      } else if (distin >= 10.0) {
+      WriteString(gi2cfd, 1,0, "                   "); 
+      sprintf(sBuffer, " %4.2f", distin);
+      WriteString(gi2cfd, 1,0, sBuffer); 
+      } else if (distin < 10.0) {
+      WriteString(gi2cfd, 1,0, "                   "); 
+      sprintf(sBuffer, "  %3.2f", distin);
+      WriteString(gi2cfd, 1,0, sBuffer); 
+      }
+      usleep(500000); 
+      
+
+      //WriteString(gi2cfd, 1,0, sBuffer); 
       
       prussdrv_pru_clear_event (PRU_EVTOUT_1, PRU0_ARM_INTERRUPT);
 
