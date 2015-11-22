@@ -39,7 +39,7 @@ int SetupI2C(int i2cAddr)
   Setup4bit(i2cfd);
   DisplayClear(i2cfd);
 
-  WriteString (i2cfd, 0,0, "Started");
+  WriteString (i2cfd, 0,0, "Distance in inches.");
   gi2cfd = i2cfd; 
   return i2cfd;  
 }
@@ -53,21 +53,26 @@ void *threadFunction(void *value){
       unsigned int raw_distance = *(pru0DataMemory_int+2);
       float distin = ((float)raw_distance / (100 * 148));
       float distcm = ((float)raw_distance / (100 * 58));
-      printf("Distance is %f inches (%f cm)             \r", distin, distcm);
+//      printf("Distance is %f inches (%f cm)             \r", distin, distcm);
+      if (distin > 5.0  && distin < 200) {
       if (distin >= 100.0 && distin < 200.0) {
       sprintf(sBuffer, "%5.2f", distin);
-      WriteString(gi2cfd, 1,0, "                   "); 
+//      WriteString(gi2cfd, 1,0, "                   "); 
       WriteString(gi2cfd, 1,0, sBuffer); 
       } else if (distin >= 10.0) {
-      WriteString(gi2cfd, 1,0, "                   "); 
+ //     WriteString(gi2cfd, 1,0, "                   "); 
       sprintf(sBuffer, " %4.2f", distin);
       WriteString(gi2cfd, 1,0, sBuffer); 
       } else if (distin < 10.0) {
-      WriteString(gi2cfd, 1,0, "                   "); 
+  //    WriteString(gi2cfd, 1,0, "                   "); 
       sprintf(sBuffer, "  %3.2f", distin);
       WriteString(gi2cfd, 1,0, sBuffer); 
       }
-      usleep(500000); 
+      }
+      usleep(200000); 
+      pru0DataMemory_int = (unsigned int *) pru0DataMemory;
+      // Use the first 4 bytes for the number of samples
+      *pru0DataMemory_int = 1;
       
 
       //WriteString(gi2cfd, 1,0, sBuffer); 
@@ -103,12 +108,12 @@ int  main (int argc, char **argv)
    prussdrv_map_prumem(PRUSS0_PRU0_DATARAM, &pru0DataMemory);
    pru0DataMemory_int = (unsigned int *) pru0DataMemory;
    // Use the first 4 bytes for the number of samples
-   *pru0DataMemory_int = 500;
+   *pru0DataMemory_int = 50000;
    // Use the second 4 bytes for the sample delay in ms
-   *(pru0DataMemory_int+1) = 100;   // 2 milli seconds between samples
+   *(pru0DataMemory_int+1) = 50;   // 2 milli seconds between samples
 
    // Load and execute binary on PRU
-   prussdrv_exec_program (PRU_NUM, "./ultrasonic.bin");
+   prussdrv_exec_program (PRU_NUM, "/root/bone/src/sonic/ultrasonic.bin");
    if(pthread_create(&thread, NULL, &threadFunction, NULL)){
        printf("Failed to create thread!");
    }

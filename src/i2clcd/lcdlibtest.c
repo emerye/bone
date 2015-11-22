@@ -58,7 +58,7 @@ main (int argc, char **argv)
 
   Setup4bit(i2cfd);  
   DisplayClear(i2cfd);
-  Display(i2cfd, 0x22);   
+  Display(i2cfd, i2caddr);
 
   r = ioctl (i2cfd, I2C_SLAVE, i2caddr);
   if (r < 0)
@@ -81,8 +81,6 @@ main (int argc, char **argv)
   WriteString (i2cfd,0,0, dateBuff); 
   WriteString (i2cfd, 1,0, GetTime()); 
   
-  Display(i2cfd, 0x22);   
-  r = ioctl (i2cfd, I2C_SLAVE, i2caddr);
   sleep(1); 
 }
 
