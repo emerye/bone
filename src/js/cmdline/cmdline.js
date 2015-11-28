@@ -2,6 +2,17 @@
 
 var Gpio = require('onoff').Gpio;
 var led = new Gpio(4, 'out'); 
+var ledState = 0; 
+
+
+function sleep(time, callback) {
+  var stop = new Date().getTime(); 
+  while(new Date().getTime() < stop + time) { 
+    ;
+  }
+  callback(); 
+}
+
 
 function exit() {
   led.unexport(); 
@@ -15,13 +26,14 @@ function ledcntl(state) {
     }
     else {
     console.log("LED OFF"); 
-}
+  }
 }
 
-function ledon() {
-  console.log("LED ON"); 
-  led.writeSync(1); 
-}
+
+console.log("Hello World"); 
+console.log(process.argv); 
+console.log(process.argv.slice(2)); 
+var cmdargs = process.argv.slice(2); 
 
 led.writeSync(1); 
 setTimeout(function() {
@@ -29,13 +41,20 @@ setTimeout(function() {
    ledcntl(0); 
    }, 2000);  
 
+
 setTimeout(function() { ledcntl(1) }, 5000); 
 
+while(1) {
+  if (ledState == 1) {
+    ledcntl(0); 
+    ledState = 0; 
+  } else {
+    ledcntl(1); 
+    ledState = 1; 
+  }
+    sleep(100, function() { 
+    }); 
+}
+
+// process.exit(); 
  
-console.log("Hello World"); 
-console.log(process.argv); 
-console.log(process.argv.slice(2)); 
-var cmdargs = process.argv.slice(2); 
-
-
-
