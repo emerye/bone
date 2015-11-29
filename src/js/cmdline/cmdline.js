@@ -1,16 +1,25 @@
 #!/usr/bin/env node
 
+var I2CADDR = 0x27;
+
+var i2c = require('i2c-bus');
+var utils = require('./utils.js'); 
 var Gpio = require('onoff').Gpio;
 var led = new Gpio(4, 'out'); 
 var ledState = 0; 
 
-
-function sleep(time, callback) {
-  var stop = new Date().getTime(); 
-  while(new Date().getTime() < stop + time) { 
-    ;
+function i2cInit(tgtAddress) {
+  var i2c1 = i2c.openSync(1); 
+  if (i2c1 == null) {
+  Console.log("Opening I2C port failed.", err); 
   }
-  callback(); 
+
+  try {
+   i2c1.sendByteSync(I2CADDR, 0x27); 
+  } 
+    catch (err) {
+      Console.log("Exception sending byte.", err); 
+  }
 }
 
 
@@ -42,7 +51,7 @@ setTimeout(function() {
    }, 2000);  
 
 
-setTimeout(function() { ledcntl(1) }, 5000); 
+setTimeout(function() { ledcntl(1) }, 500); 
 
 while(1) {
   if (ledState == 1) {
@@ -52,9 +61,10 @@ while(1) {
     ledcntl(1); 
     ledState = 1; 
   }
-    sleep(100, function() { 
+    utils.sleep(1000, function() { 
     }); 
 }
 
+i2c1.closeSync(); 
 // process.exit(); 
  
