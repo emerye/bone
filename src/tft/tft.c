@@ -321,7 +321,9 @@ main ()
   int hours, minutes;
   int lastHour = 0;
   char sBuffer[30];  
+  char testBuffer[30];  
   FILE *lockFile; 
+  int outTempLength; 
 
   remove("/root/bone/src/tft/lock.txt"); 
   retval = MapGPIO ();
@@ -360,15 +362,22 @@ main ()
       strcpy(sBuffer, ""); 
       
       xPos = 0;
-      TFT_Text("Indoor", xPos, yPos, 16, WHITE, BLUE); 
-      xPos += 100; 
+      TFT_Text("In", xPos, yPos, 16, WHITE, BLUE); 
+      xPos += 50; 
       sprintf(sBuffer, "%d", inTemp );  
       TFT_AltText72(sBuffer, xPos, yPos, WHITE, BLUE); 
       xPos += 160; 
 
       TFT_Text("Out", xPos, yPos, 16, WHITE, BLUE); 
       xPos += 60; 
-      sprintf(sBuffer, "%d", outTemp );  
+      outTempLength = sprintf(testBuffer, "%d", outTemp );  
+      if (outTempLength == 2)  {
+        outTempLength = sprintf(sBuffer, "%d ", outTemp );  
+      }
+      else {
+        outTempLength = sprintf(sBuffer, "%d", outTemp );  
+      }
+       
       TFT_AltText72(sBuffer, xPos, yPos, WHITE, BLUE);  
 
       remove("/root/bone/src/tft/lock.txt");  
