@@ -24,6 +24,23 @@ writeResulttoFile (int curTemp)
 }
 
 
+int ConvSignedBytetoInt(char byte) 
+  {
+  int val = 0; 
+  char cvtByte; 
+
+  if ((byte & 0x80) == 0x80) {
+    cvtByte = byte;  
+    cvtByte  = (~cvtByte + 1); 
+    val = (int) (cvtByte * -1); 
+    }
+  else {
+    val = (int) byte; 
+   }
+   return val; 
+} 
+
+
 int
 main (int argc, char **argv)
 {
@@ -36,6 +53,7 @@ main (int argc, char **argv)
 
   char *dev = "/dev/i2c-1";
   int addr = 0x48;		//TMP100 with A0 and A1 low
+  int intvalue; 
 
   fd = open (dev, O_RDWR);
   if (fd < 0)
@@ -72,9 +90,11 @@ main (int argc, char **argv)
 	}
       else
 	{
-	  tempC = (((value[1] >> 4) & 0xFF) * 0.0625) + (int) value[0];
+          intvalue = ConvSignedBytetoInt(value[0]); 
+  //      printf("Cvt intvalue %d\n\n", intvalue);  
+	  tempC = (((value[1] >> 4) & 0xFF) * 0.0625) + intvalue; 
 	  tempF = (int) (tempC * 9.0 / 5.0 + 32);
-//                printf("Deg C %f  Deg F %d \n", tempC, tempF);
+//        printf("Deg C %f  Deg F %d \n", tempC, tempF);
 	  writeResulttoFile (tempF);
 	}
     }
