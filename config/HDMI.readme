@@ -1,0 +1,7 @@
+Connect keyboard and mouse using Vakoss hub unpowered.
+Connect HDMI cable to monitor.
+Connect ethernet cable to bone.
+Change uBoot.txt
+shutdown -r now 
+
+HDMI is reliable. 
