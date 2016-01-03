@@ -4,7 +4,7 @@ url = require('url');
 var htmlbreak = "<br />";
 var h1 = "<h1>"; 
 var endh1 = "</h1>";
-var temperatureFile = './temperature.log';
+var temperatureFile = '../temperature.log';
 
 http.createServer(function(request, response) {
   var b = require('bonescript');
