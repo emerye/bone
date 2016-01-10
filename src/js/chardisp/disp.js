@@ -8,7 +8,7 @@ var Gpio = require('onoff').Gpio;
 var led = new Gpio(4, 'out'); 
 var ledState = 0; 
 var i2c1 = null; 
-var lcdCls = require('./lcdcls.js'); 
+var lcdchar = require('./LCDChar.js');
 
 function OpenI2C() {
   try { 
@@ -25,7 +25,6 @@ function OpenI2C() {
       console.log("Exception sending byte.", err); 
   }
 }
-
 
 function exit() {
   led.unexport(); 
@@ -44,26 +43,24 @@ function ledcntl(state) {
 
 
 OpenI2C(); 
-utils.LcdInit(i2c1, 0x27); 
+
+
+var charObj = new lcdchar(i2c1, 0x27); 
+charObj.LcdInit(); 
+
+//utils.LcdInit(i2c1, 0x27); 
+
 
 console.log(process.argv); 
 console.log(process.argv.slice(2)); 
 
-var cmdargs = process.argv.slice(2); 
+utils.WriteByte(i2c1,0x27,0x48, 1); 
+utils.WriteByte(i2c1,0x27,0x47, 1); 
+utils.WriteByte(i2c1,0x27,0x46, 1); 
+utils.WriteByte(i2c1,0x27,0x45, 1); 
 
-utils.WriteByte(i2c1,0x27,0x41, 1); 
-utils.WriteByte(i2c1,0x27,0x42, 1); 
-utils.WriteByte(i2c1,0x27,0x43, 1); 
-utils.WriteByte(i2c1,0x27,0x44, 1); 
-
-var lcdDisp = new lcdCls(i2c1, 0x27); 
-lcdDisp.LCDinit();  
-
-var lcd2 = new lcdCls(i2c1, 1); 
-lcd2.LCDinit(); 
-
-var lcd3 = new lcdCls(i2c1, 2); 
-lcd3.LCDinit(); 
+//var lcdDisp = new lcdCls(i2c1, 0x27); 
+//lcdDisp.LCDinit();  
 
 led.writeSync(1); 
 setTimeout(function() {
