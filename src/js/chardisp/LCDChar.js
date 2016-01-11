@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 var i2c = require('i2c-bus'); 
-var utils = require('./utils.js'); 
 
 const LCD_CLEAR_DISPLAY = 0x01; 
 const LCD_RETURN_HOME = 0x02;  
@@ -30,11 +29,6 @@ function LCDChar(devHandle, tgtAddress) {
 
 
 // Methods 
-LCDChar.prototype.LCDinit = function() {
-	console.log('LCDinit Method called. Target address is ', this.tgtAddress );   
-}; 
-
-
 LCDChar.prototype.sleep = function (time, callback) {
   var stop = new Date().getTime(); 
   while(new Date().getTime() < stop + time) { 
@@ -82,31 +76,65 @@ LCDChar.prototype.WriteByte = function (bytetoWrite, cmd) {
 }
 
 
-LCDChar.prototype.LcdInit = function () {
-  
-  this.sleep(200, function(){});
+LCDChar.prototype.LCDInit = function () {
+  this.sleep(500, function(){});
   this.WriteNibble(0x30, 0); 
-  this.sleep(5, function(){}); 
+  this.sleep(10, function(){}); 
+  this.WriteNibble(0x30, 0); 
+  this.sleep(2, function(){});
   this.WriteNibble(0x30, 0); 
   this.sleep(10, function(){});
-  this.WriteNibble(0x30, 0); 
-  this.sleep(1, function(){});
   this.WriteNibble(0x20, 0); 
-  this.sleep(1, function(){});
+  this.sleep(10, function(){});
   this.WriteByte(0x28, 0); 
-  this.sleep(1, function(){});
-
+  this.sleep(5, function(){});
   this.WriteByte(LCD_CLEAR_DISPLAY, 0); 
-  this.sleep(2, function(){});
+  this.sleep(5, function(){});
   this.WriteByte(LCD_RETURN_HOME, 0); 
-  this.sleep(1, function(){});
+  this.sleep(5, function(){});
   this.WriteByte(LCD_CURSOR_DISPLAY, 0); 
-  this.sleep(1, function(){});
+  this.sleep(5, function(){});
   this.WriteByte(LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE, 0); 
-  this.sleep(1, function(){});
+  this.sleep(5, function(){});
   this.WriteByte(LCD_RETURN_HOME, 0); 
-  this.sleep(2, function(){});
-} 
+  this.sleep(20, function(){});
+  return 0; 
+};  
+
+//row is 0-3
+LCDChar.prototype.LCDWriteString = function (row, xpos, writeString) { 
+  var address;
+  var i; 
+
+  switch(row) { 
+    case 0:
+      address = xpos; 
+      break; 
+    case 1: 
+      address = xpos + 0x40;
+      break; 
+    case 2:
+      address = xpos + 20;
+      break;
+    case 3: 
+      address = xpos + 0x54; 
+      break;
+  }
+  address += 0x80; 
+  this.WriteByte(address, 0); 
+  var stLen = writeString.length; 
+  for (i = 0; i< writeString.length; i++) {
+    var sByte = writeString.charCodeAt(i);  
+   this.WriteByte(sByte, 1); 
+    }   
+  } 
+
+
+LCDChar.prototype.LCDClearDisp = function() {
+  
+  this.WriteByte(LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE, 0); 
+  this.sleep(5, function(){});
+}
 
 //Export this class
 module.exports = LCDChar; 
