@@ -29,6 +29,7 @@ main (int argc, char **argv)
 {
   int r;
   int fd;
+  signed char rbyte; 
   unsigned char value[4];
   __u8 wrdata[20];
   float tempC, fTempF;
@@ -78,6 +79,7 @@ main (int argc, char **argv)
 	  fTempF = ((tempC * 9.0 / 5.0) + 32);
           printf("Deg C %f  Deg F %d \n", tempC, tempF);
           printf("Deg F %f \n", fTempF);
+          printf("RAW LSB %2x RAW MSB %2x\n", value[0], value[1]); 
           
 	  writeResulttoFile (tempF);
 	}
