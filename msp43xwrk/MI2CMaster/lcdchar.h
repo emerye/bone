@@ -27,6 +27,12 @@
 
 #define LCD_ROW_OFFSET_ADDR		0x40
 
+
+#define RS 1
+#define READWRITE 2
+#define ENABLE 4
+#define BACKLED 8
+
 enum operation
 {
 	COMMAND = 0,

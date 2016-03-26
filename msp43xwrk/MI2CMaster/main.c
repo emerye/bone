@@ -32,14 +32,13 @@
 //            |     P3.1/UCB0SCL|<-+------>|P3.1/UCB0SCL     |
 //            |                 |          |                 |
 //
-//   Bhargavi Nisarga
-//   Texas Instruments Inc.
-//   April 2009
-//   Built with CCSv4 and IAR Embedded Workbench Version: 4.21
 //******************************************************************************
 
 #include  <msp430.h>
+#include <stdio.h>
+#include <string.h>
 #include "lcdchar.h"
+#include <stdio.h>
 
 unsigned char TXData;
 unsigned char TXByteCtr;
@@ -86,7 +85,6 @@ void XT2_4MHz() {
 }
 
 
-
 /**
  * Write one byte to I2C
  *
@@ -104,38 +102,101 @@ void WriteI2CByte(unsigned char data) {
                                             // is TX'd
 }
 
+/**
+ * Write I2C Nibble
+ */
+void WriteI2CNibble(unsigned char msbtoWrite, int cmd) {
+
+	unsigned char bytetoWrite = BACKLED;
+
+	bytetoWrite = bytetoWrite | (msbtoWrite & 0xF0) | ENABLE | cmd;
+	WriteI2CByte(bytetoWrite);
+	bytetoWrite &= ~ENABLE;
+	WriteI2CByte(bytetoWrite);
+	bytetoWrite |= ENABLE;
+	WriteI2CByte(bytetoWrite);
+}
+
+/**
+ * Command = 0  Data = 1
+ */
+
+void WriteLCDByte (unsigned char bytetoWrite, int cmd)
+{
+  unsigned char lower = (bytetoWrite << 4) & 0b11110000;
+  unsigned char upper = bytetoWrite & 0b11110000;
+
+  WriteI2CNibble (upper, cmd);
+  WriteI2CNibble (lower, cmd);
+}
+
+
+
 /***
  * Initializes and sets up the display as described in the display data sheets.
  * This setup routine sets up a 4-bit display (sets 4-bit mode), sets the cursor,
  * turns on the display and sets entry mode.
  */
 void Setup4bit(){
-	WriteByte(0x30);  //Manual Command of Wake up!(first)
+	DelayMsec(20);
+	WriteI2CNibble(0x30, 0);  //Manual Command of Wake up!(first)
 	DelayMsec(15);     //Sleep for at least 5ms
-	WriteByte(0x30);  //Toggle the E bit, sends on falling edge
-	DelayUsec(400);    //Sleep for at least 160us
-	WriteByte(0x30);  //Manual Command of Wake up! (second)
-	DelayUsec(400);    //Sleep for at least 160us
-	WriteByte(0x28);  //Set 4-bit mode 2 line display with 8 bit write.
-	DelayUsec(200);
-	Command(0x28);  //Set 4-bit/2-line
-//	Command(LCD_DISPLAY_ON_OFF | DISPLAY_ON | DISPLAY_CURSOR | DISPLAY_CURSOR_BLINK);   //Set cursor visible
-	Command(LCD_DISPLAY_ON_OFF | DISPLAY_ON);   //Set cursor visible
-	Command(0x14);
-	Command(LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT);
-
-	Command(LCD_RETURN_HOME);
+	WriteI2CNibble(0x30, 0);  //Toggle the E bit, sends on falling edge
+	DelayMsec(1);    //Sleep for at least 160us
+	WriteI2CNibble(0x30, 0);  //Manual Command of Wake up! (second)
+	DelayMsec(1);    //Sleep for at least 160us
+	WriteI2CNibble(0x20, 0);  //Set 4-bit mode 2 line display with 8 bit write.
+	DelayMsec(1);
+	WriteLCDByte(0x28, 0);  //Set 4-bit/2-line
 	DelayMsec(3);
-	Command(LCD_CLEAR_DISPLAY);  //Clear Display
-	DelayMsec(1000);
+	WriteLCDByte(LCD_CLEAR_DISPLAY, 0);  //Clear Display
+	DelayMsec(2);
+//	WriteLCDByte(LCD_DISPLAY_ON_OFF | DISPLAY_ON | DISPLAY_CURSOR | DISPLAY_CURSOR_BLINK , 0);   //Set cursor visible
+	DelayMsec(1);
+	WriteLCDByte(LCD_DISPLAY_ON_OFF | DISPLAY_ON, 0);   //Set cursor visible
+//	WriteLCDByte(0x14 ,0);
+	DelayMsec(1);
+	WriteLCDByte(LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT, 0);
+	DelayMsec(1);
+	WriteLCDByte(LCD_RETURN_HOME, 0);
+	DelayMsec(3);
 }
 
+
+//Write a string to display
+void WriteString(int row, int ypos, char message[]) {
+	int stLength = strlen(message);
+	int i, address;
+
+	switch (row) {
+	case 0:
+		address = ypos;
+		break;
+	case 1:
+		address = 0x40 + ypos;
+		break;
+	case 2:
+		address = 20 + ypos;
+		break;
+	case 3:
+		address = 0x54 + ypos;
+		break;
+	}
+	address += 0x80;
+	WriteLCDByte((unsigned char) address, 0);
+	for (i = 0; i < stLength; i++) {
+		if (message[i] > 0x1f) {
+			WriteLCDByte(message[i], 1);
+		}
+	}
+}
 
 
 int main(void)
 {
 
   WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+
   XT2_4MHz();
   P3SEL |= 0x03;                            // Assign I2C pins to USCI_B0
   UCB0CTL1 |= UCSWRST;                      // Enable SW reset
@@ -148,24 +209,15 @@ int main(void)
   UCB0IE |= UCTXIE;                         // Enable TX interrupt
 
   TXData = 0x01;                            // Holds TX data
+  Setup4bit();
 
-  while (1)
-  {
- //   TXByteCtr = 1;                          // Load TX byte counter
+	  WriteLCDByte(66, 1);
+	  DelayMsec(3);
+	  WriteLCDByte(68, 1);
 
- //   while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
- //   UCB0CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
+	  WriteLCDByte(68, 1);
+WriteString(1,0,"No trips today.");
 
- //   __bis_SR_register(LPM0_bits + GIE);     // Enter LPM0 w/ interrupts
- //   __no_operation();                       // Remain in LPM0 until all data
-
-	  // is TX'd
-
-	  WriteI2CByte(0x44);
-
- //   TXData++;                               // Increment data byte
-    DelayMsec(1);
-  }
 }
 
 //------------------------------------------------------------------------------
