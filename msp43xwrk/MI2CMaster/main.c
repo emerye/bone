@@ -33,6 +33,9 @@ unsigned int  elapsedTime = 0;
 unsigned int elapsedSeconds = 0;
 unsigned long lifeTimeMinutes;
 unsigned char updateDisplay = 0;
+unsigned char serialBufferDisplayFlag = 0;
+char serialBuffer[256];
+char *ptrSerialBuffer;
 
 /**
  * Delay 1 msec with a 4MHz clock
@@ -228,6 +231,7 @@ unsigned long ReadFlashWord() {
 	return *FlashPtr;
 }
 
+
 int main(void) {
 
 	char timeBuffer[30] = {0};
@@ -240,6 +244,7 @@ int main(void) {
 	P1DIR |= 0x01;                            // P1.0 output
 	TA1CTL = TASSEL_1 + MC_2 + TACLR + TAIE;  // ACLK, contmode, clear TAR
 
+	ptrSerialBuffer = serialBuffer;
 	XT2_4MHz();
 	SetupUART();
 	P3SEL |= 0x03;                            // Assign I2C pins to USCI_B0
@@ -274,6 +279,13 @@ int main(void) {
 	 __bis_SR_register(GIE);       //enable interrupts
 
 	while(1) {
+		if (serialBufferDisplayFlag == 1) {
+			serialBufferDisplayFlag = 0;
+			WriteString(2,0, "                    ");
+			WriteString(2, 0, serialBuffer);
+			ptrSerialBuffer = serialBuffer;
+		}
+
 		if (updateDisplay > 0) {
 			updateDisplay = 0;
 			lifeTimeMinutes += 1;
@@ -282,8 +294,8 @@ int main(void) {
 			sprintf(lifeBuffer, "%3lu hours lifetime", lifeTimeMinutes/60);
 			WriteString(0,0,timeBuffer);
 			WriteString(1,0,lifeBuffer);
-  //  		 __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0, enable interrupts
-		}
+			}
+  //  		 __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0, enable interrupt
 	}
 //	 __bis_SR_register(LPM3_bits + GIE);       // Enter LPM3, enable interrupts
 }
@@ -344,6 +356,12 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
   case 0:break;                             // Vector 0 - no interrupt
   case 2:                                   // Vector 2 - RXIFG
     while (!(UCA0IFG&UCTXIFG));             // USCI_A0 TX buffer ready?
+   *ptrSerialBuffer++ = UCA0RXBUF;
+    if (UCA0RXBUF == '\r') {
+    	serialBufferDisplayFlag = 1;
+    	ptrSerialBuffer--;
+    	*ptrSerialBuffer = '\0';
+    }
     UCA0TXBUF = UCA0RXBUF;                  // TX -> RXed character
     break;
   case 4:break;                             // Vector 4 - TXIFG
