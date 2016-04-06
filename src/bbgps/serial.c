@@ -442,7 +442,6 @@ int diff_ms(const struct timespec *t1, const struct timespec *t2)
 
 int serial_init(int argc, char * argv[])
 {
-	printf("Linux serial test app\n");
 
 	process_options(argc, argv);
 

@@ -4,6 +4,9 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <time.h>
+#include <nmea/nmea.h>
+#include <string.h>
+#include "serial.h"
 #include "lcdchar.h"
 
 //install packages i2c-tools, libi2c-dev for i2c
@@ -40,7 +43,7 @@ void Display(int i2cfd, unsigned char tgtAddress)
     WriteString(i2cfd, 1, 0, GetTime());
 }
 
-int main(int argc, char **argv)
+int initi2c()
 {
     int r;
     int i2cfd;
@@ -57,31 +60,40 @@ int main(int argc, char **argv)
 
     Setup4bit(i2cfd);
     DisplayClear(i2cfd);
-    Display(i2cfd, i2caddr);
+    WriteString(i2cfd, 0, 0, "Hellow"); 
+    return 0;
+}
 
-    r = ioctl(i2cfd, I2C_SLAVE, i2caddr);
-    if (r < 0)
-	perror("Selecting i2c device.\n");
-    Setup4bit(i2cfd);
 
-//  WriteI2CByte(0x0F, 0); 
+int main()
+{
+    const char *buff[] = {
+        "$GPRMC,173843,A,3349.896,N,11808.521,W,000.0,360.0,230108,013.4,E*69\r\n",
+        "$GPGGA,111609.14,5001.27,N,3613.06,E,3,08,0.0,10.2,M,0.0,M,0.0,0000*70\r\n",
+        "$GPGSV,2,1,08,01,05,005,80,02,05,050,80,03,05,095,80,04,05,140,80*7f\r\n",
+        "$GPGSV,2,2,08,05,05,185,80,06,05,230,80,07,05,275,80,08,05,320,80*71\r\n",
+        "$GPGSA,A,3,01,02,03,04,05,06,07,08,00,00,00,00,0.0,0.0,0.0*3a\r\n",
+        "$GPRMC,111609.14,A,5001.27,N,3613.06,E,11.2,0.0,261206,0.0,E*50\r\n",
+        "$GPVTG,217.5,T,208.8,M,000.00,N,000.01,K*4C\r\n"
+    };
 
-    DisplayClear(i2cfd);
-    GetTime();
-    WriteString(i2cfd, 0, 0, dateBuff);
-    WriteString(i2cfd, 1, 0, GetTime());
+    int it;
 
-//  DisplayClear ();
-//  WriteString (3, 0, "Hello There");
+    nmeaINFO info;
+    nmeaPARSER parser;
 
-    while (1) {
-	GetTime();
-	WriteString(i2cfd, 0, 0, dateBuff);
-	WriteString(i2cfd, 1, 0, GetTime());
+    initi2c();  
+    nmea_zero_INFO(&info);
+    nmea_parser_init(&parser);
 
-	sleep(1);
-    }
+    for(it = 0; it < 6; ++it) {
+        nmea_parse(&parser, buff[it], (int)strlen(buff[it]), &info);
+        printf("Sentence %s\n", (char *) buff[it]); 
+        printf("Lat %f\n", info.lat); 
+        }
 
-    close(i2cfd);
+    nmea_parser_destroy(&parser);
+
+   close(i2cfd); 
     return 0;
 }
