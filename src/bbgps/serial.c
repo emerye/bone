@@ -60,7 +60,7 @@ int i2cfd;
 char timeBuff[50];
 char dateBuff[50];
 
-char *GetTime()
+char *GetTime(); 
 
 void dump_data(unsigned char * b, int count) {
 	printf("%i bytes: ", count);
@@ -318,15 +318,35 @@ void dump_serial_port_stats()
 	}
 }
 
+
+void parse_sentence(char *rb) {
+   printf("In function %s\n", *rb); 
+}
+
+
+
 void process_read_data()
 {
+   ssize_t count; 
+   char **lineBuffer = NULL;
+   size_t numCharRead = 0; 
+
 	unsigned char rb[1024];
 	int c = read(_fd, &rb, sizeof(rb));
+//	count = getline(lineBuffer, &numCharRead, (FILE *) _fd); 
+ //       printf("Line %s\n", *lineBuffer); 
+       
+//        parse_sentence(lineBuffer); 
+                  
+
 	if (c > 0) {
 		if (_cl_rx_dump) {
 			if (_cl_rx_dump_ascii) {
 				dump_data_ascii(rb, c);
-		        	printf("\nAndy %s\n", rb); 
+                                if (rb[c] == '\r') {
+                                   rb[c + 1] = '\0';
+                                parse_sentence(rb); 
+                                }
                        }
 			else
 				dump_data(rb, c);
@@ -351,8 +371,9 @@ void process_read_data()
 		}
 		_read_count += c;
 	}
-   printf("\nRead Count exiting process_read_data %d\n", _read_count_value); 
 }
+
+
 
 void process_write_data()
 {
@@ -366,7 +387,6 @@ void process_write_data()
 			_write_data[i] = _write_count_value;
 			_write_count_value++;
 		}
-
 		ssize_t c = write(_fd, _write_data, _write_size);
 
 		if (c < 0) {
@@ -387,6 +407,7 @@ void process_write_data()
 	if (_cl_tx_detailed)
 		printf("wrote %zd bytes\n", count);
 }
+
 
 
 void setup_serial_port(int baud)
@@ -440,6 +461,7 @@ void setup_serial_port(int baud)
 	}
 }
 
+
 int diff_ms(const struct timespec *t1, const struct timespec *t2)
 {
 	struct timespec diff;
@@ -453,10 +475,10 @@ int diff_ms(const struct timespec *t1, const struct timespec *t2)
 	return (diff.tv_sec * 1000 + diff.tv_nsec/1000000);
 }
 
-int serial_init(int argc, char * argv[])
+int serial_init()
 {
 
-	process_options(argc, argv);
+	//process_options(argc, argv);
 
 	if (!_cl_port) {
 		printf("ERROR: Port argument required\n");
@@ -667,6 +689,9 @@ int main()
     nmeaPARSER parser;
 
     initi2c();  
+
+    serial_init(); 
+
     nmea_zero_INFO(&info);
     nmea_parser_init(&parser);
 
