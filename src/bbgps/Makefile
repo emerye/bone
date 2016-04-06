@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -Werror
-OBJECTS = serial.o main.o 
+CFLAGS=-Wall 
+OBJECTS = serial.o  
 INCLUDE=-I./include
 
 all:   bbgps
@@ -15,7 +15,7 @@ main.o:	main.c
 	$(CC) $(CFLAGS) $(INCLUDE) -c main.c 
 
 serial.o: serial.c
-	$(CC) $(CFLAGS) -c serial.c 
+	$(CC) $(CFLAGS) $(INCLUDE)  -c serial.c 
 
 nmea.o: nmea.c  
 	$(CC) $(CFLAGS) $(INCLUDE) -c nmea.c 

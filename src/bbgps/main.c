@@ -43,6 +43,7 @@ void Display(int i2cfd, unsigned char tgtAddress)
     WriteString(i2cfd, 1, 0, GetTime());
 }
 
+
 int initi2c()
 {
     int r;
