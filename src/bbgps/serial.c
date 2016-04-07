@@ -62,6 +62,33 @@ char dateBuff[50];
 
 char *GetTime();
 
+nmeaINFO info;
+nmeaPARSER parser;
+
+void process_nmea(char *sentence, int length) {
+  
+  char senCode[10]; 
+
+  if (length < 7) {
+    printf("Sentence length is incorrect\n"); 
+    return; 
+   }
+
+  strncpy(senCode, sentence, 6); 
+  if ( (strcmp(senCode,"$GPGSP") == 0))  {
+     //Satellites in view
+     
+    } 
+    else if ( (strcmp(senCode,"$GPGSV") == 0l) ) {
+      //Total Satellites in view 
+      nmea_parse(&parser, sentence , length, &info);
+      printf("Satellites in view %d\n", info.satinfo.inview); 
+  }
+
+}
+
+
+
 void dump_data(unsigned char *b, int count)
 {
     printf("%i bytes: ", count);
@@ -335,6 +362,7 @@ void process_read_data()
     while (1) {
 	c = read(_fd, &rb, sizeof(rb));
 	dump_data_ascii(rb, c);
+        process_nmea((char *) rb, c); 
     }
     exit(1);
 }
@@ -655,15 +683,13 @@ int main()
 
     int it;
 
-    nmeaINFO info;
-    nmeaPARSER parser;
 
     initi2c();
 
-    serial_init();
-
     nmea_zero_INFO(&info);
     nmea_parser_init(&parser);
+
+    serial_init();
 
     for (it = 0; it < 6; ++it) {
 	nmea_parse(&parser, buff[it], (int) strlen(buff[it]), &info);
