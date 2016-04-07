@@ -326,50 +326,17 @@ void dump_serial_port_stats()
 }
 
 
-void parse_sentence(char *rb)
-{
-    printf("In function %s\n", rb);
-}
-
-
 
 void process_read_data()
 {
-    ssize_t count;
-
     unsigned char rb[1024];
-    int c = read(_fd, &rb, sizeof(rb));
+    int c;
 
-    if (c > 0) {
-	if (_cl_rx_dump) {
-	    if (_cl_rx_dump_ascii) {
-		dump_data_ascii(rb, c);
-		if (rb[c] == '\r') {
-		    rb[c + 1] = '\0';
-		    parse_sentence(rb);
-		}
-	    } else
-		dump_data(rb, c);
-	}
-	// verify read count is incrementing
-	int i;
-	for (i = 0; i < c; i++) {
-	    if (rb[i] != _read_count_value) {
-		if (_cl_dump_err) {
-		    printf("Error, count: %i, expected %02x, got %02x\n",
-			   _read_count + i, _read_count_value, rb[i]);
-		}
-		_error_count++;
-		if (_cl_stop_on_error) {
-		    dump_serial_port_stats();
-		    exit(1);
-		}
-		_read_count_value = rb[i];
-	    }
-	    _read_count_value++;
-	}
-	_read_count += c;
+    while (1) {
+	c = read(_fd, &rb, sizeof(rb));
+	dump_data_ascii(rb, c);
     }
+    exit(1);
 }
 
 
@@ -412,7 +379,7 @@ void setup_serial_port(int baud)
 {
     struct termios newtio;
 
-    _fd = open(_cl_port, O_RDWR | O_NONBLOCK);
+    _fd = open(_cl_port, O_RDONLY | O_NOCTTY);
 
     if (_fd < 0) {
 	printf("Error opening serial port \n");
@@ -431,7 +398,7 @@ void setup_serial_port(int baud)
 
     newtio.c_iflag = 0;
     newtio.c_oflag = 0;
-    newtio.c_lflag = 0;
+    newtio.c_lflag = ICANON;
 
     // block for up till 128 characters
     newtio.c_cc[VMIN] = 128;
@@ -567,11 +534,11 @@ int serial_init()
 		    struct timespec current;
 		    clock_gettime(CLOCK_MONOTONIC, &current);
 		    if (diff_ms(&current, &last_write) > _cl_tx_delay) {
-			process_write_data();
+			//              process_write_data();
 			last_write = current;
 		    }
 		} else {
-		    process_write_data();
+		    //          process_write_data();
 		}
 	    }
 	} else
