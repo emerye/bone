@@ -65,26 +65,38 @@ char *GetTime();
 nmeaINFO info;
 nmeaPARSER parser;
 
-void process_nmea(char *sentence, int length) {
-  
-  char senCode[10]; 
 
-  if (length < 7) {
-    printf("Sentence length is incorrect\n"); 
-    return; 
-   }
+void process_nmea(char *sentence, int length)
+{
 
-  strncpy(senCode, sentence, 6); 
-  if ( (strcmp(senCode,"$GPGSP") == 0))  {
-     //Satellites in view
-     
-    } 
-    else if ( (strcmp(senCode,"$GPGSV") == 0l) ) {
-      //Total Satellites in view 
-      nmea_parse(&parser, sentence , length, &info);
-      printf("Satellites in view %d\n", info.satinfo.inview); 
-  }
+    char senCode[10];
+    char speed[30];
 
+    if (length < 7) {
+	printf("Sentence length is incorrect\n");
+	return;
+    }
+
+    strncpy(senCode, sentence, 6);
+    if ((strcmp(senCode, "$GPGSP") == 0)) {
+	//Satellites in view
+
+    } else if ((strcmp(senCode, "$GPGSV") == 0l)) {
+	//Total Satellites in view 
+	nmea_parse(&parser, sentence, length, &info);
+	printf("Satellites in view %d\n\n", info.satinfo.inview);
+    } else if ((strcmp(senCode, "$GPRMC") == 0l)) {
+	nmea_parse(&parser, sentence, length, &info);
+	printf("Lat %f Lon %f\n", info.lat, info.lon);
+	printf("Speed %f\n\n", info.speed * 1.15078);
+	sprintf(speed, "%2d mph", (int) (info.speed * 1.15078));
+	WriteString(i2cfd, 2, 0, speed);
+    }
+
+    else if ((strcmp(senCode, "$GPGGA") == 0l)) {
+	nmea_parse(&parser, sentence, length, &info);
+	printf("Altitude %f ft\n\n", info.elv * 3.28084);
+    }
 }
 
 
@@ -362,7 +374,7 @@ void process_read_data()
     while (1) {
 	c = read(_fd, &rb, sizeof(rb));
 	dump_data_ascii(rb, c);
-        process_nmea((char *) rb, c); 
+	process_nmea((char *) rb, c);
     }
     exit(1);
 }
@@ -472,8 +484,6 @@ int diff_ms(const struct timespec *t1, const struct timespec *t2)
 
 int serial_init()
 {
-
-    //process_options(argc, argv);
 
     if (!_cl_port) {
 	printf("ERROR: Port argument required\n");
@@ -650,7 +660,6 @@ void Display(int i2cfd, unsigned char tgtAddress)
 int initi2c()
 {
     int r;
-    int i2cfd;
     char *dev = "/dev/i2c-2";
 
     i2cfd = open(dev, O_RDWR);
@@ -683,13 +692,13 @@ int main()
 
     int it;
 
-
     initi2c();
 
     nmea_zero_INFO(&info);
     nmea_parser_init(&parser);
 
     serial_init();
+
 
     for (it = 0; it < 6; ++it) {
 	nmea_parse(&parser, buff[it], (int) strlen(buff[it]), &info);
