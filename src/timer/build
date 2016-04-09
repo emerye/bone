@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gcc timer.c -lrt -o timer
