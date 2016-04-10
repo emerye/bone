@@ -80,6 +80,8 @@ void process_nmea(char *sentence, int length)
 
     char senCode[10];
     char speed[30];
+    char alt[30];
+    char buffer[30];
 
     if (length < 7) {
 	printf("Sentence length is incorrect\n");
@@ -97,13 +99,21 @@ void process_nmea(char *sentence, int length)
 	nmea_parse(&parser, sentence, length, &info);
 	printf("Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Speed %f\n", info.speed * 1.15078);
+        sprintf(buffer,"Lat: %.3f", info.lat); 
+        WriteString(i2cfd, 0, 0, buffer); 
+        sprintf(buffer,"Lon: %.3f", info.lon); 
+        WriteString(i2cfd, 1, 0, buffer); 
 	sprintf(speed, "%2d mph", (int) (info.speed * 1.15078));
 	WriteString(i2cfd, 2, 0, speed);
+	sprintf(buffer, "Count %d", ++count);
+        WriteString(i2cfd, 3, 0, buffer);  
     }
 
     else if ((strcmp(senCode, "$GPGGA") == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
+        sprintf(alt,"Alt %d ft", (int)(info.elv * 3.28084));
+	WriteString(i2cfd, 2, 8, alt);
     }
 }
 
