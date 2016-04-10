@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
@@ -12,6 +13,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <time.h>
+#include <sys/time.h>
 #include <linux/serial.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -21,6 +23,11 @@
 #include "serial.h"
 #include "lcdchar.h"
 #include "itimer.h"
+
+#define DEBUG 1
+
+struct sigaction sa;
+struct itimerval timer;
 
 
 // command line args
@@ -80,24 +87,23 @@ void process_nmea(char *sentence, int length)
     }
 
     strncpy(senCode, sentence, 6);
-    if ((strcmp(senCode, "$GPGSP") == 0)) {
-	//Satellites in view
-
-    } else if ((strcmp(senCode, "$GPGSV") == 0l)) {
+    if ((strcmp(senCode, "$GPGSA") == 0)) {
+          
+    } else if ((strcmp(senCode, "$GPGSV") == 0)) {
 	//Total Satellites in view 
-	nmea_parse(&parser, sentence, length, &info);
+          if (DEBUG) nmea_parse(&parser, sentence, length, &info);
 	printf("Satellites in view %d\n\n", info.satinfo.inview);
-    } else if ((strcmp(senCode, "$GPRMC") == 0l)) {
+    } else if ((strcmp(senCode, "$GPRMC") == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
 	printf("Lat %f Lon %f\n", info.lat, info.lon);
-	printf("Speed %f\n\n", info.speed * 1.15078);
+	printf("Speed %f\n", info.speed * 1.15078);
 	sprintf(speed, "%2d mph", (int) (info.speed * 1.15078));
 	WriteString(i2cfd, 2, 0, speed);
     }
 
-    else if ((strcmp(senCode, "$GPGGA") == 0l)) {
+    else if ((strcmp(senCode, "$GPGGA") == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
-	printf("Altitude %f ft\n\n", info.elv * 3.28084);
+	printf("Altitude %f ft\n", info.elv * 3.28084);
     }
 }
 
@@ -543,8 +549,9 @@ int serial_init()
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     last_stat = start_time;
 
+
     while (!(_cl_no_rx && _cl_no_tx)) {
-	int retval = poll(&serial_poll, 1, 1000);
+	int retval = poll(&serial_poll, 1, 3000);
 
 	if (retval == -1) {
 	    perror("poll()");
@@ -679,13 +686,16 @@ int initi2c()
 
 int main()
 {
+
+    system("/space/bone/src/bbgps/uart1.sh"); 
+
     initi2c();
 
     nmea_zero_INFO(&info);
     nmea_parser_init(&parser);
 
-    serial_init();
     startIntervalTimer(1);  
+    serial_init();
 
     process_read_data(); 
     process_read_data(); 
