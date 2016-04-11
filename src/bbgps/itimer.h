@@ -5,6 +5,8 @@
 #include <sys/time.h>
 #include <signal.h>
 
+extern unsigned int count; 
+
 extern struct sigaction sa; 
 extern struct itimerval timer; 
 

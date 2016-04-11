@@ -9,11 +9,9 @@
 #include <unistd.h>
 #include "itimer.h"
 
-
 //Interval Timer Handler
 void timer_handler(int signum)
 {
-    static int count = 0;
     int cumcount = 0;
     FILE *fp;
 

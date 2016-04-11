@@ -63,6 +63,7 @@ ssize_t _write_size;
 int _write_count = 0;
 int _read_count = 0;
 int _error_count = 0;
+
 int i2caddr = 0x27;
 unsigned char i2creg = 0;
 int i2cfd;
@@ -71,13 +72,16 @@ char dateBuff[50];
 
 char *GetTime();
 
+unsigned int count;
+unsigned int cumulativeCount;
+
 nmeaINFO info;
 nmeaPARSER parser;
 
 
 void process_nmea(char *sentence, int length)
 {
-
+    nmeaTIME nmeaTime;  
     char senCode[10];
     char speed[30];
     char alt[30];
@@ -89,31 +93,34 @@ void process_nmea(char *sentence, int length)
     }
 
     strncpy(senCode, sentence, 6);
-    if ((strcmp(senCode, "$GPGSA") == 0)) {
-          
-    } else if ((strcmp(senCode, "$GPGSV") == 0)) {
-	//Total Satellites in view 
-          if (DEBUG) nmea_parse(&parser, sentence, length, &info);
+    if ((strncmp(senCode, "$GPGGA", 6) == 0)) {
+	nmea_parse(&parser, sentence, length, &info);
+        nmea_time_now(&nmeaTime); 
+        printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);  
+	printf("Altitude %f ft\n", info.elv * 3.28084);
+	sprintf(alt, "Alt %d ft", (int) (info.elv * 3.28084));
+	WriteString(i2cfd, 2, 8, alt);
+    } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
+	//Supported
+    } else if ((strncmp(senCode, "$GPGSV", 6) == 0)) {
+	//Suppoted       
+	if (DEBUG)
+	    nmea_parse(&parser, sentence, length, &info);
 	printf("Satellites in view %d\n\n", info.satinfo.inview);
-    } else if ((strcmp(senCode, "$GPRMC") == 0)) {
+    } else if ((strncmp(senCode, "$GPRMC", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
 	printf("Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Speed %f\n", info.speed * 1.15078);
-        sprintf(buffer,"Lat: %.3f", info.lat); 
-        WriteString(i2cfd, 0, 0, buffer); 
-        sprintf(buffer,"Lon: %.3f", info.lon); 
-        WriteString(i2cfd, 1, 0, buffer); 
+	sprintf(buffer, "Lat: %.3f", info.lat);
+	WriteString(i2cfd, 0, 0, buffer);
+	sprintf(buffer, "Lon: %.3f", info.lon);
+	WriteString(i2cfd, 1, 0, buffer);
 	sprintf(speed, "%2d mph", (int) (info.speed * 1.15078));
 	WriteString(i2cfd, 2, 0, speed);
-	sprintf(buffer, "Count %d", ++count);
-        WriteString(i2cfd, 3, 0, buffer);  
-    }
+	sprintf(buffer, "Count %d", count);
+	WriteString(i2cfd, 3, 0, buffer);
 
-    else if ((strcmp(senCode, "$GPGGA") == 0)) {
-	nmea_parse(&parser, sentence, length, &info);
-	printf("Altitude %f ft\n", info.elv * 3.28084);
-        sprintf(alt,"Alt %d ft", (int)(info.elv * 3.28084));
-	WriteString(i2cfd, 2, 8, alt);
+    } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
 }
 
@@ -389,9 +396,9 @@ void process_read_data()
     unsigned char rb[1024];
     int c;
 
-	c = read(_fd, &rb, sizeof(rb));
-	dump_data_ascii(rb, c);
-	process_nmea((char *) rb, c);
+    c = read(_fd, &rb, sizeof(rb));
+    dump_data_ascii(rb, c);
+    process_nmea((char *) rb, c);
 }
 
 
@@ -697,19 +704,19 @@ int initi2c()
 int main()
 {
 
-    system("/space/bone/src/bbgps/uart1.sh"); 
+    system("/space/bone/src/bbgps/uart1.sh");
 
     initi2c();
 
     nmea_zero_INFO(&info);
     nmea_parser_init(&parser);
 
-    startIntervalTimer(1);  
+    startIntervalTimer(1);
     serial_init();
 
-    process_read_data(); 
-    process_read_data(); 
-    process_read_data(); 
+    process_read_data();
+    process_read_data();
+    process_read_data();
 
     nmea_parser_destroy(&parser);
 
