@@ -100,6 +100,7 @@ void process_nmea(char *sentence, int length)
 	printf("Altitude %f ft\n", info.elv * 3.28084);
 	sprintf(alt, "Alt %d ft", (int) (info.elv * 3.28084));
 	WriteString(i2cfd, 2, 8, alt);
+        count++; 
     } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
 	//Supported
     } else if ((strncmp(senCode, "$GPGSV", 6) == 0)) {
@@ -703,8 +704,6 @@ int initi2c()
 
 int main()
 {
-
-    system("/space/bone/src/bbgps/uart1.sh");
 
     initi2c();
 
