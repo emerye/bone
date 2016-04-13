@@ -44,7 +44,7 @@ int _cl_another_byte = -1;
 int _cl_rts_cts = 0;
 int _cl_dump_err = 0;
 int _cl_no_rx = 0;
-int _cl_no_tx = 0;
+int _cl_no_tx = 1;
 int _cl_rx_delay = 0;
 int _cl_tx_delay = 0;
 int _cl_tx_bytes = 0;
@@ -81,11 +81,12 @@ nmeaPARSER parser;
 
 void process_nmea(char *sentence, int length)
 {
-    nmeaTIME nmeaTime;  
+    nmeaTIME nmeaTime;
     char senCode[10];
     char speed[30];
     char alt[30];
     char buffer[30];
+    int currentSpeed;
 
     if (length < 7) {
 	printf("Sentence length is incorrect\n");
@@ -95,32 +96,35 @@ void process_nmea(char *sentence, int length)
     strncpy(senCode, sentence, 6);
     if ((strncmp(senCode, "$GPGGA", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
-        nmea_time_now(&nmeaTime); 
-        printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);  
+	nmea_time_now(&nmeaTime);
+	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
 	sprintf(alt, "Alt %d ft", (int) (info.elv * 3.28084));
 	WriteString(i2cfd, 2, 8, alt);
-        count++; 
+	count++;
     } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
 	//Supported
     } else if ((strncmp(senCode, "$GPGSV", 6) == 0)) {
 	//Suppoted       
+   /*
 	if (DEBUG)
 	    nmea_parse(&parser, sentence, length, &info);
+
 	printf("Satellites in view %d\n\n", info.satinfo.inview);
+*/
     } else if ((strncmp(senCode, "$GPRMC", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
 	printf("Lat %f Lon %f\n", info.lat, info.lon);
-	printf("Speed %f\n", info.speed * 1.15078);
-	sprintf(buffer, "Lat: %.3f", info.lat);
+	currentSpeed = (int) (info.speed * 1.15077945);
+	printf("Speed: %d Count: %d\n\n", currentSpeed,count);
+	sprintf(buffer, "Lat: %.5f", info.lat);
 	WriteString(i2cfd, 0, 0, buffer);
-	sprintf(buffer, "Lon: %.3f", info.lon);
+	sprintf(buffer, "Lon: %.5f", info.lon);
 	WriteString(i2cfd, 1, 0, buffer);
-	sprintf(speed, "%2d mph", (int) (info.speed * 1.15078));
+	sprintf(speed, "%2d mph", currentSpeed);
 	WriteString(i2cfd, 2, 0, speed);
 	sprintf(buffer, "Count %d", count);
 	WriteString(i2cfd, 3, 0, buffer);
-
     } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
 }
@@ -398,7 +402,7 @@ void process_read_data()
     int c;
 
     c = read(_fd, &rb, sizeof(rb));
-    dump_data_ascii(rb, c);
+    //dump_data_ascii(rb, c);
     process_nmea((char *) rb, c);
 }
 
