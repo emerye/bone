@@ -45,7 +45,7 @@ int _cl_rts_cts = 0;
 int _cl_dump_err = 0;
 int _cl_no_rx = 0;
 int _cl_no_tx = 1;
-int _cl_rx_delay = 0;
+int _cl_rx_delay = 50;
 int _cl_tx_delay = 0;
 int _cl_tx_bytes = 0;
 int _cl_rs485_delay = -1;
@@ -99,7 +99,7 @@ void process_nmea(char *sentence, int length)
 	nmea_time_now(&nmeaTime);
 	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
-	sprintf(alt, "Alt %d ft", (int) (info.elv * 3.28084));
+	sprintf(alt, "Alt %d ft  ", (int) (info.elv * 3.28084));
 	WriteString(i2cfd, 2, 8, alt);
 	count++;
     } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
@@ -115,13 +115,13 @@ void process_nmea(char *sentence, int length)
     } else if ((strncmp(senCode, "$GPRMC", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
 	printf("Lat %f Lon %f\n", info.lat, info.lon);
-	currentSpeed = (int) (info.speed * 1.15077945);
+	currentSpeed = (int) (info.speed * 0.621371);
 	printf("Speed: %d Count: %d\n\n", currentSpeed,count);
-	sprintf(buffer, "Lat: %.5f", info.lat);
+	sprintf(buffer, "Lat: %.4f", info.lat);
 	WriteString(i2cfd, 0, 0, buffer);
-	sprintf(buffer, "Lon: %.5f", info.lon);
+	sprintf(buffer, "Lon: %.4f", info.lon);
 	WriteString(i2cfd, 1, 0, buffer);
-	sprintf(speed, "%2d mph", currentSpeed);
+	sprintf(speed, "%2d mph  ", currentSpeed);
 	WriteString(i2cfd, 2, 0, speed);
 	sprintf(buffer, "Count %d", count);
 	WriteString(i2cfd, 3, 0, buffer);
@@ -468,10 +468,12 @@ void setup_serial_port(int baud)
     newtio.c_lflag = ICANON;
 
     // block for up till 128 characters
-    newtio.c_cc[VMIN] = 128;
+    //newtio.c_cc[VMIN] = 128;
+    newtio.c_cc[VMIN] = 50;
 
     // 0.5 seconds read timeout
-    newtio.c_cc[VTIME] = 5;
+    // newtio.c_cc[VTIME] = 5;
+    newtio.c_cc[VMIN] = 10;
 
     /* now clean the modem line and activate the settings for the port */
     tcflush(_fd, TCIOFLUSH);
@@ -511,7 +513,6 @@ int diff_ms(const struct timespec *t1, const struct timespec *t2)
 
 int serial_init()
 {
-
     if (!_cl_port) {
 	printf("ERROR: Port argument required\n");
 	display_help();

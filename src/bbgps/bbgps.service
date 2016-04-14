@@ -6,6 +6,8 @@ After=network.target display-manager.service
 Environment=LD_LIBRARY_PATH=/usr/local/lib
 Type=simple
 User=root
+StandardOutput=null
+
 ExecStartPre=/space/bone/src/bbgps/uart1.sh
 ExecStart=/space/bone/src/bbgps/bbgps
 Restart=on-abort
