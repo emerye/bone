@@ -87,6 +87,7 @@ void process_nmea(char *sentence, int length)
     char alt[30];
     char buffer[30];
     int currentSpeed;
+    double course; 
 
     if (length < 7) {
 	printf("Sentence length is incorrect\n");
@@ -123,8 +124,12 @@ void process_nmea(char *sentence, int length)
 	WriteString(i2cfd, 1, 0, buffer);
 	sprintf(speed, "%2d mph  ", currentSpeed);
 	WriteString(i2cfd, 2, 0, speed);
-	sprintf(buffer, "Count %d", count);
+	sprintf(buffer, "%d  ", count);
 	WriteString(i2cfd, 3, 0, buffer);
+        course = info.direction - info.declination; 
+        sprintf(buffer, "%.1f", course); 
+        WriteString(i2cfd, 3, 9, buffer); 
+         
     } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
 }
