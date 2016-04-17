@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PACKAGES="gcc build-essential ntp i2c-tools"
+
+apt-get -y install $PACKAGES
