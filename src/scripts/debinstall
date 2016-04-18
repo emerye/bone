@@ -2,7 +2,8 @@
 
 PACKAGES="gcc build-essential ntp i2c-tools vim libi2c-dev connman wireless-tools pciutils firmware-ralink firmware-misc-nonfree"
 
-#apt-get -y update
+apt-get -y update
 apt-get -y install $PACKAGES
+
+#Universal dtc
 #git clone https://github.com/beagleboard/bb.org-overlays
-# git clone https://github.com/beagleboard/bb.org-overlays Fix univeralaZZ 
