@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall 
+CFLAGS=-Wall -g 
 OBJECTS = serial.o itimer.o  
 INCLUDE=-I./include
 
