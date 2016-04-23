@@ -51,12 +51,20 @@ char dateBuff[50];
 
 char *GetTime();
 
+double speedaverage=0; 
 unsigned int count;
 unsigned int cumulativeCount;
 
 int fd;				//file descriptor
 nmeaINFO info;
 nmeaPARSER parser;
+
+// Calculate average speed
+double AverageSpeed(double currentSpeed) {
+  speedaverage =  speedaverage + (currentSpeed - speedaverage) / count;   
+  return speedaverage; 
+}
+
 
 void process_nmea(char *sentence, int length)
 {
@@ -65,7 +73,7 @@ void process_nmea(char *sentence, int length)
     char speed[30];
     char alt[30];
     char buffer[30];
-    int currentSpeed;
+    int currentSpeed, avgSpeed;
     double course;
 
     if (length < 10) {
@@ -80,8 +88,8 @@ void process_nmea(char *sentence, int length)
 	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
 	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
-	sprintf(alt, "Alt %dft  ", (int)(info.elv * 3.28084));
-	WriteString(i2cfd, 2, 8, alt);
+	sprintf(alt, " %dft  ", (int)(info.elv * 3.28084));
+	WriteString(i2cfd, 2, 14, alt);
 	count++;
     } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
@@ -99,13 +107,17 @@ void process_nmea(char *sentence, int length)
 
 	sprintf(buffer, "Lon: %.4f", info.lon);
 	WriteString(i2cfd, 1, 0, buffer);
-	sprintf(speed, "%2d mph  ", currentSpeed);
+
+        avgSpeed = (int) AverageSpeed(currentSpeed);
+	sprintf(speed, "%2dmph %2dmph ", currentSpeed, avgSpeed);
 	WriteString(i2cfd, 2, 0, speed);
-	sprintf(buffer, "%5d   %d ", count, (int)(count/60 + 0.5));
+
+	sprintf(buffer, "%3dmin",  (int)(count/60 + 0.5)); 
 	WriteString(i2cfd, 3, 0, buffer);
+
 	course = info.direction - info.declination;
 	sprintf(buffer, "%.1f  ", course);
-	WriteString(i2cfd, 3, 13, buffer);
+	WriteString(i2cfd, 3, 14, buffer);
     } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
 }
