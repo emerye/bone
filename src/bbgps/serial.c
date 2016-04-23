@@ -88,7 +88,7 @@ void process_nmea(char *sentence, int length)
 	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
 	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
-	sprintf(alt, " %dft  ", (int)(info.elv * 3.28084));
+	sprintf(alt, " %dft", (int)(info.elv * 3.28084));
 	WriteString(i2cfd, 2, 14, alt);
 	count++;
     } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
@@ -116,7 +116,7 @@ void process_nmea(char *sentence, int length)
 	WriteString(i2cfd, 3, 0, buffer);
 
 	course = info.direction - info.declination;
-	sprintf(buffer, "%.1f  ", course);
+	sprintf(buffer, "%.1f ", course);
 	WriteString(i2cfd, 3, 14, buffer);
     } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
