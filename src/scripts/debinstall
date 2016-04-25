@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PACKAGES="gcc build-essential ntp i2c-tools vim libi2c-dev connman wireless-tools pciutils firmware-misc-nonfree vim usbutils dnsutils firmware-realtek"
+PACKAGES="gcc build-essential ntp i2c-tools vim libi2c-dev connman wireless-tools pciutils firmware-misc-nonfree vim usbutils dnsutils firmware-realtek man"
 
 apt-get -y update
 apt-get -y install $PACKAGES
