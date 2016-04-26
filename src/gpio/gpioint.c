@@ -237,10 +237,24 @@ int main(int argc, char **argv, char **envp)
 
 	gpio_export(gpio);
 	gpio_set_dir(gpio, 0);
-	gpio_set_edge(gpio, "rising");
+	gpio_set_edge(gpio, "both");
 	gpio_fd = gpio_fd_open(gpio);
 
 	timeout = POLL_TIMEOUT;
+
+/*
+		memset((void*)fdset, 0, sizeof(fdset));
+
+		fdset[0].fd = STDIN_FILENO;
+		fdset[0].events = POLLIN;
+      
+		fdset[1].fd = gpio_fd;
+		fdset[1].events = POLLPRI;
+
+		rc = poll(fdset, nfds, timeout);      
+		len = read(fdset[1].fd, buf, MAX_BUF);
+                printf("First read ignored\n\n"); 
+*/
  
 	while (1) {
 		memset((void*)fdset, 0, sizeof(fdset));
@@ -252,6 +266,7 @@ int main(int argc, char **argv, char **envp)
 		fdset[1].events = POLLPRI;
 
 		rc = poll(fdset, nfds, timeout);      
+		len = read(fdset[1].fd, buf, MAX_BUF);
 
 		if (rc < 0) {
 			printf("\npoll() failed!\n");
@@ -271,7 +286,7 @@ int main(int argc, char **argv, char **envp)
 			(void)read(fdset[0].fd, buf, 1);
 			printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
 		}
-
+                puts("loop\n"); 
 		fflush(stdout);
 	}
 
