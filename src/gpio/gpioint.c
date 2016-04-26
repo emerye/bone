@@ -34,13 +34,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <pthread.h>
 
  /****************************************************************
  * Constants
  ****************************************************************/
- 
+
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define POLL_TIMEOUT (3 * 1000) /* 3 seconds */
+#define POLL_TIMEOUT (3 * 1000)	/* 3 seconds */
 #define MAX_BUF 64
 
 /****************************************************************
@@ -48,20 +49,20 @@
  ****************************************************************/
 int gpio_export(unsigned int gpio)
 {
-	int fd, len;
-	char buf[MAX_BUF];
- 
-	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/export");
-		return fd;
-	}
- 
-	len = snprintf(buf, sizeof(buf), "%d", gpio);
-	write(fd, buf, len);
-	close(fd);
- 
-	return 0;
+    int fd, len;
+    char buf[MAX_BUF];
+
+    fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+    if (fd < 0) {
+	perror("gpio/export");
+	return fd;
+    }
+
+    len = snprintf(buf, sizeof(buf), "%d", gpio);
+    write(fd, buf, len);
+    close(fd);
+
+    return 0;
 }
 
 /****************************************************************
@@ -69,19 +70,19 @@ int gpio_export(unsigned int gpio)
  ****************************************************************/
 int gpio_unexport(unsigned int gpio)
 {
-	int fd, len;
-	char buf[MAX_BUF];
- 
-	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/export");
-		return fd;
-	}
- 
-	len = snprintf(buf, sizeof(buf), "%d", gpio);
-	write(fd, buf, len);
-	close(fd);
-	return 0;
+    int fd, len;
+    char buf[MAX_BUF];
+
+    fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+    if (fd < 0) {
+	perror("gpio/export");
+	return fd;
+    }
+
+    len = snprintf(buf, sizeof(buf), "%d", gpio);
+    write(fd, buf, len);
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -89,24 +90,24 @@ int gpio_unexport(unsigned int gpio)
  ****************************************************************/
 int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 {
-	int fd, len;
-	char buf[MAX_BUF];
- 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR  "/gpio%d/direction", gpio);
- 
-	fd = open(buf, O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/direction");
-		return fd;
-	}
- 
-	if (out_flag)
-		write(fd, "out", 4);
-	else
-		write(fd, "in", 3);
- 
-	close(fd);
-	return 0;
+    int fd;
+    char buf[MAX_BUF];
+
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/direction", gpio);
+
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+	perror("gpio/direction");
+	return fd;
+    }
+
+    if (out_flag)
+	write(fd, "out", 4);
+    else
+	write(fd, "in", 3);
+
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -114,24 +115,24 @@ int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
  ****************************************************************/
 int gpio_set_value(unsigned int gpio, unsigned int value)
 {
-	int fd, len;
-	char buf[MAX_BUF];
- 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
- 
-	fd = open(buf, O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/set-value");
-		return fd;
-	}
- 
-	if (value)
-		write(fd, "1", 2);
-	else
-		write(fd, "0", 2);
- 
-	close(fd);
-	return 0;
+    int fd;
+    char buf[MAX_BUF];
+
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+	perror("gpio/set-value");
+	return fd;
+    }
+
+    if (value)
+	write(fd, "1", 2);
+    else
+	write(fd, "0", 2);
+
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -139,28 +140,29 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
  ****************************************************************/
 int gpio_get_value(unsigned int gpio, unsigned int *value)
 {
-	int fd, len;
-	char buf[MAX_BUF];
-	char ch;
+    int fd;
+    char buf[MAX_BUF];
+    char ch;
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
- 
-	fd = open(buf, O_RDONLY);
-	if (fd < 0) {
-		perror("gpio/get-value");
-		return fd;
-	}
- 
-	read(fd, &ch, 1);
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
 
-	if (ch != '0') {
-		*value = 1;
-	} else {
-		*value = 0;
-	}
- 
-	close(fd);
-	return 0;
+
+    fd = open(buf, O_RDONLY);
+    if (fd < 0) {
+	perror("gpio/get-value");
+	return fd;
+    }
+
+    read(fd, &ch, 1);
+
+    if (ch != '0') {
+	*value = 1;
+    } else {
+	*value = 0;
+    }
+
+    close(fd);
+    return 0;
 }
 
 
@@ -170,20 +172,20 @@ int gpio_get_value(unsigned int gpio, unsigned int *value)
 
 int gpio_set_edge(unsigned int gpio, char *edge)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd;
+    char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
- 
-	fd = open(buf, O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/set-edge");
-		return fd;
-	}
- 
-	write(fd, edge, strlen(edge) + 1); 
-	close(fd);
-	return 0;
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
+
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+	perror("gpio/set-edge");
+	return fd;
+    }
+
+    write(fd, edge, strlen(edge) + 1);
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -192,16 +194,16 @@ int gpio_set_edge(unsigned int gpio, char *edge)
 
 int gpio_fd_open(unsigned int gpio)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd;
+    char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
- 
-	fd = open(buf, O_RDONLY | O_NONBLOCK );
-	if (fd < 0) {
-		perror("gpio/fd_open");
-	}
-	return fd;
+    snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+
+    fd = open(buf, O_RDONLY | O_NONBLOCK);
+    if (fd < 0) {
+	perror("gpio/fd_open");
+    }
+    return fd;
 }
 
 /****************************************************************
@@ -210,37 +212,63 @@ int gpio_fd_open(unsigned int gpio)
 
 int gpio_fd_close(int fd)
 {
-	return close(fd);
+    return close(fd);
 }
+
+// This is the thread function that will execute when the thread is created
+//  it passes and receives data by void pointers
+void *threadFunction(void *value)
+{
+    int *x = (int *) value;	//cast the data passed to an int pointer
+    while (*x < 100) {		//while the value of x is less than 5
+	usleep(1000);		//sleep for 1ms - encourage main thread
+	(*x)++;			//increment the value of x by 1
+      printf("Thread count %d\n", *x); 
+    }
+    puts(" Thread completed.\n");
+    return x;			//return the pointer x (as a void*)
+}
+
+
+
 
 /****************************************************************
  * Main
  ****************************************************************/
 int main(int argc, char **argv, char **envp)
 {
-	struct pollfd fdset[2];
-	int nfds = 2;
-	int gpio_fd, timeout, rc;
-	char *buf[MAX_BUF];
-	unsigned int gpio;
-	int len;
+    struct pollfd fdset[2];
+    int nfds = 2;
+    int gpio_fd, timeout, rc;
+    char *buf[MAX_BUF];
+    unsigned int gpio;
+    int len;
+    pthread_t thread;
+    int threadint = 0;
 
 
 
-	if (argc < 2) {
-		printf("Usage: gpio-int <gpio-pin>\n\n");
-		printf("Waits for a change in the GPIO pin voltage level or input on stdin\n");
-		exit(-1);
-	}
+    if (argc < 2) {
+	printf(" Usage:gpio - int <gpio - pin > \n\n ");
+	printf
+	    (" Waits for a change in the GPIO pin voltage level or input on stdin \n ");
+	exit(-1);
+    }
 
-	gpio = atoi(argv[1]);
+    gpio = atoi(argv[1]);
 
-	gpio_export(gpio);
-	gpio_set_dir(gpio, 0);
-	gpio_set_edge(gpio, "both");
-	gpio_fd = gpio_fd_open(gpio);
+    gpio_export(gpio);
+    gpio_set_dir(gpio, 0);
+    gpio_set_edge(gpio, " both ");
+    gpio_fd = gpio_fd_open(gpio);
 
-	timeout = POLL_TIMEOUT;
+    timeout = POLL_TIMEOUT;
+
+    if (pthread_create(&thread, NULL, &threadFunction, &threadint) != 0) {
+	puts(" Failed to create thread.");
+	return 1;
+    }
+
 
 /*
 		memset((void*)fdset, 0, sizeof(fdset));
@@ -253,43 +281,44 @@ int main(int argc, char **argv, char **envp)
 
 		rc = poll(fdset, nfds, timeout);      
 		len = read(fdset[1].fd, buf, MAX_BUF);
-                printf("First read ignored\n\n"); 
+                printf(" First read ignored \ n \ n "); 
 */
- 
-	while (1) {
-		memset((void*)fdset, 0, sizeof(fdset));
 
-		fdset[0].fd = STDIN_FILENO;
-		fdset[0].events = POLLIN;
-      
-		fdset[1].fd = gpio_fd;
-		fdset[1].events = POLLPRI;
+    while (1) {
+	memset((void *) fdset, 0, sizeof(fdset));
 
-		rc = poll(fdset, nfds, timeout);      
-		len = read(fdset[1].fd, buf, MAX_BUF);
+	fdset[0].fd = STDIN_FILENO;
+	fdset[0].events = POLLIN;
 
-		if (rc < 0) {
-			printf("\npoll() failed!\n");
-			return -1;
-		}
-      
-		if (rc == 0) {
-			printf(".");
-		}
-            
-		if (fdset[1].revents & POLLPRI) {
-			len = read(fdset[1].fd, buf, MAX_BUF);
-			printf("\npoll() GPIO %d interrupt occurred\n", gpio);
-		}
+	fdset[1].fd = gpio_fd;
+	fdset[1].events = POLLPRI;
 
-		if (fdset[0].revents & POLLIN) {
-			(void)read(fdset[0].fd, buf, 1);
-			printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
-		}
-                puts("loop\n"); 
-		fflush(stdout);
+	rc = poll(fdset, nfds, timeout);
+	len = read(fdset[1].fd, buf, MAX_BUF);
+
+	if (rc < 0) {
+	    printf("  npoll()failed ! \n ");
+	    return -1;
 	}
 
-	gpio_fd_close(gpio_fd);
-	return 0;
+	if (rc == 0) {
+	    printf(".");
+	}
+
+	if (fdset[1].revents & POLLPRI) {
+	    len = read(fdset[1].fd, buf, MAX_BUF);
+	    printf("  npoll()GPIO % d interrupt occurred \n ", gpio);
+	}
+
+	if (fdset[0].revents & POLLIN) {
+	    (void) read(fdset[0].fd, buf, 1);
+	    printf("  npoll()stdin read 0x %2.2X \n", (unsigned int) buf[0]);
+	}
+	puts(" loop \n ");
+	fflush(stdout);
+    }
+
+    gpio_fd_close(gpio_fd);
+    return 0;
 }
+
