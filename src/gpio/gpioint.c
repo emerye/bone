@@ -259,7 +259,7 @@ int main(int argc, char **argv, char **envp)
 
     gpio_export(gpio);
     gpio_set_dir(gpio, 0);
-    gpio_set_edge(gpio, " both ");
+    gpio_set_edge(gpio, "both");
     gpio_fd = gpio_fd_open(gpio);
 
     timeout = POLL_TIMEOUT;
@@ -270,7 +270,7 @@ int main(int argc, char **argv, char **envp)
     }
 
 
-/*
+
 		memset((void*)fdset, 0, sizeof(fdset));
 
 		fdset[0].fd = STDIN_FILENO;
@@ -282,7 +282,7 @@ int main(int argc, char **argv, char **envp)
 		rc = poll(fdset, nfds, timeout);      
 		len = read(fdset[1].fd, buf, MAX_BUF);
                 printf(" First read ignored \ n \ n "); 
-*/
+
 
     while (1) {
 	memset((void *) fdset, 0, sizeof(fdset));
