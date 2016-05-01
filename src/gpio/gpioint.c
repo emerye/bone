@@ -223,7 +223,7 @@ void *threadFunction(void *value)
     while (*x < 100) {		//while the value of x is less than 5
 	usleep(1000);		//sleep for 1ms - encourage main thread
 	(*x)++;			//increment the value of x by 1
-      printf("Thread count %d\n", *x); 
+	printf("Thread count %d\n", *x);
     }
     puts(" Thread completed.\n");
     return x;			//return the pointer x (as a void*)
@@ -271,17 +271,17 @@ int main(int argc, char **argv, char **envp)
 
 
 
-		memset((void*)fdset, 0, sizeof(fdset));
+    memset((void *) fdset, 0, sizeof(fdset));
 
-		fdset[0].fd = STDIN_FILENO;
-		fdset[0].events = POLLIN;
-      
-		fdset[1].fd = gpio_fd;
-		fdset[1].events = POLLPRI;
+    fdset[0].fd = STDIN_FILENO;
+    fdset[0].events = POLLIN;
 
-		rc = poll(fdset, nfds, timeout);      
-		len = read(fdset[1].fd, buf, MAX_BUF);
-                printf(" First read ignored \ n \ n "); 
+    fdset[1].fd = gpio_fd;
+    fdset[1].events = POLLPRI;
+
+    rc = poll(fdset, nfds, timeout);
+    len = read(fdset[1].fd, buf, MAX_BUF);
+    printf(" First read ignored \ n \ n ");
 
 
     while (1) {
@@ -312,7 +312,8 @@ int main(int argc, char **argv, char **envp)
 
 	if (fdset[0].revents & POLLIN) {
 	    (void) read(fdset[0].fd, buf, 1);
-	    printf("  npoll()stdin read 0x %2.2X \n", (unsigned int) buf[0]);
+	    printf("  npoll()stdin read 0x %2.2X \n",
+		   (unsigned int) buf[0]);
 	}
 	puts(" loop \n ");
 	fflush(stdout);
@@ -321,4 +322,3 @@ int main(int argc, char **argv, char **envp)
     gpio_fd_close(gpio_fd);
     return 0;
 }
-
