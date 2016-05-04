@@ -161,7 +161,7 @@ void process_nmea(char *sentence, int length)
 	WriteString(i2cfd, 3, 0, buffer);
 
 	course = info.direction - info.declination;
-	sprintf(buffer, "%.0f ", course);
+	sprintf(buffer, "%3d", (int) course);
 	WriteString(i2cfd, 3, 12, buffer);
 
         sprintf(buffer, "%s", compass2direction(course)); 
