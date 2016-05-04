@@ -39,8 +39,10 @@ included by <termios.h> */
 #define FALSE 0
 #define TRUE 1
 
-static char * compassDirection[] = {"N","NNE","NE","ENE","E","ESE",
-	"SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW","N"};  
+static char *compassDirection[] = { "  N", "NNE", " NE", "ENE", "  E", "ESE",
+    " SE", "SSE", "  S", "SSW", " SW", "WSW", "  W", "WNW", " NW", "NNW", "  N"
+};
+
 char buf[255];
 int i2caddr = 0x27;
 unsigned char i2creg = 0;
@@ -50,71 +52,59 @@ char dateBuff[50];
 
 char *GetTime();
 
-double speedaverage=0; 
+double speedaverage = 0;
 unsigned int count;
 unsigned int cumulativeCount;
+int startupCnt = 0; 
 
 int fd;				//file descriptor
 nmeaINFO info;
 nmeaPARSER parser;
 
 // Calculate average speed
-double AverageSpeed(double currentSpeed) {
-  speedaverage =  speedaverage + (currentSpeed - speedaverage) / count;   
-  return speedaverage; 
+double AverageSpeed(double currentSpeed)
+{
+    speedaverage = speedaverage + (currentSpeed - speedaverage) / count;
+    return speedaverage;
 }
 
 //Return index into array
-char * compass2direction(double bearing) {
-   if (bearing > 348.75 || bearing < 11.25) {
-	return compassDirection[0]; 
-	}
-     else if (bearing >= 11.25 && bearing < 33.75) {
-	return compassDirection[1]; 
-      }   
-     else if (bearing >= 33.75 && bearing < 56.25) {
-	return compassDirection[2]; 
-      }   
-     else if (bearing >= 56.25 && bearing < 78.75) {
-	return compassDirection[3]; 
-      }   
-     else if (bearing >= 78.75 && bearing < 101.25) {
-	return compassDirection[4]; 
-      }   
-     else if (bearing >= 101.25 && bearing < 123.75) {
-	return compassDirection[5]; 
-      }   
-     else if (bearing >= 123.75 && bearing < 146.25) {
-	return compassDirection[6]; 
-      }   
-     else if (bearing >= 146.25 && bearing < 168.75) {
-	return compassDirection[7]; 
-      }   
-     else if (bearing >= 168.75 && bearing < 191.25) {
-	return compassDirection[8]; 
-      }   
-     else if (bearing >= 191.25 && bearing < 213.75) {
-	return compassDirection[9]; 
-      }   
-     else if (bearing >= 213.75 && bearing < 236.25) {
-	return compassDirection[10]; 
-      }   
-     else if (bearing >= 236.25 && bearing < 258.75) {
-	return compassDirection[11]; 
-      }   
-     else if (bearing >= 258.75 && bearing < 281.25) {
-	return compassDirection[12]; 
-      }   
-     else if (bearing >= 281.25 && bearing < 303.75) {
-	return compassDirection[13]; 
-      }   
-     else if (bearing >= 303.75 && bearing < 326.25) {
-	return compassDirection[14]; 
-      }   
-     else if (bearing >= 336.25 && bearing < 348.75) {
-	return compassDirection[15]; 
-      }   
-   return 0; 
+char *compass2direction(double bearing)
+{
+    if (bearing > 348.75 || bearing < 11.25) {
+	return compassDirection[0];
+    } else if (bearing >= 11.25 && bearing < 33.75) {
+	return compassDirection[1];
+    } else if (bearing >= 33.75 && bearing < 56.25) {
+	return compassDirection[2];
+    } else if (bearing >= 56.25 && bearing < 78.75) {
+	return compassDirection[3];
+    } else if (bearing >= 78.75 && bearing < 101.25) {
+	return compassDirection[4];
+    } else if (bearing >= 101.25 && bearing < 123.75) {
+	return compassDirection[5];
+    } else if (bearing >= 123.75 && bearing < 146.25) {
+	return compassDirection[6];
+    } else if (bearing >= 146.25 && bearing < 168.75) {
+	return compassDirection[7];
+    } else if (bearing >= 168.75 && bearing < 191.25) {
+	return compassDirection[8];
+    } else if (bearing >= 191.25 && bearing < 213.75) {
+	return compassDirection[9];
+    } else if (bearing >= 213.75 && bearing < 236.25) {
+	return compassDirection[10];
+    } else if (bearing >= 236.25 && bearing < 258.75) {
+	return compassDirection[11];
+    } else if (bearing >= 258.75 && bearing < 281.25) {
+	return compassDirection[12];
+    } else if (bearing >= 281.25 && bearing < 303.75) {
+	return compassDirection[13];
+    } else if (bearing >= 303.75 && bearing < 326.25) {
+	return compassDirection[14];
+    } else if (bearing >= 336.25 && bearing < 348.75) {
+	return compassDirection[15];
+    }
+    return 0;
 }
 
 void process_nmea(char *sentence, int length)
@@ -131,7 +121,10 @@ void process_nmea(char *sentence, int length)
 	printf("Sentence length is incorrect\n");
 	return;
     }
-
+   
+    startupCnt++; 
+    if (startupCnt > 10) {
+    startupCnt--; 
     strncpy(senCode, sentence, 6);
     if ((strncmp(senCode, "$GPGGA", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
@@ -139,39 +132,44 @@ void process_nmea(char *sentence, int length)
 	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
 	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
-	sprintf(alt, "%4d", (int)(info.elv * 3.28084));
-        WriteString(i2cfd, 2, 18, "ft"); 
+	sprintf(alt, "%4d", (int) (info.elv * 3.28084));
+	WriteString(i2cfd, 2, 18, "ft");
 	WriteString(i2cfd, 2, 14, alt);
-	count++;
     } else if ((strncmp(senCode, "$GPGSA", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
     } else if ((strncmp(senCode, "$GPGSV", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
     } else if ((strncmp(senCode, "$GPRMC", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
+        count++; 
 	currentSpeed = (int) (info.speed * 0.621371);
-
+        
 	sprintf(buffer, "Lat: %.4f ", info.lat);
 	WriteString(i2cfd, 0, 0, buffer);
- 
-        sprintf(buffer, "S%2d", info.satinfo.inview);  
+
+	sprintf(buffer, "S%2d", info.satinfo.inview);
 	WriteString(i2cfd, 0, 17, buffer);
 
 	sprintf(buffer, "Lon: %.4f", info.lon);
 	WriteString(i2cfd, 1, 0, buffer);
 
-        avgSpeed = (int) AverageSpeed(currentSpeed);
+	avgSpeed = (int) AverageSpeed(currentSpeed);
 	sprintf(speed, "%2dmph %2dmph ", currentSpeed, avgSpeed);
 	WriteString(i2cfd, 2, 0, speed);
 
-	sprintf(buffer, "%3dmin",  (int)(count/60 + 0.5)); 
+	sprintf(buffer, "%3dmin", (int) (count / 60 + 0.5));
 	WriteString(i2cfd, 3, 0, buffer);
 
 	course = info.direction - info.declination;
-	sprintf(buffer, "%.0f %s", course, compass2direction(course));
+	sprintf(buffer, "%.0f ", course);
 	WriteString(i2cfd, 3, 12, buffer);
+
+        sprintf(buffer, "%s", compass2direction(course)); 
+	WriteString(i2cfd, 3, 17, buffer); 
+
     } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
+  }
 }
 
 
