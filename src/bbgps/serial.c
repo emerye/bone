@@ -39,8 +39,10 @@ included by <termios.h> */
 #define FALSE 0
 #define TRUE 1
 
-static char *compassDirection[] = { "  N", "NNE", " NE", "ENE", "  E", "ESE",
-    " SE", "SSE", "  S", "SSW", " SW", "WSW", "  W", "WNW", " NW", "NNW", "  N"
+static char *compassDirection[] =
+    { "  N", "NNE", " NE", "ENE", "  E", "ESE",
+    " SE", "SSE", "  S", "SSW", " SW", "WSW", "  W", "WNW", " NW", "NNW",
+	"  N"
 };
 
 char buf[255];
@@ -49,13 +51,13 @@ unsigned char i2creg = 0;
 int i2cfd;
 char timeBuff[50];
 char dateBuff[50];
+unsigned int startupCnt = 0;
 
 char *GetTime();
 
 double speedaverage = 0;
 unsigned int count;
 unsigned int cumulativeCount;
-int startupCnt = 0; 
 
 int fd;				//file descriptor
 nmeaINFO info;
@@ -121,10 +123,12 @@ void process_nmea(char *sentence, int length)
 	printf("Sentence length is incorrect\n");
 	return;
     }
-   
-    startupCnt++; 
+
+    startupCnt++;
     if (startupCnt > 10) {
-    startupCnt--; 
+	startupCnt--;
+    }
+
     strncpy(senCode, sentence, 6);
     if ((strncmp(senCode, "$GPGGA", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
@@ -141,9 +145,9 @@ void process_nmea(char *sentence, int length)
 	nmea_parse(&parser, sentence, length, &info);
     } else if ((strncmp(senCode, "$GPRMC", 6) == 0)) {
 	nmea_parse(&parser, sentence, length, &info);
-        count++; 
+	count++;
 	currentSpeed = (int) (info.speed * 0.621371);
-        
+
 	sprintf(buffer, "Lat: %.4f ", info.lat);
 	WriteString(i2cfd, 0, 0, buffer);
 
@@ -157,19 +161,18 @@ void process_nmea(char *sentence, int length)
 	sprintf(speed, "%2dmph %2dmph ", currentSpeed, avgSpeed);
 	WriteString(i2cfd, 2, 0, speed);
 
-	sprintf(buffer, "%3dmin", (int) (count / 60 + 0.5));
+	sprintf(buffer, "%3dmin", (int) ((count / 60.0) + 0.5));
 	WriteString(i2cfd, 3, 0, buffer);
 
 	course = info.direction - info.declination;
 	sprintf(buffer, "%3d", (int) course);
 	WriteString(i2cfd, 3, 12, buffer);
 
-        sprintf(buffer, "%s", compass2direction(course)); 
-	WriteString(i2cfd, 3, 17, buffer); 
+	sprintf(buffer, "%s", compass2direction(course));
+	WriteString(i2cfd, 3, 17, buffer);
 
     } else if ((strncmp(senCode, "$GPVTG", 6) == 0)) {
     }
-  }
 }
 
 
