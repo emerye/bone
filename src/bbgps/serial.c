@@ -42,7 +42,7 @@ included by <termios.h> */
 static char *compassDirection[] =
     { "  N", "NNE", " NE", "ENE", "  E", "ESE",
     " SE", "SSE", "  S", "SSW", " SW", "WSW", "  W", "WNW", " NW", "NNW",
-	"  N"
+    "  N"
 };
 
 char buf[255];
@@ -125,8 +125,9 @@ void process_nmea(char *sentence, int length)
     }
 
     startupCnt++;
-    if (startupCnt > 10) {
-	startupCnt--;
+    if (startupCnt < 10) {
+	startupCnt++;
+	return;
     }
 
     strncpy(senCode, sentence, 6);
