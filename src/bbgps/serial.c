@@ -42,7 +42,7 @@ included by <termios.h> */
 static char *compassDirection[] =
     { "  N", "NNE", " NE", "ENE", "  E", "ESE",
     " SE", "SSE", "  S", "SSW", " SW", "WSW", "  W", "WNW", " NW", "NNW",
-    "  N"
+    "  N", "ZZZ" 
 };
 
 char buf[255];
@@ -106,7 +106,7 @@ char *compass2direction(double bearing)
     } else if (bearing >= 336.25 && bearing < 348.75) {
 	return compassDirection[15];
     }
-    return 0;
+    return compassDirection[16]; //Error
 }
 
 void process_nmea(char *sentence, int length)
