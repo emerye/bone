@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -g 
-OBJECTS = gpio.o oled.o  
+OBJECTS = gpio.o oled.o spi595.o   
 INCLUDE=-I./include
 
 all:   oled 
