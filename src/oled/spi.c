@@ -13,7 +13,7 @@
 #include<sys/ioctl.h>
 #include<stdint.h>
 #include<linux/spi/spidev.h>
-#include "spi595.h"
+#include "spi.h"
 
 #define SPI_PATH "/dev/spidev1.0"
 //#define SPI_PATH "/dev/spidev2.0"
@@ -25,7 +25,7 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
   transfer.tx_buf = (unsigned long) send;	//the buffer for sending data
   transfer.rx_buf = (unsigned long) receive;	//the buffer for receiving data
   transfer.len = length;	//the length of buffer
-  transfer.speed_hz = 12000000;	//the speed in Hz
+  transfer.speed_hz = 1000000;	//the speed in Hz
   transfer.bits_per_word = 8;	//bits per word
   transfer.delay_usecs = 0;	//delay in us
 
@@ -42,7 +42,6 @@ transfer (int fd, unsigned char send[], unsigned char receive[], int length)
 
 int
 SendWord (int data)
-//main ()
 {
   unsigned int fd;		//file handle and loop counter
   uint8_t bits = 8, mode = 3;	//8-bits per word, SPI mode 3
@@ -149,7 +148,7 @@ Init_SPI (void)
       perror ("SPI: Can't get max speed HZ.");
       return -1;
     }
-  return 0;
+  return spiFD;
 }
 
 
@@ -172,4 +171,26 @@ SPISend (unsigned int fd, int data)
     }
   fflush (stdout);		//need to flush the output, no \n
   return 0;
+}
+
+
+
+//SPI file descriptor and 16 bit word 
+int
+SPISendByte (int fd, int data)
+{
+  unsigned char send[20];
+  unsigned char receive[20];
+  int errorNum; 
+
+  data = data & 0xFFFF;
+  send[0] = (unsigned char) (data & 0xFF);
+  // This function can send and receive data, just sending here
+  if ((errorNum = transfer (fd, (unsigned char *) &send[0], &receive[0], 1)) == -1)
+    {
+      perror ("Failed to update the display");
+      return -1;
+    }
+  fflush (stdout);		//need to flush the output, no \n
+  return errorNum;
 }
