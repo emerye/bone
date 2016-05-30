@@ -103,7 +103,7 @@ char *compass2direction(double bearing)
 	return compassDirection[13];
     } else if (bearing >= 303.75 && bearing < 326.25) {
 	return compassDirection[14];
-    } else if (bearing >= 336.25 && bearing < 348.75) {
+    } else if (bearing >= 326.25 && bearing < 348.75) {
 	return compassDirection[15];
     }
     return compassDirection[16]; //Error
