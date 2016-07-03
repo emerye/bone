@@ -96,15 +96,23 @@ unsigned char pic[]=
 
 int SendByte(enum cmd cmdType, int data)
 {
-    int error;
+    int error,i;
+    volatile j=0;
 
     if (cmdType == COMMAND) {
 	gpio_set_value(DCLINE, 0);
-        puts("Command"); 
+        printf("Command 0x%x\n", data); 
     } else {
 	gpio_set_value(DCLINE, 1);
-        puts("Data Command"); 
+        printf("Data 0x%x\n", data); 
     }
+
+   for (i=0; i< 10000000; i++) {
+     j++;
+    }
+      sleep(1);  
+   //usleep(1000000); 
+    
     error = SPISendByte(spiFD, data);
     if (error == -1) {
 	printf("Error %d\n", error);
@@ -117,10 +125,9 @@ void initDisplay()
 {
     gpio_set_value(RESETLINE, 1);
     gpio_set_value(RESETLINE, 0);
-    usleep(1000);
     gpio_set_value(RESETLINE, 1);
 
-    sleep(1);
+    usleep(1000);
 
     SendByte(COMMAND, 0xFD);	// Set Command Lock
     SendByte(COMMAND, 0x12);	//   Default => 0x12
@@ -177,12 +184,12 @@ void initDisplay()
     SendByte(COMMAND, 0xd8);	//--Set Area Color Mode On/Off & Low Power Display Mode
     SendByte(COMMAND, 0x05);	//
 
+    SendByte(COMMAND, 0xa4);	//Disable Entire Display On     
 
     SendByte(COMMAND, 0xa6);	//--set normal display
 
-    SendByte(COMMAND, 0xa4);	//Disable Entire Display On     
-
     SendByte(COMMAND, 0xaf);	//--turn on oled panel
+    
 }
 
 
@@ -230,9 +237,10 @@ void Display_Picture(unsigned char *p)
 {unsigned char *picture;
     unsigned char i,j,num=0;
                 picture=p;
+        
         for(i=0;i<0x08;i++)
         {
- //       Set_Start_Page(i);
+        //Set_Start_Page(i);
         SendByte(COMMAND, 0xB0 | i); 
         Set_Start_Column(XLevel);
         for(j=0;j<0x80;j++)
@@ -252,14 +260,25 @@ void init_Hardware(void)
     gpio_set_dir(RESETLINE, 1);
 }
 
+void gpio_toggle()  {
+
+while(1) {
+	gpio_set_value(DCLINE, 0);
+    //    printf("Command 0x%x\n", 1); 
+	gpio_set_value(DCLINE, 1);
+     //   printf("Data 0x%x\n", 1); 
+    }
+}
 
 int main(int argc, char **argv)
 {
     init_Hardware();
     Init_SPI();
+    //gpio_toggle(); 
     initDisplay();
     
-    sleep(1);
+    puts("Sending picture"); 
     Display_Picture(pic); 
+    sleep(4); 
     return 0;
 }
