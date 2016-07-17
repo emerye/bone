@@ -1,2 +1,0 @@
-# bone
-BeagleBone Black source
