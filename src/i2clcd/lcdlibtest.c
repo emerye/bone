@@ -6,7 +6,8 @@
 #include <time.h>
 #include "lcdchar.h"
 
-//install i2c-tools, libi2c-dev
+//install packages i2c-tools, libi2c-dev
+
 int i2caddr = 0x27;
 unsigned char i2creg = 0;
 int i2cfd;
@@ -44,7 +45,7 @@ main (int argc, char **argv)
 {
   int r;
   int i2cfd; 
-  char *dev = "/dev/i2c-1";
+  char *dev = "/dev/i2c-2";
 
   i2cfd = open (dev, O_RDWR);
   if (i2cfd < 0)

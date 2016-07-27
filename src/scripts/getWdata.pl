@@ -9,34 +9,12 @@ my $OUTFILE = "/root/bone/src/scripts/exttemp.txt";
 my ($outFile, $ret, $wgetcmd, $fh, $completefile, @lines, $temperature,
 	$wgetfile, $jsonString, $minutes, $hours); 
 
-
-#$wgetcmd = "wget -O " . $OUTFILE . " http://192.168.1.10:2000"; 
-
-#print("$wgetcmd",  "\n"); 
-
-#$ret = system($wgetcmd); 
-#print ("Return value:  ",  $ret, "\n"); 
-
-#open ($fh, "<", $OUTFILE) or die ("Could not open file '$OUTFILE' $!");  
-#while(<$fh>) {
-#  push @lines, $_ ; 
-#}
-#close($fh); 
-
-#foreach ( @lines ) {
-#  if (/Temperature/)
-#  {
-    #print "Start position $-[0] Endposition $+[0] \n"; 
-#    $temperature = substr($_, $+[0] + 2, 5); 
-#    $temperature =~ s/\s+//; 
-#    print $temperature;  
-#  }
-#}
-
-
 $OUTFILE = '/root/bone/src/scripts/cweather.json'; 
 
-$wgetcmd = "wget -O " . $OUTFILE . ' http://api.openweathermap.org/data/2.5/weather?q=Fremont'; 
+#$wgetcmd = "wget -O " . $OUTFILE . ' http://api.openweathermap.org/data/2.5/weather?q=Fremont'; 
+#
+$wgetcmd = 'curl -o /root/bone/src/scripts/cweather.json "http://api.openweathermap.org/data/2.5/weather?id=5350734&appid=86fd40302a1f892f8cd7528036289523"';
+
 
 $ret = system($wgetcmd); 
 print ("Return value:  ",  $ret, "\n"); 
@@ -94,8 +72,8 @@ foreach my $f ( @weather )  {
 }
 
 print $fh "pressure=" . $decoded->{'main'}{'pressure'} . "\n";
-print $fh "sea_level=" . $decoded->{'main'}{'sea_level'} . "\n";
-print $fh "grnd_level=" . $decoded->{'main'}{'grnd_level'} . "\n";
+#print $fh "sea_level=" . $decoded->{'main'}{'sea_level'} . "\n";
+#print $fh "grnd_level=" . $decoded->{'main'}{'grnd_level'} . "\n";
 print $fh "humidity=" . $decoded->{'main'}{'humidity'} . "\n";
 
 print $fh "windspeed=" . $decoded->{'wind'}{'speed'} . "\n";

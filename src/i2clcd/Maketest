@@ -1,0 +1,15 @@
+CC=gcc
+CFLAGS=-Wall -Werror
+OBJECTS = lcdtest.o 
+DEPS = libtest.h 
+
+
+
+libtest:  libtest.o
+	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -llcdchar -o libtest  
+
+libtest.o:
+	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -llcdchar -o libtest
+
+clean:
+	 rm -f i2clcd i2clcd.o lcdchar.o liblcdchar.so 
