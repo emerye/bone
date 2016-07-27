@@ -4,6 +4,7 @@ OBJECTS = lcdtest.o
 DEPS = libtest.h 
 
 
+all: libtest 
 
 libtest:  libtest.o
 	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -llcdchar -o libtest  
