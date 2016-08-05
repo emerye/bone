@@ -41,7 +41,7 @@ void Display(int i2cfd, unsigned char tgtAddress)
 }
 
 int
-main (int argc, char **argv)
+main()
 {
   int r;
   int i2cfd; 
