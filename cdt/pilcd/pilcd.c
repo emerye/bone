@@ -150,7 +150,7 @@ WriteString (int i2cfd, int row, int ypos, char message[])
 	  WriteI2CByte (i2cfd, message[i], 1);
 	}
     }
-  delay(5);
+  usleep(5);
 }
 
 
@@ -161,7 +161,7 @@ void
 DisplayClear (int i2cfd)
 {
   WriteI2CByte (i2cfd, LCD_CLEAR_DISPLAY, 0);
-  usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required
+  usleep (LCD_LONG_DELAY);	//data sheets states that a usleep of 1.52ms is required
 }
 
 /***
@@ -171,7 +171,7 @@ void
 DisplayHome (int i2cfd)
 {
   WriteI2CByte (i2cfd, LCD_RETURN_HOME, 0);
-  usleep (LCD_LONG_DELAY);	//data sheets states that a delay of 1.52ms is required
+  usleep (LCD_LONG_DELAY);	//data sheets states that a usleep of 1.52ms is required
 }
 
 
@@ -204,8 +204,16 @@ void Display(int i2cfd, unsigned char tgtAddress)
 
 int main(int argc, char **argv)
 {
-    int r;
+    int r, gvalue;
     int i2cfd;
+    int gpiopin = 0;
+
+
+	wiringPiSetup();
+	pinMode(gpiopin, OUTPUT);
+
+
+
 
     i2cfd = wiringPiI2CSetup(0x27);
     if (i2cfd < 0) {
@@ -225,12 +233,21 @@ int main(int argc, char **argv)
     GetTime();
     WriteString(i2cfd, 0, 0, dateBuff);
     WriteString(i2cfd, 1, 0, GetTime());
-    WriteString(i2cfd, 3, 0, "Going to Cache Creek");
+    WriteString(i2cfd, 3, 0, "Back from Shaver Lake");
 
     while (1) {
 	GetTime();
 	WriteString(i2cfd, 0, 0, dateBuff);
 	WriteString(i2cfd, 1, 0, GetTime());
+
+	gvalue = digitalRead(gpiopin);
+	if (gvalue == 0) {
+		digitalWrite(gpiopin, HIGH);
+	} else {
+		digitalWrite(gpiopin, LOW);	// Off
+	}
+
+
 	sleep(1);
     }
 
