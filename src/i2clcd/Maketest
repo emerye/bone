@@ -6,7 +6,7 @@ DEPS = libtest.h
 
 all: libtest 
 
-libtest:  libtest.o
+libtest:  lcdlibtest.c  
 	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -llcdchar -o libtest  
 
 libtest.o:

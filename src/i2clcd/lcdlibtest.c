@@ -40,6 +40,7 @@ void Display(int i2cfd, unsigned char tgtAddress)
     WriteString(i2cfd, 1, 0, GetTime());
 }
 
+<<<<<<< HEAD
 int main(int argc, char **argv)
 {
     int r;
@@ -50,6 +51,20 @@ int main(int argc, char **argv)
     if (i2cfd < 0) {
 	perror("Opening i2c device node.\n");
 	return -1;
+=======
+int
+main()
+{
+  int r;
+  int i2cfd; 
+  char *dev = "/dddev/i2c-2";
+
+  i2cfd = open (dev, O_RDWR);
+  if (i2cfd < 0)
+    {
+      perror ("Opening i2c device node.\n");
+      return -1;
+>>>>>>> 362b98b1693774a902773c419e4d4eefde8b5267
     }
     r = ioctl(i2cfd, I2C_SLAVE, i2caddr);
     if (r < 0)
