@@ -212,9 +212,6 @@ int main(int argc, char **argv)
 	wiringPiSetup();
 	pinMode(gpiopin, OUTPUT);
 
-
-
-
     i2cfd = wiringPiI2CSetup(0x27);
     if (i2cfd < 0) {
 	perror("Opening i2c device node.\n");
@@ -233,7 +230,8 @@ int main(int argc, char **argv)
     GetTime();
     WriteString(i2cfd, 0, 0, dateBuff);
     WriteString(i2cfd, 1, 0, GetTime());
-    WriteString(i2cfd, 3, 0, "Back from Shaver Lake");
+    WriteString(i2cfd, 2, 0, "Going to Reno");
+    WriteString(i2cfd, 3, 0, "Shaver Lake");
 
     while (1) {
 	GetTime();
