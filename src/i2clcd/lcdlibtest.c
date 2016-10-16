@@ -39,8 +39,7 @@ void Display(int i2cfd, unsigned char tgtAddress)
     WriteString(i2cfd, 0, 0, dateBuff);
     WriteString(i2cfd, 1, 0, GetTime());
 }
-
-<<<<<<< HEAD
+/*
 int main(int argc, char **argv)
 {
     int r;
@@ -51,20 +50,19 @@ int main(int argc, char **argv)
     if (i2cfd < 0) {
 	perror("Opening i2c device node.\n");
 	return -1;
-=======
+*/
 int
 main()
 {
   int r;
   int i2cfd; 
-  char *dev = "/dddev/i2c-2";
+  char *dev = "/dev/i2c-1";
 
   i2cfd = open (dev, O_RDWR);
   if (i2cfd < 0)
     {
       perror ("Opening i2c device node.\n");
       return -1;
->>>>>>> 362b98b1693774a902773c419e4d4eefde8b5267
     }
     r = ioctl(i2cfd, I2C_SLAVE, i2caddr);
     if (r < 0)
@@ -87,7 +85,7 @@ main()
     WriteString(i2cfd, 1, 0, GetTime());
 
 //  DisplayClear ();
-    WriteString(i2cfd, 2, 0, "Going to");
+    WriteString(i2cfd, 2, 0, "Lost at ");
     WriteString(i2cfd, 3, 0, "Thunder Valley");
 
     while (1) {
