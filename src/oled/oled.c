@@ -132,7 +132,7 @@ void initDisplay()
     usleep(15000); 
     digitalWrite(RESETLINE, HIGH);
 
-    usleep(5000);
+    usleep(1000);
 
     SendByte(COMMAND, 0xFD);	// Set Command Lock
     SendByte(COMMAND, 0x12);	//   Default => 0x12
@@ -275,15 +275,11 @@ int main(int argc, char **argv)
 
     int status;
 
-    status = wiringPiSetup(); 
-    if (status < 1) {
-      perror("Setup of wiring Pi failed."); 
-    }
+     wiringPiSetup(); 
     init_Hardware();
     initDisplay();
     
     puts("Sending picture"); 
     Display_Picture(pic); 
-    sleep(4); 
     return 0;
 }
