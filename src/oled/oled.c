@@ -97,8 +97,6 @@ unsigned char pic[]=
 int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes)
 {
     int error;
-    int i; 
-    volatile int j=0;
     unsigned char spiBuffer[20];
  
     memcpy(spiBuffer, spiData, numBytes); 
@@ -240,7 +238,7 @@ void Set_Page_Address(unsigned char a, unsigned char b)
 
 void Display_Picture(unsigned char *p) 
 {unsigned char *picture;
-    unsigned char i,j,num=0;
+    unsigned char i,j;
                 picture=p;
         
         for(i=0;i<0x08;i++)
@@ -272,9 +270,6 @@ void init_Hardware(void)
 
 int main(int argc, char **argv)
 {
-
-    int status;
-
      wiringPiSetup(); 
     init_Hardware();
     initDisplay();
