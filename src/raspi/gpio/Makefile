@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Werror -std=c99
+CFLAGS=-Wall -Werror 
 OBJECTS = gpio.o  
 
 gpio: gpio.o
