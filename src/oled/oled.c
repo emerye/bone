@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "spi.h"
-#include "gpio.h"
+#include <wiringPi.h>
+#include <wiringPiSPI.h>
 
-#define RESETLINE 51
-#define DCLINE 50
+#define RESETLINE 29
+#define DCLINE 28 
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -20,7 +20,7 @@
 #define Brightness      0x8F
 
 
-
+unsigned char spiBuffer[20];	//Buffer to hold SPI data
 enum cmd { COMMAND, DATA };
 int spiFD;
 
@@ -94,38 +94,41 @@ unsigned char pic[]=
 };
 
 
-int SendByte(enum cmd cmdType, int data)
+int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes)
 {
-    int error,i;
-    volatile j=0;
+    int error;
+    unsigned char spiBuffer[20];
+ 
+    memcpy(spiBuffer, spiData, numBytes); 
 
     if (cmdType == COMMAND) {
-	gpio_set_value(DCLINE, 0);
-        printf("Command 0x%x\n", data); 
+	digitalWrite(DCLINE, LOW);
     } else {
-	gpio_set_value(DCLINE, 1);
-        printf("Data 0x%x\n", data); 
+	digitalWrite(DCLINE, HIGH);
     }
 
-   for (i=0; i< 10000000; i++) {
-     j++;
-    }
-      sleep(1);  
-   //usleep(1000000); 
-    
-    error = SPISendByte(spiFD, data);
+    error = wiringPiSPIDataRW(0, spiBuffer, numBytes);
     if (error == -1) {
-	printf("Error %d\n", error);
+	printf("Error writing SPI %d\n", error);
+        perror("SPI Write"); 
     }
     return error;
 }
 
 
+int SendByte(enum cmd cmdType, int data)
+{
+   spiBuffer[0] = (unsigned char) (data & 0xFF);   
+   return (SendSPIBlock(cmdType, spiBuffer, 1));    
+}
+	
+
 void initDisplay()
 {
-    gpio_set_value(RESETLINE, 1);
-    gpio_set_value(RESETLINE, 0);
-    gpio_set_value(RESETLINE, 1);
+    digitalWrite(RESETLINE, HIGH);
+    digitalWrite(RESETLINE, LOW);
+    usleep(15000); 
+    digitalWrite(RESETLINE, HIGH);
 
     usleep(1000);
 
@@ -235,7 +238,7 @@ void Set_Page_Address(unsigned char a, unsigned char b)
 
 void Display_Picture(unsigned char *p) 
 {unsigned char *picture;
-    unsigned char i,j,num=0;
+    unsigned char i,j;
                 picture=p;
         
         for(i=0;i<0x08;i++)
@@ -254,31 +257,24 @@ void Display_Picture(unsigned char *p)
 
 void init_Hardware(void)
 {
-    gpio_export(RESETLINE);
-    gpio_export(DCLINE);
-    gpio_set_dir(DCLINE, 1);
-    gpio_set_dir(RESETLINE, 1);
+    int status; 
+
+    pinMode(RESETLINE,OUTPUT);
+    pinMode(DCLINE,OUTPUT);  
+    status = wiringPiSPISetup(0,1000000*2); 
+    if(status < 1) {
+      perror("Error opening SPI"); 
+    }  
 }
 
-void gpio_toggle()  {
-
-while(1) {
-	gpio_set_value(DCLINE, 0);
-    //    printf("Command 0x%x\n", 1); 
-	gpio_set_value(DCLINE, 1);
-     //   printf("Data 0x%x\n", 1); 
-    }
-}
 
 int main(int argc, char **argv)
 {
+     wiringPiSetup(); 
     init_Hardware();
-    Init_SPI();
-    //gpio_toggle(); 
     initDisplay();
     
     puts("Sending picture"); 
     Display_Picture(pic); 
-    sleep(4); 
     return 0;
 }

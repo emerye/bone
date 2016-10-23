@@ -30,10 +30,10 @@ void timer_handler(int signum)
     fseek(fp, 0, SEEK_SET);
 
     fwrite(&cumcount, 4, 1, fp);
+    fclose(fp); 
 
     printf("Elasped: %d Cumcount: %d\n", ++count, cumcount);
 
-    fclose(fp);
 }
 
 
