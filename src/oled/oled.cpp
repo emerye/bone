@@ -290,7 +290,7 @@ int main(int argc, char **argv)
     sleep(2); 
  //   SendByte(COMMAND,SSD1309_INVERTDISPLAY);  
     printf("Size of pic %d\n",sizeof(pic)); 
-//    memset(picBuf,0x00,sizeof(picBuf)); 
-    //Display_Picture(picBuf); 
+    memset(picBuf,0xFF,sizeof(picBuf)); 
+//    Display_Picture(picBuf); 
     return 0;
 }
