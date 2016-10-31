@@ -4,6 +4,8 @@
 #include <string.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include <inttypes.h>
+#include "SSD1309.h"
 
 #define RESETLINE 29
 #define DCLINE 28 
@@ -23,6 +25,8 @@
 unsigned char spiBuffer[20];	//Buffer to hold SPI data
 enum cmd { COMMAND, DATA };
 int spiFD;
+
+unsigned char picBuf[1024]; 
 
 unsigned char pic[]=
 {/*--ER-OLED015-2.bmp  --*/
@@ -137,22 +141,22 @@ void initDisplay()
     //     0x12 => Driver IC interface is unlocked from entering command.
     //     0x16 => All Commands are locked except 0xFD.
 
-    SendByte(COMMAND, 0xae);	//--turn off oled panel
+    SendByte(COMMAND, SSD1309_DISPLAYOFF);	//--turn off oled panel
 
-    SendByte(COMMAND, 0xD5);	// Set Display Clock Divide Ratio / Oscillator Frequency
+    SendByte(COMMAND, SSD1309_SETDISPLAYCLOCKDIV);	// Set Display Clock Divide Ratio / Oscillator Frequency
     SendByte(COMMAND, 0xa0);	//   Default => 0x70
     //     D[3:0] => Display Clock Divider
     //     D[7:4] => Oscillator Frequency
 
-    SendByte(COMMAND, 0xa8);	//--set multiplex ratio(1 to 64)
+    SendByte(COMMAND, SSD1309_SETMULTIPLEX);	//--set multiplex ratio(1 to 64)
     SendByte(COMMAND, 0x3f);	//--1/64 duty
 
-    SendByte(COMMAND, 0xd3);	//Set Display Offset
+    SendByte(COMMAND, SSD1309_SETDISPLAYOFFSET);	//Set Display Offset
     SendByte(COMMAND, 0x00);
 
     SendByte(COMMAND, 0x40);	// Set Display Start Line
 
-    SendByte(COMMAND, 0x20);	// Set Memory Addressing Mode
+    SendByte(COMMAND, SSD1309_MEMORYMODE);	// Set Memory Addressing Mode
     SendByte(COMMAND, 0x02);	//   Default => 0x02
     //     0x00 => Horizontal Addressing Mode
     //     0x01 => Vertical Addressing Mode
@@ -168,8 +172,8 @@ void initDisplay()
     SendByte(COMMAND, 0x12);	//     Disable COM Left/Right Re-Map   Alternative COM Pin Configuration
 
 
-    SendByte(COMMAND, 0x81);	//--set contrast control register
-    SendByte(COMMAND, 0xFF);
+    SendByte(COMMAND, SSD1309_SETCONTRAST);	//--set contrast control register
+    SendByte(COMMAND, 0x8F);    // Maximum
 
 
     SendByte(COMMAND, 0xD9);	// Set Pre-Charge Period
@@ -267,14 +271,26 @@ void init_Hardware(void)
     }  
 }
 
+void setContrast(unsigned char level) {
+  unsigned char buffer[3];
+  buffer[0] = 0x81;
+  buffer[1] = level;
+  SendSPIBlock(COMMAND,buffer,2);  
+}
 
 int main(int argc, char **argv)
 {
-     wiringPiSetup(); 
+    wiringPiSetup(); 
     init_Hardware();
     initDisplay();
+//    setContrast(0xBB); 
     
     puts("Sending picture"); 
     Display_Picture(pic); 
+    sleep(2); 
+ //   SendByte(COMMAND,SSD1309_INVERTDISPLAY);  
+    printf("Size of pic %d\n",sizeof(pic)); 
+    memset(picBuf,0xFF,sizeof(picBuf)); 
+//    Display_Picture(picBuf); 
     return 0;
 }
