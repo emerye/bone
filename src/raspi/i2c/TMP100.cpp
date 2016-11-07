@@ -13,10 +13,8 @@
 
 class TMP100 {
 
-  public:
-    int tgtAddress;
-
   private:
+    int tgtAddress;
     int i2cHandle;
     int decimalTemp;
     int integerTemp;
@@ -82,9 +80,7 @@ class TMP100 {
   public:double getTemperatureF() {
 	return (tempReadingF);
     }
-
 };
-
 
 
 int main(int argc, char **argv)
@@ -93,7 +89,7 @@ int main(int argc, char **argv)
 
     TMP100 sensor(TGTADDR);
     sensor.I2CInit();
-    for (int i; i<100; i++) {
+    for (int i; i<10000; i++) {
     retVal = sensor.readTemperature();
     if (retVal != -1) {
 	printf("Temperature in F %g\n", sensor.getTemperatureF());
