@@ -28,25 +28,26 @@
 //******************************************************************************
 #include "msp430g2553.h"
 
-#define GAUGETGT 0x55
 
-unsigned char num_bytes_tx = 3;                         // How many bytes?
+#define GAUGETGT 0x55
+#define TMP100TGT 0x49
+
+unsigned char num_bytes_tx = 0;                         // How many bytes?
 unsigned char num_bytes_rx = 2;
 
 int RXByteCtr, RPT_Flag = 0x0;                // enables repeated start when 1
-volatile unsigned char RxBuffer[128];       // Allocate 128 byte of RAM
+unsigned char RxBuffer[128];       // Allocate 128 byte of RAM
 unsigned char *PTxData;                     // Pointer to TX data
 unsigned char *PRxData;                     // Pointer to RX data
 unsigned char TXByteCtr, RX = 0;
 unsigned char MSData[] = { 0x3e, 0x02, 0x00 };
 
-unsigned char tgtAddress = 0x55;
-
 void Setup_TX(unsigned char);
 void Setup_RX(unsigned char);
 void Transmit(unsigned char *datatoSend, unsigned char numBytestoSend);
 void Receive(int);
-void WriteBlock(unsigned char, unsigned char[], int);
+void I2CWriteBlock(unsigned char, unsigned char[], int);
+void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead);
 
 void main(void) {
 	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
@@ -59,7 +60,7 @@ void main(void) {
 	//	Setup_TX(0x55);
 	//	Transmit(MSData, 3);
 
-		WriteBlock(GAUGETGT, MSData, 3);
+		I2CWriteBlock(GAUGETGT, MSData, 3);
 
 		/*
 		 RPT_Flag = 0;
@@ -75,12 +76,16 @@ void main(void) {
 		 while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
 		 */
 
+		I2CReadBlock(GAUGETGT, RxBuffer, 8);
+
 		//Receive process
 		// num_bytes_rx = 6;
+		/*
 		Setup_RX(GAUGETGT);
 		Receive(6);
 		while (UCB0CTL1 & UCTXSTP)
 			;             // Ensure stop condition got sent
+			*/
 	}
 }
 
@@ -177,9 +182,32 @@ void Receive(int numBytestoRead) {
 	__bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
 }
 
- void WriteBlock(unsigned char tgtAddress, unsigned char *dataToSend, int numBytes) {
+ void I2CWriteBlock(unsigned char tgtAddress, unsigned char *dataToSend, int numBytes) {
+	 num_bytes_tx = numBytes;
 	 Setup_TX(tgtAddress);
 	 Transmit(dataToSend, numBytes);
  }
 
+ void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead) {
+		Setup_RX(GAUGETGT);
+		Receive(numBytestoRead);
+		while (UCB0CTL1 & UCTXSTP);  // Ensure stop condition got sent
 
+ }
+
+ void initTMP100() {
+	 unsigned char data[20];
+
+	 data[0] = 1;
+	 I2CWriteBlock(TMP100TGT, data, 1);
+	 //12 bit
+	 data[0] = 0x60;
+	 I2CWriteBlock(TMP100TGT, data, 1);
+ }
+
+ void readTMP100() {
+
+	 unsigned char dataRead[10];
+	 I2CReadBlock(TMP100TGT, dataRead, 2);
+	 __no_operation();
+ }
