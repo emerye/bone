@@ -27,6 +27,7 @@
 //  Built with CCS Version 4.2.0 and IAR Embedded Workbench Version: 5.10
 //******************************************************************************
 #include "msp430g2553.h"
+#include "lcdchar.h"
 
 
 #define GAUGETGT 0x55
@@ -48,11 +49,24 @@ void Transmit(unsigned char *datatoSend, unsigned char numBytestoSend);
 void Receive(int);
 void I2CWriteBlock(unsigned char, unsigned char[], int);
 void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead);
+void initTMP100();
+void readTMP100();
+
+char message[] = "Message Sent";
 
 void main(void) {
+	int i;
+	unsigned char txData[5];
+
 	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
 	P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
 	P1SEL2 |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+
+	//initTMP100();
+    Setup4bit();
+    WriteString(0,0,message);
+    WriteString(1,1, message);
+    WriteString(2,2, message);
 
 	while (1) {
 
@@ -60,7 +74,15 @@ void main(void) {
 	//	Setup_TX(0x55);
 	//	Transmit(MSData, 3);
 
-		I2CWriteBlock(GAUGETGT, MSData, 3);
+/*  A TMP100 Read
+		readTMP100();
+		for (i = 0; i< 2000; i++) {
+			__no_operation();
+		}
+		*/
+
+
+	//	I2CWriteBlock(GAUGETGT, MSData, 3);
 
 		/*
 		 RPT_Flag = 0;
@@ -76,7 +98,7 @@ void main(void) {
 		 while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
 		 */
 
-		I2CReadBlock(GAUGETGT, RxBuffer, 8);
+//		I2CReadBlock(GAUGETGT, RxBuffer, 8);
 
 		//Receive process
 		// num_bytes_rx = 6;
@@ -189,7 +211,7 @@ void Receive(int numBytestoRead) {
  }
 
  void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead) {
-		Setup_RX(GAUGETGT);
+		Setup_RX(tgtAddress);
 		Receive(numBytestoRead);
 		while (UCB0CTL1 & UCTXSTP);  // Ensure stop condition got sent
 
@@ -206,8 +228,11 @@ void Receive(int numBytestoRead) {
  }
 
  void readTMP100() {
-
 	 unsigned char dataRead[10];
+	 MSData[0]=0;
+
+	 I2CWriteBlock(TMP100TGT, MSData, 1);
+
 	 I2CReadBlock(TMP100TGT, dataRead, 2);
 	 __no_operation();
  }

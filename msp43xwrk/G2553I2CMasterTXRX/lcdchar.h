@@ -37,13 +37,16 @@
 #define GAUGETGT 0x55
 #define TMP100TGT 0x49
 
-
 enum operation
 {
 	COMMAND = 0,
 	DATA = 1
 };
 
+extern void WriteI2CByte(unsigned char data);
+extern void WriteLCDByte(unsigned char bytetoWrite, int cmd);
+extern void Setup4bit();
+extern void WriteString(int row, int ypos, char message[]);
 
 
 #endif /* LCDCHAR_H_ */
