@@ -46,6 +46,7 @@ local.properties
 
 # Java annotation processor (APT)
 .factorypath
+Debug/
 
 # PDT-specific
 .buildpath
