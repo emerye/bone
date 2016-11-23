@@ -37,12 +37,18 @@
 unsigned char num_bytes_tx = 0;                         // How many bytes?
 unsigned char num_bytes_rx = 2;
 
+char stMessage[] = "This string is sent from msp430 sensor.";
+
 int RXByteCtr, RPT_Flag = 0x0;                // enables repeated start when 1
 unsigned char RxBuffer[128];       // Allocate 128 byte of RAM
 unsigned char *PTxData;                     // Pointer to TX data
 unsigned char *PRxData;                     // Pointer to RX data
 unsigned char TXByteCtr, RX = 0;
 unsigned char MSData[] = { 0x3e, 0x02, 0x00 };
+
+int sendString = 0;
+int tickCount = 0;
+volatile unsigned int totalCount = 40000;
 
 void Setup_TX(unsigned char);
 void Setup_RX(unsigned char);
@@ -52,17 +58,29 @@ void I2CWriteBlock(unsigned char, unsigned char[], int);
 void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead);
 void initTMP100();
 void readTMP100();
-
-char message[] = "Message Sent";
+void initUART();
+void SendSerialString (char *);
 
 void main(void) {
 	int i;
 	unsigned char txData[5];
+	char *message = "Message Sent";
+	char sbuf[20] = { 0 };
 
-	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+	WDTCTL = WDT_ADLY_1000;                   // WDT 250ms, ACLK, interval timer
+	IE1 |= WDTIE;                             // Enable WDT interrupt
+	 __bic_SR_register(GIE);				//Disable
+
+//	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
 	P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
 	P1SEL2 |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+	P1DIR |= 0x01;                            // Set P1.0 to output direction
 
+	BCSCTL1 = CALBC1_1MHZ;                    // Set DCO
+	DCOCTL = CALDCO_1MHZ;
+
+	initUART();
+	__bis_SR_register(GIE);   //Enable
 	//initTMP100();
     Setup4bit();
     WriteString(0,0,message);
@@ -81,9 +99,12 @@ void main(void) {
 			__no_operation();
 		}
 		*/
-
+		 SendSerialString (stMessage);
+         sprintf(sbuf, "%6u", totalCount);
+		 WriteString(3,0, sbuf);
 
 	//	I2CWriteBlock(GAUGETGT, MSData, 3);
+		 DelayMsec(1000);
 
 		/*
 		 RPT_Flag = 0;
@@ -112,6 +133,32 @@ void main(void) {
 	}
 }
 
+
+
+//------------------------------------------------------------------------------
+// Transmit a string over the UART
+//------------------------------------------------------------------------------
+void txUART_string(char *string) {
+
+	while (*string) {
+		while (!(IFG2 & UCA0TXIFG))
+			; // USCI_A0 TX buffer ready?
+		UCA0TXBUF = *string++;
+	}
+}
+
+
+void SendSerialString(char * lclMessage) {
+	unsigned char sbuf[20];
+
+	totalCount++;
+	txUART_string(lclMessage);
+	sprintf(sbuf, "  Count %6u\r\n", totalCount);
+	txUART_string(sbuf);
+}
+
+
+
 //-------------------------------------------------------------------------------
 // The USCI_B0 data ISR is used to move received data from the I2C slave
 // to the MSP430 memory. It is structured such that it can be used to receive
@@ -119,6 +166,7 @@ void main(void) {
 //-------------------------------------------------------------------------------
 #pragma vector = USCIAB0TX_VECTOR
 __interrupt void USCIAB0TX_ISR(void) {
+	 __bic_SR_register(GIE);				//Disable
 	if (RX == 1) {                              // Master Recieve?
 		RXByteCtr--;                              // Decrement RX byte counter
 		if (RXByteCtr) {
@@ -133,7 +181,6 @@ __interrupt void USCIAB0TX_ISR(void) {
 			__bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
 		}
 	}
-
 	else {                                     // Master Transmit
 		if (TXByteCtr)                        // Check TX byte counter
 		{
@@ -151,6 +198,28 @@ __interrupt void USCIAB0TX_ISR(void) {
 				__bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
 			}
 		}
+	}
+	 __bis_SR_register(GIE);   //Enable
+}
+
+
+// These are the serial interrupts
+//  Echo back RXed character, confirm TX buffer is ready first
+#pragma vector=USCIAB0RX_VECTOR
+__interrupt void USCI0RX_ISR(void) {
+	while (!(IFG2 & UCA0TXIFG))
+		;                // USCI_A0 TX buffer ready?
+	UCA0TXBUF = UCA0RXBUF;                    // TX -> RXed character
+}
+
+// Watchdog Timer interrupt service routine
+#pragma vector=WDT_VECTOR
+__interrupt void watchdog_timer(void) {
+	P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-OR
+	tickCount++;
+	if (tickCount > 0) {
+		tickCount = 0;
+		sendString = 1;
 	}
 }
 
@@ -196,6 +265,7 @@ void Transmit(unsigned char *datatoSend, unsigned char numBytestoSend) {
 		;             // Ensure stop condition got sent
 }
 
+//I2C Receive
 void Receive(int numBytestoRead) {
 	PRxData = (unsigned char *) RxBuffer;    // Start of RX buffer
 	RXByteCtr = numBytestoRead - 1;              // Load RX byte counter
@@ -215,8 +285,8 @@ void Receive(int numBytestoRead) {
 		Setup_RX(tgtAddress);
 		Receive(numBytestoRead);
 		while (UCB0CTL1 & UCTXSTP);  // Ensure stop condition got sent
-
  }
+
 
  void initTMP100() {
 	 unsigned char data[20];
@@ -228,6 +298,7 @@ void Receive(int numBytestoRead) {
 	 I2CWriteBlock(TMP100TGT, data, 1);
  }
 
+
  void readTMP100() {
 	 unsigned char dataRead[10];
 	 MSData[0]=0;
@@ -237,3 +308,18 @@ void Receive(int numBytestoRead) {
 	 I2CReadBlock(TMP100TGT, dataRead, 2);
 	 __no_operation();
  }
+
+//Initialize Serial Port
+ void initUART() {
+
+    P1SEL |=  BIT1 | BIT2;                     // P1.1 = RXD, P1.2=TXD
+ 	P1SEL2 |= BIT1 + BIT2;                     // P1.1 = RXD, P1.2=TXD
+	UCA0CTL1 |= UCSSEL_2;                     // SMCLK
+ 	UCA0BR0 = 104;                            // 1MHz 9600
+ 	UCA0BR0 = 26;							// 1MHz 38400
+ 	UCA0BR1 = 0;                              // 1MHz 9600 and 38400
+ 	UCA0MCTL = UCBRS0;                        // Modulation UCBRSx = 1
+ 	UCA0CTL1 &= ~UCSWRST;                   // **Initialize USCI state machine**
+ 	IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
+ }
+

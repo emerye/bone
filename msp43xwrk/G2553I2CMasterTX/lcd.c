@@ -42,7 +42,7 @@ void DelayMsec(int delay) {
 	volatile int dummy;
 	int i, outcount;
 	for (outcount = 0; outcount < delay; outcount++) {
-		for (i = 0; i < 471; i++) {
+		for (i = 0; i < 471/4; i++) {
 			dummy++;
 		}
 	}

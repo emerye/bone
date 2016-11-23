@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef LCDCHAR_H_
-#define LCDCHAR_H_
+#ifndef G2553I2CMASTERTX_LCDCHAR_H_
+#define G2553I2CMASTERTX_LCDCHAR_H_
 
 // Constants from the data sheet Command Table Instruction codes and timings
 #define LCD_CLEAR_DISPLAY 		0b00000001
@@ -47,6 +47,7 @@ extern void WriteI2CByte(unsigned char data);
 extern void WriteLCDByte(unsigned char bytetoWrite, int cmd);
 extern void Setup4bit();
 extern void WriteString(int row, int ypos, char message[]);
+extern void DelayMsec(int delay);
 
 
-#endif /* LCDCHAR_H_ */
+#endif /* G2553I2CMASTERTX_LCDCHAR_H_ */

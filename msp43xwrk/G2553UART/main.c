@@ -42,7 +42,6 @@ void main(void) {
 	UCA0CTL1 &= ~UCSWRST;                   // **Initialize USCI state machine**
 	IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
 
-//	__bis_SR_register(LPM0_bits + GIE);       // Enter LPM0, interrupts enabled
 	__bis_SR_register(GIE);       // Enter LPM0, interrupts enabled
 
 	for (;;) {
@@ -84,12 +83,6 @@ __interrupt void USCI0RX_ISR(void) {
 #pragma vector=WDT_VECTOR
 __interrupt void watchdog_timer(void) {
 	P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-OR
-	/*
-	 UCA0TXBUF = 'D';
-	 while (!(IFG2 & UCA0TXIFG))
-	 ;                // USCI_A0 TX buffer ready?
-	 UCA0TXBUF = 'E';
-	 */
 	tickCount++;
 	if (tickCount > 0) {
 		tickCount = 0;
