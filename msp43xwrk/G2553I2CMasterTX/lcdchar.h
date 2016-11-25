@@ -8,6 +8,7 @@
 #ifndef G2553I2CMASTERTX_LCDCHAR_H_
 #define G2553I2CMASTERTX_LCDCHAR_H_
 
+
 // Constants from the data sheet Command Table Instruction codes and timings
 #define LCD_CLEAR_DISPLAY 		0b00000001
 #define LCD_RETURN_HOME 		0b00000010
@@ -43,11 +44,25 @@ enum operation
 	DATA = 1
 };
 
-extern void WriteI2CByte(unsigned char data);
-extern void WriteLCDByte(unsigned char bytetoWrite, int cmd);
-extern void Setup4bit();
-extern void WriteString(int row, int ypos, char message[]);
-extern void DelayMsec(int delay);
+class Lcd
+{
+private:
+	void WriteI2CNibble(unsigned char msbtoWrite, int cmd);
+	int lcdI2CAddress;
+
+public:
+	Lcd() {
+		lcdI2CAddress = 0x27;
+	}
+	Lcd(int tgtAddress) {
+		lcdI2CAddress = tgtAddress;
+	}
+	void WriteI2CByte(unsigned char data);
+	void WriteLCDByte(unsigned char bytetoWrite, int cmd);
+	void Setup4bit();
+	void WriteString(int row, int ypos, char message[]);
+	void DelayMsec(int delay);
+};
 
 
 #endif /* G2553I2CMASTERTX_LCDCHAR_H_ */

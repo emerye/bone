@@ -1,4 +1,3 @@
-//******************************************************************************
 //  MSP430G2xx3 Demo - USCI_B0 I2C Master TX/RX multiple bytes from MSP430 Slave
 //                     with a repeated start in between TX and RX operations.
 //
@@ -27,20 +26,24 @@
 //  Built with CCS Version 4.2.0 and IAR Embedded Workbench Version: 5.10
 //******************************************************************************
 #include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 #include "msp430g2553.h"
 #include "lcdchar.h"
+#include "bme280.h"
 
 
 #define GAUGETGT 0x55
 #define TMP100TGT 0x49
+#define BME280TGT 0x76
 
 unsigned char num_bytes_tx = 0;                         // How many bytes?
-unsigned char num_bytes_rx = 2;
+//unsigned char num_bytes_rx = 2;
 
 char stMessage[] = "This string is sent from msp430 sensor.";
 
 int RXByteCtr, RPT_Flag = 0x0;                // enables repeated start when 1
-unsigned char RxBuffer[128];       // Allocate 128 byte of RAM
+unsigned char RxBuffer[128];
 unsigned char *PTxData;                     // Pointer to TX data
 unsigned char *PRxData;                     // Pointer to RX data
 unsigned char TXByteCtr, RX = 0;
@@ -60,12 +63,16 @@ void initTMP100();
 void readTMP100();
 void initUART();
 void SendSerialString (char *);
+void initBME280(Adafruit_BME280 *sensor);
+
 
 void main(void) {
-	int i;
-	unsigned char txData[5];
+
 	char *message = "Message Sent";
 	char sbuf[20] = { 0 };
+	Adafruit_BME280 sensor;
+
+	Lcd dispObj(0x27);
 
 	WDTCTL = WDT_ADLY_1000;                   // WDT 250ms, ACLK, interval timer
 	IE1 |= WDTIE;                             // Enable WDT interrupt
@@ -82,10 +89,15 @@ void main(void) {
 	initUART();
 	__bis_SR_register(GIE);   //Enable
 	//initTMP100();
-    Setup4bit();
-    WriteString(0,0,message);
-    WriteString(1,1, message);
-    WriteString(2,2, message);
+ //   dispObj.Setup4bit();
+ //   dispObj.WriteString(0,0,"First Line");
+ //   dispObj.WriteString(1,1, message);
+//    dispObj.WriteString(2,2, message);
+    initBME280(&sensor);
+
+    dispObj.DelayMsec(1000);
+
+return;
 
 	while (1) {
 
@@ -95,16 +107,13 @@ void main(void) {
 
 /*  A TMP100 Read
 		readTMP100();
-		for (i = 0; i< 2000; i++) {
-			__no_operation();
-		}
 		*/
 		 SendSerialString (stMessage);
          sprintf(sbuf, "%6u", totalCount);
-		 WriteString(3,0, sbuf);
+		 dispObj.WriteString(3,0, sbuf);
 
 	//	I2CWriteBlock(GAUGETGT, MSData, 3);
-		 DelayMsec(1000);
+		 dispObj.DelayMsec(1000);
 
 		/*
 		 RPT_Flag = 0;
@@ -134,6 +143,46 @@ void main(void) {
 }
 
 
+/*
+void origWriteByteReadBlock() {
+
+	 //Transmit process
+	  Setup_TX();
+	  RPT_Flag = 1;
+	  MSData[0] = BME280_REGISTER_CHIPID;
+	  Transmit();
+	  while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
+
+	  //Receive process
+	  Setup_RX();
+	  Receive();
+	  while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
+	  }
+	}
+}
+*/
+
+void initBME280(Adafruit_BME280 *sensor) {
+	uint8_t devID;
+	unsigned char data[20];
+
+	MSData[0] = BME280_REGISTER_CHIPID;   //Start address
+	Setup_TX(BME280TGT);
+	num_bytes_tx = 1;
+	RPT_Flag = 1;
+	Transmit(data, 1);
+	while (UCB0CTL1 & UCTXSTP)
+		;             // Ensure stop condition got sent
+
+	//Receive
+	Setup_RX(BME280TGT);
+	Receive(1);
+	while (UCB0CTL1 & UCTXSTP)
+		;             // Ensure stop condition got sent
+
+}
+
+
 
 //------------------------------------------------------------------------------
 // Transmit a string over the UART
@@ -149,7 +198,7 @@ void txUART_string(char *string) {
 
 
 void SendSerialString(char * lclMessage) {
-	unsigned char sbuf[20];
+	char sbuf[20];
 
 	totalCount++;
 	txUART_string(lclMessage);
@@ -249,14 +298,14 @@ void Setup_RX(unsigned char tgtAddress) {
 	UCB0CTL1 = UCSSEL_2 + UCSWRST;            // Use SMCLK, keep SW reset
 	UCB0BR0 = 12;                             // fSCL = SMCLK/12 = ~100kHz
 	UCB0BR1 = 0;
-	UCB0I2CSA = tgtAddress;                         // Slave Address is 048h
+	UCB0I2CSA = tgtAddress;                         // Slave Address
 	UCB0CTL1 &= ~UCSWRST;                    // Clear SW reset, resume operation
 	IE2 |= UCB0RXIE;                          // Enable RX interrupt
 }
 
 void Transmit(unsigned char *datatoSend, unsigned char numBytestoSend) {
 	PTxData = datatoSend;                      // TX array start address
-	TXByteCtr = numBytestoSend;                  // Load TX byte counter
+	TXByteCtr = numBytestoSend - 1;                  // Load TX byte counter
 	while (UCB0CTL1 & UCTXSTP)
 		;             // Ensure stop condition got sent
 	UCB0CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
@@ -268,7 +317,7 @@ void Transmit(unsigned char *datatoSend, unsigned char numBytestoSend) {
 //I2C Receive
 void Receive(int numBytestoRead) {
 	PRxData = (unsigned char *) RxBuffer;    // Start of RX buffer
-	RXByteCtr = numBytestoRead - 1;              // Load RX byte counter
+	RXByteCtr = numBytestoRead;              // Load RX byte counter
 	while (UCB0CTL1 & UCTXSTP)
 		;             // Ensure stop condition got sent
 	UCB0CTL1 |= UCTXSTT;                    // I2C start condition
@@ -285,6 +334,7 @@ void Receive(int numBytestoRead) {
 		Setup_RX(tgtAddress);
 		Receive(numBytestoRead);
 		while (UCB0CTL1 & UCTXSTP);  // Ensure stop condition got sent
+		memcpy(dataRead, RxBuffer, numBytestoRead);
  }
 
 
@@ -308,6 +358,7 @@ void Receive(int numBytestoRead) {
 	 I2CReadBlock(TMP100TGT, dataRead, 2);
 	 __no_operation();
  }
+
 
 //Initialize Serial Port
  void initUART() {

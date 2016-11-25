@@ -2,12 +2,12 @@
 #include <string.h>
 #include "lcdchar.h"
 
-
-extern void I2CWriteBlock(unsigned char, unsigned char[], int);
+extern void I2CWriteBlock(unsigned char , unsigned char *, int);
+extern void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead);
 
 
 //Write a string to display
-void WriteString(int row, int ypos, char message[]) {
+void Lcd::WriteString(int row, int ypos, char message[]) {
 	int stLength = strlen(message);
 	int i, address;
 
@@ -38,7 +38,7 @@ void WriteString(int row, int ypos, char message[]) {
 /**
  * Delay 1 msec with a 4MHz clock
  */
-void DelayMsec(int delay) {
+void Lcd::DelayMsec(int delay) {
 	volatile int dummy;
 	int i, outcount;
 	for (outcount = 0; outcount < delay; outcount++) {
@@ -52,20 +52,20 @@ void DelayMsec(int delay) {
  * Write one byte to I2C. Target address is globally set.
  *
  */
-void WriteI2CByte(unsigned char data) {
+void Lcd::WriteI2CByte(unsigned char data) {
 
 	unsigned char lcldata[2];
 
 	lcldata[0] = data;
 
-	I2CWriteBlock(LCDTGT, lcldata, 1);
+	I2CWriteBlock(lcdI2CAddress, lcldata, 1);
 
 }
 
 /**
  * Write I2C Nibble
  */
-void WriteI2CNibble(unsigned char msbtoWrite, int cmd) {
+void Lcd::WriteI2CNibble(unsigned char msbtoWrite, int cmd) {
 
 	unsigned char bytetoWrite = BACKLED;
 
@@ -80,7 +80,7 @@ void WriteI2CNibble(unsigned char msbtoWrite, int cmd) {
 /**
  * Command = 0  Data = 1
  */
-void WriteLCDByte(unsigned char bytetoWrite, int cmd) {
+void Lcd::WriteLCDByte(unsigned char bytetoWrite, int cmd) {
 	unsigned char lower = (bytetoWrite << 4) & 0b11110000;
 	unsigned char upper = bytetoWrite & 0b11110000;
 
@@ -95,7 +95,7 @@ void WriteLCDByte(unsigned char bytetoWrite, int cmd) {
  * This setup routine sets up a 4-bit display (sets 4-bit mode), sets the cursor,
  * turns on the display and sets entry mode.
  */
-void Setup4bit() {
+void Lcd::Setup4bit() {
 	DelayMsec(20);
 	WriteI2CNibble(0x30, 0);  //Manual Command of Wake up!(first)
 	DelayMsec(15);     //Sleep for at least 5ms
@@ -118,3 +118,4 @@ void Setup4bit() {
 	WriteLCDByte(LCD_RETURN_HOME, 0);
 	DelayMsec(3);
 }
+
