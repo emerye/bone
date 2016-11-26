@@ -81,7 +81,6 @@ void main(void) {
 	IE1 |= WDTIE;                             // Enable WDT interrupt
 	 __bic_SR_register(GIE);				//Disable
 
-//	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
 	P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
 	P1SEL2 |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
 	P1DIR |= 0x01;                            // Set P1.0 to output direction
@@ -92,11 +91,11 @@ void main(void) {
 	initUART();
 	__bis_SR_register(GIE);   //Enable
 	//initTMP100();
- //   dispObj.Setup4bit();
- //   dispObj.WriteString(0,0,"First Line");
- //   dispObj.WriteString(1,1, message);
-//    dispObj.WriteString(2,2, message);
-//    initBME280(&sensor);
+    dispObj.Setup4bit();
+    dispObj.WriteString(0,0,"First Line");
+    dispObj.WriteString(1,1, message);
+    dispObj.WriteString(2,2, message);
+    initBME280(&sensor);
     I2CReadBlock(BME280TGT, BME280_REGISTER_CHIPID, dataBuf, 1);
    I2CReadBlock(BME280TGT, 0xE2, dataBuf, 8);
 

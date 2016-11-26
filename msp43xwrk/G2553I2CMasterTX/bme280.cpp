@@ -22,7 +22,7 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 extern void I2CWriteBlock(unsigned char , unsigned char *, int);
-extern void I2CReadBlock(unsigned char tgtAddress, unsigned char *dataRead, int numBytestoRead);
+extern void I2CReadBlock(unsigned char tgtAddress, unsigned char reg, unsigned char *dataRead, int numBytestoRead);
 
 /***************************************************************************
  PRIVATE FUNCTIONS
@@ -65,7 +65,7 @@ void Adafruit_BME280::write8(unsigned char reg, unsigned char value)
 
    buffer[0] = value;
 
-     I2CWriteBlock(BME280_ADDRESS, buffer, 1);
+     I2CWriteBlock(BME280_ADDRESS, buffer, 2);
 }
 
 
@@ -79,8 +79,7 @@ uint8_t Adafruit_BME280::read8(unsigned char reg)
   uint8_t value;
   unsigned char buffer[2];
 
-//  value = wiringPiI2CReadReg8(i2cHandle, reg);
-  I2CReadBlock(BME280_ADDRESS, buffer, 2);
+  I2CReadBlock(BME280_ADDRESS, reg, buffer, 1);
 
   return (uint8_t) buffer[0];
 }

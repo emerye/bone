@@ -58,7 +58,7 @@ void Lcd::WriteI2CByte(unsigned char data) {
 
 	lcldata[0] = data;
 
-	I2CWriteBlock(lcdI2CAddress, lcldata, 1);
+	I2CWriteBlock(lcdI2CAddress, lcldata, 2);
 
 }
 
