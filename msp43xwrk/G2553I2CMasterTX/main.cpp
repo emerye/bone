@@ -43,11 +43,12 @@ unsigned char num_bytes_tx = 0;                         // How many bytes?
 char stMessage[] = "This string is sent from msp430 sensor.";
 
 int RXByteCtr, RPT_Flag = 0x0;                // enables repeated start when 1
-unsigned char RxBuffer[128];
+unsigned char RxBuffer[128] = { 0 };
 unsigned char *PTxData;                     // Pointer to TX data
 unsigned char *PRxData;                     // Pointer to RX data
 unsigned char TXByteCtr, RX = 0;
 unsigned char MSData[] = { 0x3e, 0x02, 0x00 };
+int lastByte;
 
 int sendString = 0;
 int tickCount = 0;
@@ -64,6 +65,7 @@ void readTMP100();
 void initUART();
 void SendSerialString (char *);
 void initBME280(Adafruit_BME280 *sensor);
+void I2CReadBlock(unsigned char tgtAddress, unsigned char reg, unsigned char *dataRead, int numBytestoRead);
 
 
 void main(void) {
@@ -71,6 +73,7 @@ void main(void) {
 	char *message = "Message Sent";
 	char sbuf[20] = { 0 };
 	Adafruit_BME280 sensor;
+	unsigned char dataBuf[10];
 
 	Lcd dispObj(0x27);
 
@@ -93,7 +96,9 @@ void main(void) {
  //   dispObj.WriteString(0,0,"First Line");
  //   dispObj.WriteString(1,1, message);
 //    dispObj.WriteString(2,2, message);
-    initBME280(&sensor);
+//    initBME280(&sensor);
+    I2CReadBlock(BME280TGT, BME280_REGISTER_CHIPID, dataBuf, 1);
+   I2CReadBlock(BME280TGT, 0xE2, dataBuf, 8);
 
     dispObj.DelayMsec(1000);
 
@@ -183,7 +188,6 @@ void initBME280(Adafruit_BME280 *sensor) {
 }
 
 
-
 //------------------------------------------------------------------------------
 // Transmit a string over the UART
 //------------------------------------------------------------------------------
@@ -207,7 +211,6 @@ void SendSerialString(char * lclMessage) {
 }
 
 
-
 //-------------------------------------------------------------------------------
 // The USCI_B0 data ISR is used to move received data from the I2C slave
 // to the MSP430 memory. It is structured such that it can be used to receive
@@ -215,22 +218,25 @@ void SendSerialString(char * lclMessage) {
 //-------------------------------------------------------------------------------
 #pragma vector = USCIAB0TX_VECTOR
 __interrupt void USCIAB0TX_ISR(void) {
-	 __bic_SR_register(GIE);				//Disable
+	__bic_SR_register(GIE);				//Disable
+
 	if (RX == 1) {                              // Master Recieve?
 		RXByteCtr--;                              // Decrement RX byte counter
-		if (RXByteCtr) {
+		if (RXByteCtr >= 0) {
 			*PRxData++ = UCB0RXBUF;           // Move RX data to address PRxData
+		}
+		if (RXByteCtr) {
+		//	*PRxData++ = UCB0RXBUF;           // Move RX data to address PRxData
+			lastByte = UCB0RXBUF;
 		} else {
 			if (RPT_Flag == 0)
 				UCB0CTL1 |= UCTXSTP;        // No Repeated Start: stop condition
 			if (RPT_Flag == 1) {                // if Repeated Start: do nothing
 				RPT_Flag = 0;
 			}
-			*PRxData = UCB0RXBUF;               // Move final RX data to PRxData
 			__bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
 		}
-	}
-	else {                                     // Master Transmit
+	} else {                                     // Master Transmit
 		if (TXByteCtr)                        // Check TX byte counter
 		{
 			UCB0TXBUF = *PTxData++;                   // Load TX buffer
@@ -248,7 +254,7 @@ __interrupt void USCIAB0TX_ISR(void) {
 			}
 		}
 	}
-	 __bis_SR_register(GIE);   //Enable
+	__bis_SR_register(GIE);   //Enable
 }
 
 
@@ -288,6 +294,7 @@ void Setup_TX(unsigned char tgtAddress) {
 	UCB0CTL1 &= ~UCSWRST;                    // Clear SW reset, resume operation
 	IE2 |= UCB0TXIE;                          // Enable TX interrupt
 }
+
 
 void Setup_RX(unsigned char tgtAddress) {
 	_DINT();
@@ -336,6 +343,29 @@ void Receive(int numBytestoRead) {
 		while (UCB0CTL1 & UCTXSTP);  // Ensure stop condition got sent
 		memcpy(dataRead, RxBuffer, numBytestoRead);
  }
+ /**
+  * This will read with a repeated start. NumBytestoRead is needed.
+  */
+void I2CReadBlock(unsigned char tgtAddress, unsigned char reg, unsigned char *dataRead, int numBytestoRead) {
+ 	uint8_t devID;
+ 	unsigned char data[20];
+
+ 	MSData[0] = reg;   //Start address
+ 	Setup_TX(tgtAddress);
+ 	num_bytes_tx = 2;
+ 	RPT_Flag = 0;
+ 	Transmit(MSData, 2);
+ 	while (UCB0CTL1 & UCTXSTP)
+ 		;             // Ensure stop condition got sent
+
+ 	//Receive
+ 	Setup_RX(tgtAddress);
+ 	Receive(numBytestoRead);
+	while (UCB0CTL1 & UCTXSTP)
+ 		;             // Ensure stop condition got sent
+ 	memcpy(dataRead, RxBuffer, numBytestoRead);
+ }
+
 
 
  void initTMP100() {
