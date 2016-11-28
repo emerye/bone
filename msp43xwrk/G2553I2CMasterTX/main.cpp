@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include "msp430g2553.h"
 #include "lcdchar.h"
 #include "bme280.h"
@@ -37,8 +38,7 @@
 #define TMP100TGT 0x49
 #define BME280TGT 0x76
 
-unsigned char num_bytes_tx = 0;                         // How many bytes?
-//unsigned char num_bytes_rx = 2;
+unsigned char num_bytes_tx = 2;                         // How many bytes?
 
 char stMessage[] = "This string is sent from msp430 sensor.";
 
@@ -49,10 +49,11 @@ unsigned char *PRxData;                     // Pointer to RX data
 unsigned char TXByteCtr, RX = 0;
 unsigned char MSData[] = { 0x3e, 0x02, 0x00 };
 int lastByte;
+double temperature, pressure, humidity;
 
 int sendString = 0;
 int tickCount = 0;
-volatile unsigned int totalCount = 40000;
+volatile unsigned int totalCount = 0;
 
 void Setup_TX(unsigned char);
 void Setup_RX(unsigned char);
@@ -64,22 +65,22 @@ void initTMP100();
 void readTMP100();
 void initUART();
 void SendSerialString (char *);
-void initBME280(Adafruit_BME280 *sensor);
 void I2CReadBlock(unsigned char tgtAddress, unsigned char reg, unsigned char *dataRead, int numBytestoRead);
 
 
 void main(void) {
 
-	char *message = "Message Sent";
 	char sbuf[20] = { 0 };
 	Adafruit_BME280 sensor;
 	unsigned char dataBuf[10];
+	char * pchar;
+	int status;
 
 	Lcd dispObj(0x27);
 
 	WDTCTL = WDT_ADLY_1000;                   // WDT 250ms, ACLK, interval timer
 	IE1 |= WDTIE;                             // Enable WDT interrupt
-	 __bic_SR_register(GIE);				//Disable
+	__bic_SR_register(GIE);				//Disable
 
 	P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
 	P1SEL2 |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
@@ -91,58 +92,37 @@ void main(void) {
 	initUART();
 	__bis_SR_register(GIE);   //Enable
 	//initTMP100();
-    dispObj.Setup4bit();
-    dispObj.WriteString(0,0,"First Line");
-    dispObj.WriteString(1,1, message);
-    dispObj.WriteString(2,2, message);
-    initBME280(&sensor);
-    I2CReadBlock(BME280TGT, BME280_REGISTER_CHIPID, dataBuf, 1);
-   I2CReadBlock(BME280TGT, 0xE2, dataBuf, 8);
+	dispObj.Setup4bit();
+	dispObj.WriteString(0, 0, "Temp Pres Humidity");
 
-    dispObj.DelayMsec(1000);
+//	I2CReadBlock(BME280TGT, BME280_REGISTER_CHIPID, dataBuf, 1);
+//	I2CReadBlock(BME280TGT, 0xE2, dataBuf, 8);
 
-return;
+	bool retValue = sensor.begin();
+	if (!retValue) {
+		dispObj.WriteString(1, 0, "BME280 not found");
+	}
 
+	dispObj.DelayMsec(500);
 	while (1) {
 
-		//Transmit process
-	//	Setup_TX(0x55);
-	//	Transmit(MSData, 3);
+		if (sendString == 1) {
+			totalCount += 1;
+			temperature = (sensor.readTemperature() * 1.8 + 32) * 10.0;
+			//Conversion 1 to 00.0002953
+			pressure = sensor.readPressure() * 0.02953;
 
-/*  A TMP100 Read
-		readTMP100();
-		*/
-		 SendSerialString (stMessage);
-         sprintf(sbuf, "%6u", totalCount);
-		 dispObj.WriteString(3,0, sbuf);
+			humidity = sensor.readHumidity() * 10;
+			sprintf(sbuf, "T%d P%d H%d", (int) temperature, (int) pressure,
+					(int) humidity);
+			dispObj.WriteString(2, 0, sbuf);
+			SendSerialString(sbuf);
 
-	//	I2CWriteBlock(GAUGETGT, MSData, 3);
-		 dispObj.DelayMsec(1000);
-
-		/*
-		 RPT_Flag = 0;
-		 Transmit();
-		 while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
-		 */
-
-		/*
-		 MSData[0] = 0x40;
-		 num_bytes_tx = 1;
-		 RPT_Flag = 0;
-		 Transmit();
-		 while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
-		 */
-
-//		I2CReadBlock(GAUGETGT, RxBuffer, 8);
-
-		//Receive process
-		// num_bytes_rx = 6;
-		/*
-		Setup_RX(GAUGETGT);
-		Receive(6);
-		while (UCB0CTL1 & UCTXSTP)
-			;             // Ensure stop condition got sent
-			*/
+			SendSerialString(stMessage);
+			sprintf(sbuf, "%6u", totalCount);
+			dispObj.WriteString(3, 0, sbuf);
+			sendString = 0;
+		}
 	}
 }
 
@@ -166,26 +146,6 @@ void origWriteByteReadBlock() {
 }
 */
 
-void initBME280(Adafruit_BME280 *sensor) {
-	uint8_t devID;
-	unsigned char data[20];
-
-	MSData[0] = BME280_REGISTER_CHIPID;   //Start address
-	Setup_TX(BME280TGT);
-	num_bytes_tx = 1;
-	RPT_Flag = 1;
-	Transmit(data, 1);
-	while (UCB0CTL1 & UCTXSTP)
-		;             // Ensure stop condition got sent
-
-	//Receive
-	Setup_RX(BME280TGT);
-	Receive(1);
-	while (UCB0CTL1 & UCTXSTP)
-		;             // Ensure stop condition got sent
-
-}
-
 
 //------------------------------------------------------------------------------
 // Transmit a string over the UART
@@ -203,7 +163,6 @@ void txUART_string(char *string) {
 void SendSerialString(char * lclMessage) {
 	char sbuf[20];
 
-	totalCount++;
 	txUART_string(lclMessage);
 	sprintf(sbuf, "  Count %6u\r\n", totalCount);
 	txUART_string(sbuf);
@@ -271,7 +230,7 @@ __interrupt void USCI0RX_ISR(void) {
 __interrupt void watchdog_timer(void) {
 	P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-OR
 	tickCount++;
-	if (tickCount > 0) {
+	if (tickCount > 1) {
 		tickCount = 0;
 		sendString = 1;
 	}
@@ -346,8 +305,6 @@ void Receive(int numBytestoRead) {
   * This will read with a repeated start. NumBytestoRead is needed.
   */
 void I2CReadBlock(unsigned char tgtAddress, unsigned char reg, unsigned char *dataRead, int numBytestoRead) {
- 	uint8_t devID;
- 	unsigned char data[20];
 
  	MSData[0] = reg;   //Start address
  	Setup_TX(tgtAddress);
@@ -364,7 +321,6 @@ void I2CReadBlock(unsigned char tgtAddress, unsigned char reg, unsigned char *da
  		;             // Ensure stop condition got sent
  	memcpy(dataRead, RxBuffer, numBytestoRead);
  }
-
 
 
  void initTMP100() {

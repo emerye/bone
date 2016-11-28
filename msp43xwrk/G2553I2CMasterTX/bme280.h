@@ -101,7 +101,7 @@ class Adafruit_BME280
     int i2cHandle; 
 
     uint8_t  BME280tgtAddress;
-    bool  begin(uint8_t addr = BME280_ADDRESS);
+    bool  begin();
     float readTemperature(void);
     float readPressure(void);
     float readHumidity(void);

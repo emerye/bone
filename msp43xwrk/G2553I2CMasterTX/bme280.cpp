@@ -36,8 +36,7 @@ void Adafruit_BME280::setI2CHandle(int handle) {
 }
 
 
-bool Adafruit_BME280::begin(uint8_t a) {
-  _i2caddr = a;
+bool Adafruit_BME280::begin() {
 
 
   if (read8(BME280_REGISTER_CHIPID) != 0x60)
@@ -58,14 +57,13 @@ bool Adafruit_BME280::begin(uint8_t a) {
     @brief  Writes an 8 bit value over I2C
 */
 /**************************************************************************/
-void Adafruit_BME280::write8(unsigned char reg, unsigned char value)
-{
-   int retVal; 
-   unsigned char buffer[2];
+void Adafruit_BME280::write8(unsigned char reg, unsigned char value) {
+	unsigned char buffer[2];
 
-   buffer[0] = value;
+	buffer[0] = reg;
+	buffer[1] = value;
 
-     I2CWriteBlock(BME280_ADDRESS, buffer, 2);
+	I2CWriteBlock(BME280_ADDRESS, buffer, 3);
 }
 
 
@@ -76,7 +74,6 @@ void Adafruit_BME280::write8(unsigned char reg, unsigned char value)
 /**************************************************************************/
 uint8_t Adafruit_BME280::read8(unsigned char reg)
 {
-  uint8_t value;
   unsigned char buffer[2];
 
   I2CReadBlock(BME280_ADDRESS, reg, buffer, 1);
@@ -92,22 +89,18 @@ uint8_t Adafruit_BME280::read8(unsigned char reg)
 /**************************************************************************/
 uint16_t Adafruit_BME280::read16(unsigned char reg)
 {
-  uint16_t value;
+  unsigned char buffer[10];
 
- // value = wiringPiI2CReadReg16(i2cHandle, reg);
-          if (value <= -1) {
-              perror("Error reading 16 bit value.");
-          }
+  I2CReadBlock(BME280_ADDRESS, reg, buffer, 2);
 
   //Return the data big endian 
-  return ( (value << 8) | ((value >> 8) & 0xFF) ); 
+  return ( buffer[0] << 8 | buffer[1] ) ;
 }
 
 
 uint16_t Adafruit_BME280::read16_LE(unsigned char reg) {
   uint16_t temp = read16(reg);
   return (temp >> 8) | (temp << 8);
-
 }
 
 /**************************************************************************/
@@ -136,21 +129,14 @@ int16_t Adafruit_BME280::readS16_LE(unsigned char reg)
 
 uint32_t Adafruit_BME280::read24(unsigned char reg)
 {
-  uint32_t value;
-  int32_t lowByte;  
-  uint32_t highBytes; 
+  uint32_t value = 0;
+  unsigned char dataRead[5];
 
-  highBytes = read16(reg); 
-  value = (highBytes << 8);  
-//  lowByte = wiringPiI2CRead(i2cHandle);
-  if (lowByte < 0) {
-          if (value < 0) {
-               perror("Error reading last byte of  24 bit value.");
-           }
-   }
-   value += lowByte; 
-   
+  I2CReadBlock(BME280_ADDRESS, reg, dataRead, 3);
 
+  value = (uint32_t) dataRead[0] << 16;
+  value += (dataRead[1] << 8);
+  value += dataRead[2];
   return value;
 }
 
