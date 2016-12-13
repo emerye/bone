@@ -25,7 +25,8 @@ class TMP100 {
 
   public: TMP100(int tgtAddress) {
 	this->tgtAddress = tgtAddress;
-  } public:int readTemperature() {
+  }
+  public:int readTemperature() {
 	int retVal;
 
 	retVal = read2Bytes(0);
