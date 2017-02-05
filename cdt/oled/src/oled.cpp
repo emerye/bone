@@ -7,6 +7,10 @@
 #include <wiringPiSPI.h>
 #include <inttypes.h>
 #include "SSD1309.h"
+#include "glcdfont.h"
+#include "gfxfont.h"
+#include "FreeMono24pt7b.h"
+#include "FreeMono12pt7b.h"
 
 #define RESETLINE 29
 #define DCLINE 28 
@@ -28,14 +32,16 @@ unsigned char spiBuffer[20];	//Buffer to hold SPI data
 int spiFD;
 int rotation = 0;
 
+GFXfont gfxFont;
+
 unsigned char picBuf[1024]; 
 
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 #define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
 
 unsigned char buffer[1024];
-
 unsigned char fbuffer[1024];
+
 
 unsigned char pic[]=
 {/*--ER-OLED015-2.bmp  --*/
@@ -178,209 +184,215 @@ unsigned char pic2[]=
 
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
+extern void fontTest(GFXfont (gfxFont));
+
 int width() {
 	return SSD1309_LCDWIDTH;
 }
 
 int height() {
-	return(SSD1309_LCDHEIGHT);
+	return (SSD1309_LCDHEIGHT);
+}
+
+void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+	// Update in subclasses if desired!
+	for (int16_t i = x; i < x + w; i++) {
+		drawFastVLine(i, y, h, color);
+	}
 }
 
 // Draw a circle outline
-void drawCircle(int16_t x0, int16_t y0, int16_t r,
- uint16_t color) {
-  int16_t f = 1 - r;
-  int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
-  int16_t x = 0;
-  int16_t y = r;
+void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+	int16_t f = 1 - r;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * r;
+	int16_t x = 0;
+	int16_t y = r;
 
-  drawPixel(x0  , y0+r, color);
-  drawPixel(x0  , y0-r, color);
-  drawPixel(x0+r, y0  , color);
-  drawPixel(x0-r, y0  , color);
+	drawPixel(x0, y0 + r, color);
+	drawPixel(x0, y0 - r, color);
+	drawPixel(x0 + r, y0, color);
+	drawPixel(x0 - r, y0, color);
 
-  while (x<y) {
-    if (f >= 0) {
-      y--;
-      ddF_y += 2;
-      f += ddF_y;
-    }
-    x++;
-    ddF_x += 2;
-    f += ddF_x;
+	while (x < y) {
+		if (f >= 0) {
+			y--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x++;
+		ddF_x += 2;
+		f += ddF_x;
 
-    drawPixel(x0 + x, y0 + y, color);
-    drawPixel(x0 - x, y0 + y, color);
-    drawPixel(x0 + x, y0 - y, color);
-    drawPixel(x0 - x, y0 - y, color);
-    drawPixel(x0 + y, y0 + x, color);
-    drawPixel(x0 - y, y0 + x, color);
-    drawPixel(x0 + y, y0 - x, color);
-    drawPixel(x0 - y, y0 - x, color);
-  }
+		drawPixel(x0 + x, y0 + y, color);
+		drawPixel(x0 - x, y0 + y, color);
+		drawPixel(x0 + x, y0 - y, color);
+		drawPixel(x0 - x, y0 - y, color);
+		drawPixel(x0 + y, y0 + x, color);
+		drawPixel(x0 - y, y0 + x, color);
+		drawPixel(x0 + y, y0 - x, color);
+		drawPixel(x0 - y, y0 - x, color);
+	}
 }
 
-void drawCircleHelper( int16_t x0, int16_t y0,
- int16_t r, uint8_t cornername, uint16_t color) {
-  int16_t f     = 1 - r;
-  int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
-  int16_t x     = 0;
-  int16_t y     = r;
+void drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
+		uint16_t color) {
+	int16_t f = 1 - r;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * r;
+	int16_t x = 0;
+	int16_t y = r;
 
-  while (x<y) {
-    if (f >= 0) {
-      y--;
-      ddF_y += 2;
-      f     += ddF_y;
-    }
-    x++;
-    ddF_x += 2;
-    f     += ddF_x;
-    if (cornername & 0x4) {
-      drawPixel(x0 + x, y0 + y, color);
-      drawPixel(x0 + y, y0 + x, color);
-    }
-    if (cornername & 0x2) {
-      drawPixel(x0 + x, y0 - y, color);
-      drawPixel(x0 + y, y0 - x, color);
-    }
-    if (cornername & 0x8) {
-      drawPixel(x0 - y, y0 + x, color);
-      drawPixel(x0 - x, y0 + y, color);
-    }
-    if (cornername & 0x1) {
-      drawPixel(x0 - y, y0 - x, color);
-      drawPixel(x0 - x, y0 - y, color);
-    }
-  }
+	while (x < y) {
+		if (f >= 0) {
+			y--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x++;
+		ddF_x += 2;
+		f += ddF_x;
+		if (cornername & 0x4) {
+			drawPixel(x0 + x, y0 + y, color);
+			drawPixel(x0 + y, y0 + x, color);
+		}
+		if (cornername & 0x2) {
+			drawPixel(x0 + x, y0 - y, color);
+			drawPixel(x0 + y, y0 - x, color);
+		}
+		if (cornername & 0x8) {
+			drawPixel(x0 - y, y0 + x, color);
+			drawPixel(x0 - x, y0 + y, color);
+		}
+		if (cornername & 0x1) {
+			drawPixel(x0 - y, y0 - x, color);
+			drawPixel(x0 - x, y0 - y, color);
+		}
+	}
 }
 
-void fillCircle(int16_t x0, int16_t y0, int16_t r,
- uint16_t color) {
-  drawFastVLine(x0, y0-r, 2*r+1, color);
-  fillCircleHelper(x0, y0, r, 3, 0, color);
+void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+	drawFastVLine(x0, y0 - r, 2 * r + 1, color);
+	fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
 // Used to do circles and roundrects
-void fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
- uint8_t cornername, int16_t delta, uint16_t color) {
+void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
+		int16_t delta, uint16_t color) {
 
-  int16_t f     = 1 - r;
-  int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
-  int16_t x     = 0;
-  int16_t y     = r;
+	int16_t f = 1 - r;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * r;
+	int16_t x = 0;
+	int16_t y = r;
 
-  while (x<y) {
-    if (f >= 0) {
-      y--;
-      ddF_y += 2;
-      f     += ddF_y;
-    }
-    x++;
-    ddF_x += 2;
-    f     += ddF_x;
+	while (x < y) {
+		if (f >= 0) {
+			y--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x++;
+		ddF_x += 2;
+		f += ddF_x;
 
-    if (cornername & 0x1) {
-      drawFastVLine(x0+x, y0-y, 2*y+1+delta, color);
-      drawFastVLine(x0+y, y0-x, 2*x+1+delta, color);
-    }
-    if (cornername & 0x2) {
-      drawFastVLine(x0-x, y0-y, 2*y+1+delta, color);
-      drawFastVLine(x0-y, y0-x, 2*x+1+delta, color);
-    }
-  }
+		if (cornername & 0x1) {
+			drawFastVLine(x0 + x, y0 - y, 2 * y + 1 + delta, color);
+			drawFastVLine(x0 + y, y0 - x, 2 * x + 1 + delta, color);
+		}
+		if (cornername & 0x2) {
+			drawFastVLine(x0 - x, y0 - y, 2 * y + 1 + delta, color);
+			drawFastVLine(x0 - y, y0 - x, 2 * x + 1 + delta, color);
+		}
+	}
 }
 
-
 // Bresenham's algorithm - thx wikpedia
-void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
- uint16_t color) {
-  int16_t steep = abs(y1 - y0) > abs(x1 - x0);
-  if (steep) {
-    _swap_int16_t(x0, y0);
-    _swap_int16_t(x1, y1);
-  }
+void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+	int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+	if (steep) {
+		_swap_int16_t(x0, y0);
+		_swap_int16_t(x1, y1);
+	}
 
-  if (x0 > x1) {
-    _swap_int16_t(x0, x1);
-    _swap_int16_t(y0, y1);
-  }
+	if (x0 > x1) {
+		_swap_int16_t(x0, x1);
+		_swap_int16_t(y0, y1);
+	}
 
-  int16_t dx, dy;
-  dx = x1 - x0;
-  dy = abs(y1 - y0);
+	int16_t dx, dy;
+	dx = x1 - x0;
+	dy = abs(y1 - y0);
 
-  int16_t err = dx / 2;
-  int16_t ystep;
+	int16_t err = dx / 2;
+	int16_t ystep;
 
-  if (y0 < y1) {
-    ystep = 1;
-  } else {
-    ystep = -1;
-  }
+	if (y0 < y1) {
+		ystep = 1;
+	} else {
+		ystep = -1;
+	}
 
-  for (; x0<=x1; x0++) {
-    if (steep) {
-      drawPixel(y0, x0, color);
-    } else {
-      drawPixel(x0, y0, color);
-    }
-    err -= dy;
-    if (err < 0) {
-      y0 += ystep;
-      err += dx;
-    }
-  }
+	for (; x0 <= x1; x0++) {
+		if (steep) {
+			drawPixel(y0, x0, color);
+		} else {
+			drawPixel(x0, y0, color);
+		}
+		err -= dy;
+		if (err < 0) {
+			y0 += ystep;
+			err += dx;
+		}
+	}
 }
 
 // Draw a rectangle
-void drawRect(int16_t x, int16_t y, int16_t w, int16_t h,
- uint16_t color) {
-  drawFastHLine(x, y, w, color);
-  drawFastHLine(x, y+h-1, w, color);
-  drawFastVLine(x, y, h, color);
-  drawFastVLine(x+w-1, y, h, color);
+void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+	drawFastHLine(x, y, w, color);
+	drawFastHLine(x, y + h - 1, w, color);
+	drawFastVLine(x, y, h, color);
+	drawFastVLine(x + w - 1, y, h, color);
 }
-
-
 
 // the most basic function, set a single pixel
 void drawPixel(int16_t x, int16_t y, uint16_t color) {
-  if ((x < 0) || (x >= width()) || (y < 0) || (y >= height()))
-    return;
+	if ((x < 0) || (x >= width()) || (y < 0) || (y >= height()))
+		return;
 
-  // check rotation, move pixel around if necessary
-  switch (rotation) {
-  case 1:
-    ssd1306_swap(x, y);
-    x = WIDTH - x - 1;
-    break;
-  case 2:
-    x = WIDTH - x - 1;
-    y = HEIGHT - y - 1;
-    break;
-  case 3:
-    ssd1306_swap(x, y);
-    y = HEIGHT - y - 1;
-    break;
-  }
+	// check rotation, move pixel around if necessary
+	switch (rotation) {
+	case 1:
+		ssd1306_swap(x, y)
+		;
+		x = WIDTH - x - 1;
+		break;
+	case 2:
+		x = WIDTH - x - 1;
+		y = HEIGHT - y - 1;
+		break;
+	case 3:
+		ssd1306_swap(x, y)
+		;
+		y = HEIGHT - y - 1;
+		break;
+	}
 
-  // x is which column
-    switch (color)
-    {
-      case WHITE:   buffer[x+ (y/8)*SSD1309_LCDWIDTH] |=  (1 << (y&7)); break;
-      case BLACK:   buffer[x+ (y/8)*SSD1309_LCDWIDTH] &= ~(1 << (y&7)); break;
-      case INVERSE: buffer[x+ (y/8)*SSD1309_LCDWIDTH] ^=  (1 << (y&7)); break;
-    }
-
+	// x is which column
+	switch (color) {
+	case WHITE:
+		buffer[x + (y / 8) * SSD1309_LCDWIDTH] |= (1 << (y & 7));
+		break;
+	case BLACK:
+		buffer[x + (y / 8) * SSD1309_LCDWIDTH] &= ~(1 << (y & 7));
+		break;
+	case INVERSE:
+		buffer[x + (y / 8) * SSD1309_LCDWIDTH] ^= (1 << (y & 7));
+		break;
+	}
 }
 
-
-void drawFastVLine(int16_t x, int16_t __y, int16_t __h,
-		uint16_t color) {
+void drawFastVLine(int16_t x, int16_t __y, int16_t __h, uint16_t color) {
 
 	// do nothing if we're off the left or right side of the screen
 	if (x < 0 || x >= WIDTH) {
@@ -506,310 +518,459 @@ void drawFastVLine(int16_t x, int16_t __y, int16_t __h,
 	}
 }
 
-
-
-
 void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
-  // Do bounds/limit checks
-  if(y < 0 || y >= HEIGHT) { return; }
+	// Do bounds/limit checks
+	if (y < 0 || y >= HEIGHT) {
+		return;
+	}
 
-  // make sure we don't try to draw below 0
-  if(x < 0) {
-    w += x;
-    x = 0;
-  }
+	// make sure we don't try to draw below 0
+	if (x < 0) {
+		w += x;
+		x = 0;
+	}
 
-  // make sure we don't go off the edge of the display
-  if( (x + w) > WIDTH) {
-    w = (WIDTH - x);
-  }
+	// make sure we don't go off the edge of the display
+	if ((x + w) > WIDTH) {
+		w = (WIDTH - x);
+	}
 
-  // if our width is now negative, punt
-  if(w <= 0) { return; }
+	// if our width is now negative, punt
+	if (w <= 0) {
+		return;
+	}
 
-  // set up the pointer for  movement through the buffer
-  register uint8_t *pBuf = buffer;
-  // adjust the buffer pointer for the current row
-  pBuf += ((y/8) * SSD1309_LCDWIDTH);
-  // and offset x columns in
-  pBuf += x;
+	// set up the pointer for  movement through the buffer
+	register uint8_t *pBuf = buffer;
+	// adjust the buffer pointer for the current row
+	pBuf += ((y / 8) * SSD1309_LCDWIDTH);
+	// and offset x columns in
+	pBuf += x;
 
-  register uint8_t mask = 1 << (y&7);
+	register uint8_t mask = 1 << (y & 7);
 
-  switch (color)
-  {
-  case WHITE:         while(w--) { *pBuf++ |= mask; }; break;
-    case BLACK: mask = ~mask;   while(w--) { *pBuf++ &= mask; }; break;
-  case INVERSE:         while(w--) { *pBuf++ ^= mask; }; break;
-  }
+	switch (color) {
+	case WHITE:
+		while (w--) {
+			*pBuf++ |= mask;
+		}
+		;
+		break;
+	case BLACK:
+		mask = ~mask;
+		while (w--) {
+			*pBuf++ &= mask;
+		}
+		;
+		break;
+	case INVERSE:
+		while (w--) {
+			*pBuf++ ^= mask;
+		}
+		;
+		break;
+	}
 }
-
-
-
 
 void invertDisplay(uint8_t i) {
-  if (i) {
-    SendByte(COMMAND,SSD1309_INVERTDISPLAY);
-  } else {
-    SendByte(COMMAND,SSD1309_NORMALDISPLAY);
-  }
+	if (i) {
+		SendByte(COMMAND, SSD1309_INVERTDISPLAY);
+	} else {
+		SendByte(COMMAND, SSD1309_NORMALDISPLAY);
+	}
 }
 
+int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes) {
+	int error;
+	unsigned char spiBuffer[20];
 
-int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes)
-{
-    int error;
-    unsigned char spiBuffer[20];
- 
-    memcpy(spiBuffer, spiData, numBytes); 
+	memcpy(spiBuffer, spiData, numBytes);
 
-    if (cmdType == COMMAND) {
-	digitalWrite(DCLINE, LOW);
-    } else {
-	digitalWrite(DCLINE, HIGH);
-    }
+	if (cmdType == COMMAND) {
+		digitalWrite(DCLINE, LOW);
+	} else {
+		digitalWrite(DCLINE, HIGH);
+	}
 
-    error = wiringPiSPIDataRW(0, spiBuffer, numBytes);
-    if (error == -1) {
-	printf("Error writing SPI %d\n", error);
-        perror("SPI Write"); 
-    }
-    return error;
+	error = wiringPiSPIDataRW(0, spiBuffer, numBytes);
+	if (error == -1) {
+		printf("Error writing SPI %d\n", error);
+		perror("SPI Write");
+	}
+	return error;
 }
 
-
-int SendByte(enum cmd cmdType, int data)
-{
-   spiBuffer[0] = (unsigned char) (data & 0xFF);   
-   return (SendSPIBlock(cmdType, spiBuffer, 1));    
+int SendByte(enum cmd cmdType, int data) {
+	spiBuffer[0] = (unsigned char) (data & 0xFF);
+	return (SendSPIBlock(cmdType, spiBuffer, 1));
 }
-	
 
 void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color) {
-  bool bSwap = false;
-  int rotation = 0;
+	bool bSwap = false;
+	int rotation = 0;
 
-  switch(rotation) {
-    case 0:
-      // 0 degree rotation, do nothing
-      break;
-    case 1:
-      // 90 degree rotation, swap x & y for rotation, then invert x
-      bSwap = true;
-      ssd1306_swap(x, y);
-      x = WIDTH - x - 1;
-      break;
-    case 2:
-      // 180 degree rotation, invert x and y - then shift y around for height.
-      x = WIDTH - x - 1;
-      y = HEIGHT - y - 1;
-      x -= (w-1);
-      break;
-    case 3:
-      // 270 degree rotation, swap x & y for rotation, then invert y  and adjust y for w (not to become h)
-      bSwap = true;
-      ssd1306_swap(x, y);
-      y = HEIGHT - y - 1;
-      y -= (w-1);
-      break;
-  }
+	switch (rotation) {
+	case 0:
+		// 0 degree rotation, do nothing
+		break;
+	case 1:
+		// 90 degree rotation, swap x & y for rotation, then invert x
+		bSwap = true;
+		ssd1306_swap(x, y)
+		;
+		x = WIDTH - x - 1;
+		break;
+	case 2:
+		// 180 degree rotation, invert x and y - then shift y around for height.
+		x = WIDTH - x - 1;
+		y = HEIGHT - y - 1;
+		x -= (w - 1);
+		break;
+	case 3:
+		// 270 degree rotation, swap x & y for rotation, then invert y  and adjust y for w (not to become h)
+		bSwap = true;
+		ssd1306_swap(x, y)
+		;
+		y = HEIGHT - y - 1;
+		y -= (w - 1);
+		break;
+	}
 
-  if(bSwap) {
- //   drawFastVLineInternal(x, y, w, color);
-  } else {
- //   drawFastHLineInternal(x, y, w, color);
-  }
+	if (bSwap) {
+		//   drawFastVLineInternal(x, y, w, color);
+	} else {
+		//   drawFastHLineInternal(x, y, w, color);
+	}
 }
 
-void initDisplay()
-{
-    digitalWrite(RESETLINE, HIGH);
-    digitalWrite(RESETLINE, LOW);
-    usleep(15000); 
-    digitalWrite(RESETLINE, HIGH);
+void initDisplay() {
+	digitalWrite(RESETLINE, HIGH);
+	digitalWrite(RESETLINE, LOW);
+	usleep(15000);
+	digitalWrite(RESETLINE, HIGH);
 
-    usleep(1000);
+	usleep(1000);
 
-    SendByte(COMMAND, 0xFD);	// Set Command Lock
-    SendByte(COMMAND, 0x12);	//   Default => 0x12
-    //     0x12 => Driver IC interface is unlocked from entering command.
-    //     0x16 => All Commands are locked except 0xFD.
+	SendByte(COMMAND, 0xFD);	// Set Command Lock
+	SendByte(COMMAND, 0x12);	//   Default => 0x12
+	//     0x12 => Driver IC interface is unlocked from entering command.
+	//     0x16 => All Commands are locked except 0xFD.
 
-    SendByte(COMMAND, SSD1309_DISPLAYOFF);	//--turn off oled panel
+	SendByte(COMMAND, SSD1309_DISPLAYOFF);	//--turn off oled panel
 
-    SendByte(COMMAND, SSD1309_SETDISPLAYCLOCKDIV);	// Set Display Clock Divide Ratio / Oscillator Frequency
-    SendByte(COMMAND, 0xa0);	//   Default => 0x70
-    //     D[3:0] => Display Clock Divider
-    //     D[7:4] => Oscillator Frequency
+	SendByte(COMMAND, SSD1309_SETDISPLAYCLOCKDIV);// Set Display Clock Divide Ratio / Oscillator Frequency
+	SendByte(COMMAND, 0xa0);	//   Default => 0x70
+	//     D[3:0] => Display Clock Divider
+	//     D[7:4] => Oscillator Frequency
 
-    SendByte(COMMAND, SSD1309_SETMULTIPLEX);	//--set multiplex ratio(1 to 64)
-    SendByte(COMMAND, 0x3f);	//--1/64 duty
+	SendByte(COMMAND, SSD1309_SETMULTIPLEX);	//--set multiplex ratio(1 to 64)
+	SendByte(COMMAND, 0x3f);	//--1/64 duty
 
-    SendByte(COMMAND, SSD1309_SETDISPLAYOFFSET);	//Set Display Offset
-    SendByte(COMMAND, 0x00);
+	SendByte(COMMAND, SSD1309_SETDISPLAYOFFSET);	//Set Display Offset
+	SendByte(COMMAND, 0x00);
 
-    SendByte(COMMAND, 0x40);	// Set Display Start Line
+	SendByte(COMMAND, 0x40);	// Set Display Start Line
 
-    SendByte(COMMAND, SSD1309_MEMORYMODE);	// Set Memory Addressing Mode
-    SendByte(COMMAND, 0x02);	//   Default => 0x02
-    //     0x00 => Horizontal Addressing Mode
-    //     0x01 => Vertical Addressing Mode
-    //     0x02 => Page Addressing Mode
+	SendByte(COMMAND, SSD1309_MEMORYMODE);	// Set Memory Addressing Mode
+	SendByte(COMMAND, 0x02);	//   Default => 0x02
+	//     0x00 => Horizontal Addressing Mode
+	//     0x01 => Vertical Addressing Mode
+	//     0x02 => Page Addressing Mode
 
+	SendByte(COMMAND, 0xa1);	//--set segment re-map 128 to 0
 
-    SendByte(COMMAND, 0xa1);	//--set segment re-map 128 to 0
+	SendByte(COMMAND, 0xC8);	//--Set COM Output Scan Direction 64 to 1
 
-    SendByte(COMMAND, 0xC8);	//--Set COM Output Scan Direction 64 to 1
+	SendByte(COMMAND, 0xda);	//--Set COM Pins Hardware Configuration
+	SendByte(COMMAND, 0x12);//     Disable COM Left/Right Re-Map   Alternative COM Pin Configuration
 
+	SendByte(COMMAND, SSD1309_SETCONTRAST);	//--set contrast control register
+	SendByte(COMMAND, 0x8F);    // Maximum
 
-    SendByte(COMMAND, 0xda);	//--Set COM Pins Hardware Configuration
-    SendByte(COMMAND, 0x12);	//     Disable COM Left/Right Re-Map   Alternative COM Pin Configuration
+	SendByte(COMMAND, 0xD9);	// Set Pre-Charge Period
+	SendByte(COMMAND, 0x25);//   Default => 0x22 (2 Display Clocks [Phase 2] / 2 Display Clocks [Phase 1])
+	//     D[3:0] => Phase 1 Period in 1~15 Display Clocks
+	//     D[7:4] => Phase 2 Period in 1~15 Display Clocks
 
+	SendByte(COMMAND, 0xDB);	// Set VCOMH Deselect Level
+	SendByte(COMMAND, 0x34);	//   Default => 0x34 (0.78*VCC)
 
-    SendByte(COMMAND, SSD1309_SETCONTRAST);	//--set contrast control register
-    SendByte(COMMAND, 0x8F);    // Maximum
+	SendByte(COMMAND, 0xad);	//--Set Master Configuration
+	SendByte(COMMAND, 0x8e);	//--
 
+	SendByte(COMMAND, 0xd8);//--Set Area Color Mode On/Off & Low Power Display Mode
+	SendByte(COMMAND, 0x05);	//
 
-    SendByte(COMMAND, 0xD9);	// Set Pre-Charge Period
-    SendByte(COMMAND, 0x25);	//   Default => 0x22 (2 Display Clocks [Phase 2] / 2 Display Clocks [Phase 1])
-    //     D[3:0] => Phase 1 Period in 1~15 Display Clocks
-    //     D[7:4] => Phase 2 Period in 1~15 Display Clocks
+	SendByte(COMMAND, 0xa4);	//Disable Entire Display On
 
-    SendByte(COMMAND, 0xDB);	// Set VCOMH Deselect Level
-    SendByte(COMMAND, 0x34);	//   Default => 0x34 (0.78*VCC)
+	SendByte(COMMAND, 0xa6);	//--set normal display
 
-
-    SendByte(COMMAND, 0xad);	//--Set Master Configuration
-    SendByte(COMMAND, 0x8e);	//--
-
-    SendByte(COMMAND, 0xd8);	//--Set Area Color Mode On/Off & Low Power Display Mode
-    SendByte(COMMAND, 0x05);	//
-
-    SendByte(COMMAND, 0xa4);	//Disable Entire Display On     
-
-    SendByte(COMMAND, 0xa6);	//--set normal display
-
-    SendByte(COMMAND, 0xaf);	//--turn on oled panel
+	SendByte(COMMAND, 0xaf);	//--turn on oled panel
 }
-
-
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Instruction Setting
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void Set_Start_Column(unsigned char d)
-{
-        SendByte(COMMAND, 0x00+d%16);               // Set Lower Column Start Address for Page Addressing Mode
-                                                //   Default => 0x00
-        SendByte(COMMAND,0x10+d/16);               // Set Higher Column Start Address for Page Addressing Mode
-                                                //   Default => 0x10
+void Set_Start_Column(unsigned char d) {
+	SendByte(COMMAND, 0x00 + d % 16); // Set Lower Column Start Address for Page Addressing Mode
+	//   Default => 0x00
+	SendByte(COMMAND, 0x10 + d / 16); // Set Higher Column Start Address for Page Addressing Mode
+									  //   Default => 0x10
 }
 
-
-void Set_Addressing_Mode(unsigned char d)
-{
-        SendByte(COMMAND, 0x20);                    // Set Memory Addressing Mode
-        SendByte(COMMAND, d);                       //   Default => 0x02
-                                                //     0x00 => Horizontal Addressing Mode
-                                                //     0x01 => Vertical Addressing Mode
-                                                //     0x02 => Page Addressing Mode
+void Set_Addressing_Mode(unsigned char d) {
+	SendByte(COMMAND, 0x20);                    // Set Memory Addressing Mode
+	SendByte(COMMAND, d);                       //   Default => 0x02
+	//     0x00 => Horizontal Addressing Mode
+	//     0x01 => Vertical Addressing Mode
+	//     0x02 => Page Addressing Mode
 }
 
-
-void Set_Column_Address(unsigned char a, unsigned char b)
-{
-        SendByte(COMMAND, 0x21);                    // Set Column Address
-        SendByte(COMMAND, a);                       //   Default => 0x00 (Column Start Address)
-        SendByte(COMMAND, b);                       //   Default => 0x7F (Column End Address)
+void Set_Column_Address(unsigned char a, unsigned char b) {
+	SendByte(COMMAND, 0x21);                    // Set Column Address
+	SendByte(COMMAND, a);            //   Default => 0x00 (Column Start Address)
+	SendByte(COMMAND, b);              //   Default => 0x7F (Column End Address)
 }
 
-
-void Set_Page_Address(unsigned char a, unsigned char b)
-{
-        SendByte(COMMAND,0x22);                    // Set Page Address
-        SendByte(COMMAND, a);                       //   Default => 0x00 (Page Start Address)
-        SendByte(COMMAND, b);                       //   Default => 0x07 (Page End Address)
+void Set_Page_Address(unsigned char a, unsigned char b) {
+	SendByte(COMMAND, 0x22);                    // Set Page Address
+	SendByte(COMMAND, a);              //   Default => 0x00 (Page Start Address)
+	SendByte(COMMAND, b);                //   Default => 0x07 (Page End Address)
 }
 
+void Display_Picture(unsigned char *p) {
+	unsigned char *picture;
+	unsigned char i, j;
+	picture = p;
 
-
-void Display_Picture(unsigned char *p) 
-{unsigned char *picture;
-    unsigned char i,j;
-                picture=p;
-        
-        for(i=0;i<0x08;i++)
-        {
-        //Set_Start_Page(i);
-        SendByte(COMMAND, 0xB0 | i); 
-        Set_Start_Column(XLevel);
-        for(j=0;j<0x80;j++)
-                {
-                    SendByte(DATA, *picture);
-                        picture++;
-                }
-        }
+	for (i = 0; i < 0x08; i++) {
+		//Set_Start_Page(i);
+		SendByte(COMMAND, 0xB0 | i);
+		Set_Start_Column(XLevel);
+		for (j = 0; j < 0x80; j++) {
+			SendByte(DATA, *picture);
+			picture++;
+		}
+	}
 }
 
+void init_Hardware(void) {
+	int status;
 
-void init_Hardware(void)
-{
-    int status; 
-
-    pinMode(RESETLINE,OUTPUT);
-    pinMode(DCLINE,OUTPUT);  
-    status = wiringPiSPISetup(0,1000000*2); 
-    if(status < 1) {
-      perror("Error opening SPI"); 
-    }  
+	pinMode(RESETLINE, OUTPUT);
+	pinMode(DCLINE, OUTPUT);
+	status = wiringPiSPISetup(0, 1000000 * 2);
+	if (status < 1) {
+		perror("Error opening SPI");
+	}
 }
 
 void setContrast(unsigned char level) {
-  unsigned char buffer[3];
-  buffer[0] = 0x81;
-  buffer[1] = level;
-  SendSPIBlock(COMMAND,buffer,2);  
+	unsigned char buffer[3];
+	buffer[0] = 0x81;
+	buffer[1] = level;
+	SendSPIBlock(COMMAND, buffer, 2);
 }
 
 void fBuffer() {
-	int h,v;
+	int h, v;
 
-	for (v=0; v<8; v++) {
-		for (h=0; h<128; h++) {
-			if(v==0) {
+	for (v = 0; v < 8; v++) {
+		for (h = 0; h < 128; h++) {
+			if (v == 0) {
 				fbuffer[h] = 0x55;
 			}
-			if(v==1) {
-				fbuffer[v*128 + h] = 0xFF;
+			if (v == 1) {
+				fbuffer[v * 128 + h] = 0xFF;
 			}
 		}
+	}
+}
+
+// Draw a custom Font Character
+void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
+		uint16_t bg, uint8_t size) {
+
+	// Character is assumed previously filtered by write() to eliminate
+	// newlines, returns, non-printable characters, etc.  Calling drawChar()
+	// directly with 'bad' characters of font may cause mayhem!
+
+	//  c -= font(&gfxFont->first);
+
+	c -= gfxFont.first;
+	//  GFXglyph *glyph  = &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
+	GFXglyph glyph = gfxFont.glyph[c];
+	//    uint8_t  *bitmap = (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
+	uint8_t *bitmap = (uint8_t *) (gfxFont.bitmap);
+
+	uint16_t bo = glyph.bitmapOffset;
+	uint8_t w = glyph.width;
+	uint8_t h = glyph.height;
+	int8_t xa = glyph.xAdvance;
+	int8_t xo = glyph.xOffset;
+	int8_t yo = glyph.yOffset;
+	uint8_t xx, yy, bits, bit = 0;
+	int16_t xo16, yo16;
+
+	if (size > 1) {
+		xo16 = xo;
+		yo16 = yo;
+	}
+
+	// Todo: Add character clipping here
+
+	// NOTE: THERE IS NO 'BACKGROUND' COLOR OPTION ON CUSTOM FONTS.
+	// THIS IS ON PURPOSE AND BY DESIGN.  The background color feature
+	// has typically been used with the 'classic' font to overwrite old
+	// screen contents with new data.  This ONLY works because the
+	// characters are a uniform size; it's not a sensible thing to do with
+	// proportionally-spaced fonts with glyphs of varying sizes (and that
+	// may overlap).  To replace previously-drawn text when using a custom
+	// font, use the getTextBounds() function to determine the smallest
+	// rectangle encompassing a string, erase the area with fillRect(),
+	// then draw new text.  This WILL infortunately 'blink' the text, but
+	// is unavoidable.  Drawing 'background' pixels will NOT fix this,
+	// only creates a new set of problems.  Have an idea to work around
+	// this (a canvas object type for MCUs that can afford the RAM and
+	// displays supporting setAddrWindow() and pushColors()), but haven't
+	// implemented this yet.
+
+	for (yy = 0; yy < h; yy++) {
+		for (xx = 0; xx < w; xx++) {
+			if (!(bit++ & 7)) {
+				bits = bitmap[bo++];
+			}
+			if (bits & 0x80) {
+				if (size == 1) {
+					drawPixel(x + xo + xx, y + yo + yy, color);
+				} else {
+					fillRect(x + (xo16 + xx) * size, y + (yo16 + yy) * size,
+							size, size, color);
+				}
+			}
+			bits <<= 1;
+		}
+	}
+
+} // End classic vs custom font
+
+// Draw a character in classic font.
+void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
+		uint16_t bg, uint8_t size) {
+
+	if ((x >= WIDTH) || // Clip right
+			(y >= HEIGHT) || // Clip bottom
+			((x + 6 * size - 1) < 0) || // Clip left
+			((y + 8 * size - 1) < 0))   // Clip top
+		return;
+
+	//   if(!_cp437 && (c >= 176)) c++; // Handle 'classic' charset behavior
+	int chval = int(c);
+
+	for (int8_t i = 0; i < 6; i++) {
+		uint8_t line;
+		if (i < 5)
+			line = font[((chval * 5) + i)];
+		else
+			line = 0x0;
+		for (int8_t j = 0; j < 8; j++, line >>= 1) {
+			if (line & 0x1) {
+				if (size == 1)
+					drawPixel(x + i, y + j, color);
+				else
+					fillRect(x + (i * size), y + (j * size), size, size, color);
+			} else if (bg != color) {
+				if (size == 1)
+					drawPixel(x + i, y + j, bg);
+				else
+					fillRect(x + i * size, y + j * size, size, size, bg);
+			}
+		}
+
 	}
 
 }
 
-int main(int argc, char **argv)
-{
-    wiringPiSetup(); 
-    init_Hardware();
-    initDisplay();
-    setContrast(0xBB);
-    
-    int picSize = sizeof(pic);
-    printf("Size %d\n", picSize);
-  //  Display_Picture(pic);
-  //  sleep(2);
+void writeString(int x, int y, int size, const char *string) {
 
- //   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
-    printf("Size of pic %d\n",sizeof(pic)); 
-    fBuffer();
-    Display_Picture(fbuffer);
-    drawFastHLine(0,63,128,WHITE);
-    drawFastVLine(15, 8, 30, WHITE);
-    drawCircle(32,32,16,WHITE);
-    drawLine(0, 0, 60, 100,
-     WHITE);
-    drawRect(10,10,50,50,WHITE);
+	unsigned char ch, c;
 
-    Display_Picture(buffer);
-    return 0;
+       while (*string != NULL) {
+    	   printf("%c", *string);
+    	   ch = *string;
+    	   string++;
+
+
+       c = ch;
+
+		c -= gfxFont.first;
+		//  GFXglyph *glyph  = &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
+		GFXglyph glyph = gfxFont.glyph[c];
+		//    uint8_t  *bitmap = (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
+		uint8_t *bitmap = (uint8_t *) (gfxFont.bitmap);
+
+		uint16_t bo = glyph.bitmapOffset;
+		uint8_t w = glyph.width;
+		uint8_t h = glyph.height;
+		int8_t xa = glyph.xAdvance;
+		int8_t xo = glyph.xOffset;
+		int8_t yo = glyph.yOffset;
+		uint8_t xx, yy, bits, bit = 0;
+		int16_t xo16, yo16;
+
+
+       drawCharCustom(x, y, ch ,
+       	WHITE, BLACK, size);
+
+        x+= xa * size;
+}
+	printf("String %s\n", string);
+
+}
+
+void test() {
+
+	const char *stText = "12345";
+
+	fBuffer();
+	Display_Picture(fbuffer);
+	//   drawFastHLine(0,63,128,WHITE);
+	//   drawFastVLine(15, 8, 30, WHITE);
+	//  drawCircle(32,32,16,WHITE);
+	//   drawLine(0, 0, 60, 100,
+	//    WHITE);
+	//  drawRect(10,10,50,50,WHITE);
+	//  drawPixel(100,50,WHITE);
+	//  fillRect(40,10, 50,20,WHITE);
+	drawChar(80, 40, 'C', WHITE, BLACK, 1);
+	drawChar(87, 40, 'D', WHITE, BLACK, 1);
+//	drawCharCustom(70, 30, 'H',
+//	WHITE, BLACK, 1);
+//	drawCharCustom(90, 30, 'G',
+//	WHITE, BLACK, 1);
+	// writeString(stText);
+	writeString(0, 18, 1, "ABCDEFGHI");
+	writeString(0, 36, 1, "123456789");
+
+	Display_Picture(buffer);
+}
+
+int main(int argc, char **argv) {
+
+	gfxFont = FreeMono12pt7b;
+
+	wiringPiSetup();
+	init_Hardware();
+	initDisplay();
+	setContrast(0xBB);
+
+	int picSize = sizeof(pic);
+	printf("Size %d\n", picSize);
+
+	//   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
+	printf("Size of pic %d\n", sizeof(pic));
+	test();
+	fontTest(gfxFont);
+
+	return 0;
 }

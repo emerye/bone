@@ -58,6 +58,7 @@
 
 enum cmd { COMMAND, DATA };
 
+
 void invertDisplay(uint8_t i);
 int SendByte(cmd cmdType, int data);
 void drawPixel(int16_t x, int16_t y, uint16_t color);
@@ -67,7 +68,7 @@ void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t);
 void fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
  uint8_t cornername, int16_t delta, uint16_t color);
 
-
+/*
 class Adafruit_SSD1309  {
  public:
   Adafruit_SSD1309(int8_t SID, int8_t SCLK, int8_t DC, int8_t RST, int8_t CS);
@@ -109,5 +110,6 @@ class Adafruit_SSD1309  {
  // inline void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color) __attribute__((always_inline));
 
 };
+*/
 
 #endif /* _Adafruit_SSD1309_H_ */
