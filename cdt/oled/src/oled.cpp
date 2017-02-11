@@ -11,6 +11,9 @@
 #include "gfxfont.h"
 #include "FreeMono24pt7b.h"
 #include "FreeMono12pt7b.h"
+#include "Fonts/FreeSerif12pt7b.h"
+#include "Fonts/FreeSans12pt7b.h"
+
 
 #define RESETLINE 29
 #define DCLINE 28 
@@ -25,6 +28,7 @@
 #define Max_Column      128
 #define Max_Row         64
 #define Brightness      0x8F
+#define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
 
 unsigned char spiBuffer[20];	//Buffer to hold SPI data
@@ -43,7 +47,7 @@ unsigned char buffer[1024];
 unsigned char fbuffer[1024];
 
 
-unsigned char pic[]=
+const unsigned char pic[]=
 {/*--ER-OLED015-2.bmp  --*/
 /*--  128x64  --*/
 0xFF,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
@@ -113,7 +117,7 @@ unsigned char pic[]=
 };
 
 
-unsigned char pic2[]=
+const unsigned char pic2[]=
 {/*--ER-OLED015-2.bmp  --*/
 /*--  128x64  --*/
 0x00,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x02,0x04,0x08,0x10,0x20,0x40,0x80,
@@ -182,7 +186,9 @@ unsigned char pic2[]=
 0x9F,0x8F,0x80,0x9F,0x9F,0x80,0x80,0x9F,0x9F,0x80,0x80,0x9F,0x9F,0x80,0x80,0xFF,
 };
 
-#define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
+void setFont(const GFXfont font) {
+	gfxFont = font;
+}
 
 extern void fontTest(GFXfont (gfxFont));
 
@@ -223,7 +229,6 @@ void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
 		x++;
 		ddF_x += 2;
 		f += ddF_x;
-
 		drawPixel(x0 + x, y0 + y, color);
 		drawPixel(x0 - x, y0 + y, color);
 		drawPixel(x0 + x, y0 - y, color);
@@ -307,6 +312,7 @@ void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
 	}
 }
 
+
 // Bresenham's algorithm - thx wikpedia
 void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
 	int16_t steep = abs(y1 - y0) > abs(x1 - x0);
@@ -319,7 +325,6 @@ void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
 		_swap_int16_t(x0, x1);
 		_swap_int16_t(y0, y1);
 	}
-
 	int16_t dx, dy;
 	dx = x1 - x0;
 	dy = abs(y1 - y0);
@@ -346,6 +351,7 @@ void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
 		}
 	}
 }
+
 
 // Draw a rectangle
 void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
@@ -406,17 +412,14 @@ void drawFastVLine(int16_t x, int16_t __y, int16_t __h, uint16_t color) {
 		__y = 0;
 
 	}
-
 	// make sure we don't go past the height of the display
 	if ((__y + __h) > HEIGHT) {
 		__h = (HEIGHT - __y);
 	}
-
 	// if our height is now negative, punt
 	if (__h <= 0) {
 		return;
 	}
-
 	// this display doesn't need ints for coordinates, use local byte registers for faster juggling
 	register uint8_t y = __y;
 	register uint8_t h = __h;
@@ -529,12 +532,10 @@ void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 		w += x;
 		x = 0;
 	}
-
 	// make sure we don't go off the edge of the display
 	if ((x + w) > WIDTH) {
 		w = (WIDTH - x);
 	}
-
 	// if our width is now negative, punt
 	if (w <= 0) {
 		return;
@@ -571,6 +572,7 @@ void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 		break;
 	}
 }
+
 
 void invertDisplay(uint8_t i) {
 	if (i) {
@@ -781,7 +783,7 @@ void fBuffer() {
 				fbuffer[h] = 0x55;
 			}
 			if (v == 1) {
-				fbuffer[v * 128 + h] = 0xFF;
+				fbuffer[v * 128 + h] = 0x55;
 			}
 		}
 	}
@@ -806,7 +808,7 @@ void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 	uint16_t bo = glyph.bitmapOffset;
 	uint8_t w = glyph.width;
 	uint8_t h = glyph.height;
-	int8_t xa = glyph.xAdvance;
+//	int8_t xa = glyph.xAdvance;
 	int8_t xo = glyph.xOffset;
 	int8_t yo = glyph.yOffset;
 	uint8_t xx, yy, bits, bit = 0;
@@ -828,7 +830,7 @@ void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 	// may overlap).  To replace previously-drawn text when using a custom
 	// font, use the getTextBounds() function to determine the smallest
 	// rectangle encompassing a string, erase the area with fillRect(),
-	// then draw new text.  This WILL infortunately 'blink' the text, but
+	// then draw new text.  This WILL unfortunately 'blink' the text, but
 	// is unavoidable.  Drawing 'background' pixels will NOT fix this,
 	// only creates a new set of problems.  Have an idea to work around
 	// this (a canvas object type for MCUs that can afford the RAM and
@@ -851,7 +853,6 @@ void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 			bits <<= 1;
 		}
 	}
-
 } // End classic vs custom font
 
 // Draw a character in classic font.
@@ -895,46 +896,33 @@ void writeString(int x, int y, int size, const char *string) {
 
 	unsigned char ch, c;
 
-       while (*string != NULL) {
-    	   printf("%c", *string);
-    	   ch = *string;
-    	   string++;
+	while (*string != 0) {
+		ch = *string;
+		string++;
 
-
-       c = ch;
-
+		c = ch;
 		c -= gfxFont.first;
-		//  GFXglyph *glyph  = &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
 		GFXglyph glyph = gfxFont.glyph[c];
-		//    uint8_t  *bitmap = (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
-		uint8_t *bitmap = (uint8_t *) (gfxFont.bitmap);
 
-		uint16_t bo = glyph.bitmapOffset;
-		uint8_t w = glyph.width;
-		uint8_t h = glyph.height;
 		int8_t xa = glyph.xAdvance;
-		int8_t xo = glyph.xOffset;
-		int8_t yo = glyph.yOffset;
-		uint8_t xx, yy, bits, bit = 0;
-		int16_t xo16, yo16;
-
-
-       drawCharCustom(x, y, ch ,
-       	WHITE, BLACK, size);
-
-        x+= xa * size;
-}
-	printf("String %s\n", string);
+		drawCharCustom(x, y, ch,
+		WHITE, BLACK, size);
+		x += xa * size;
+	}
 
 }
 
 void test() {
 
-	const char *stText = "12345";
+	int xstart = 0;
+	int ystart = 18;
+	int width = 40;
+	int height = 22;
+	int i;
 
 	fBuffer();
 	Display_Picture(fbuffer);
-	//   drawFastHLine(0,63,128,WHITE);
+	drawFastHLine(0, 63, 128, WHITE);
 	//   drawFastVLine(15, 8, 30, WHITE);
 	//  drawCircle(32,32,16,WHITE);
 	//   drawLine(0, 0, 60, 100,
@@ -942,35 +930,52 @@ void test() {
 	//  drawRect(10,10,50,50,WHITE);
 	//  drawPixel(100,50,WHITE);
 	//  fillRect(40,10, 50,20,WHITE);
-	drawChar(80, 40, 'C', WHITE, BLACK, 1);
-	drawChar(87, 40, 'D', WHITE, BLACK, 1);
+//	drawChar(80, 40, 'C', WHITE, BLACK, 1);
+//	drawChar(87, 40, 'D', WHITE, BLACK, 1);
 //	drawCharCustom(70, 30, 'H',
 //	WHITE, BLACK, 1);
 //	drawCharCustom(90, 30, 'G',
 //	WHITE, BLACK, 1);
 	// writeString(stText);
-	writeString(0, 18, 1, "ABCDEFGHI");
-	writeString(0, 36, 1, "123456789");
+	for (i = 0; i < 3; i++) {
+		fillRect(xstart, 37, 130, height, BLACK);
+		writeString(xstart, 18, 1, "ABCDEFGHI");
+		writeString(xstart, 36, 1, "123456789");
+		writeString(xstart, 54, 1, "abcdefgh");
+		Display_Picture(buffer);
+		sleep(1);
+		writeString(0, 18, 1, "ABCDEFGHI");
+		writeString(0, 36, 1, "123456789");
+		fillRect(xstart, 37, 130, height, BLACK);
+		writeString(0, 54, 1, "2/5/2017");
 
-	Display_Picture(buffer);
+		Display_Picture(buffer);
+		sleep(1);
+	}
 }
+
 
 int main(int argc, char **argv) {
 
-	gfxFont = FreeMono12pt7b;
+//	gfxFont = FreeMono12pt7b;
+	setFont(FreeMono12pt7b);
+
+	setFont(FreeSans12pt7b);
 
 	wiringPiSetup();
 	init_Hardware();
 	initDisplay();
-	setContrast(0xBB);
+	setContrast(0xFF);
 
 	int picSize = sizeof(pic);
 	printf("Size %d\n", picSize);
+	Display_Picture((unsigned char *)pic);
+	sleep(2);
 
 	//   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
-	printf("Size of pic %d\n", sizeof(pic));
+
 	test();
 	fontTest(gfxFont);
-
+	puts("Done");
 	return 0;
 }
