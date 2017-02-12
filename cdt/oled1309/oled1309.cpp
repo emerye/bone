@@ -229,7 +229,7 @@ void oled1309::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
 }
 
 // Draw a circle outline
-void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+void oled1309::drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
 	int16_t f = 1 - r;
 	int16_t ddF_x = 1;
 	int16_t ddF_y = -2 * r;
@@ -261,7 +261,7 @@ void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
 	}
 }
 
-void drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
+void oled1309::drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
 		uint16_t color) {
 	int16_t f = 1 - r;
 	int16_t ddF_x = 1;
@@ -297,13 +297,13 @@ void drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
 	}
 }
 
-void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
+void oled1309::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
 	drawFastVLine(x0, y0 - r, 2 * r + 1, color);
 	fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
 // Used to do circles and roundrects
-void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
+void oled1309::fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
 		int16_t delta, uint16_t color) {
 
 	int16_t f = 1 - r;
@@ -335,7 +335,7 @@ void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
 
 
 // Bresenham's algorithm - thx wikpedia
-void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+void oled1309::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
 	int16_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep) {
 		_swap_int16_t(x0, y0);
@@ -375,7 +375,7 @@ void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
 
 
 // Draw a rectangle
-void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void oled1309::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 	drawFastHLine(x, y, w, color);
 	drawFastHLine(x, y + h - 1, w, color);
 	drawFastVLine(x, y, h, color);
@@ -419,13 +419,12 @@ void oled1309::drawPixel(int16_t x, int16_t y, uint16_t color) {
 	}
 }
 
-void drawFastVLine(int16_t x, int16_t __y, int16_t __h, uint16_t color) {
+void oled1309::drawFastVLine(int16_t x, int16_t __y, int16_t __h, uint16_t color) {
 
 	// do nothing if we're off the left or right side of the screen
 	if (x < 0 || x >= WIDTH) {
 		return;
 	}
-
 	// make sure we don't try to draw below 0
 	if (__y < 0) {
 		// __y is negative, this will subtract enough from __h to account for __y being 0
@@ -542,7 +541,7 @@ void drawFastVLine(int16_t x, int16_t __y, int16_t __h, uint16_t color) {
 	}
 }
 
-void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
+void oled1309::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 	// Do bounds/limit checks
 	if (y < 0 || y >= HEIGHT) {
 		return;
@@ -595,7 +594,7 @@ void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) {
 }
 
 
-void invertDisplay(uint8_t i) {
+void oled1309::invertDisplay(uint8_t i) {
 	if (i) {
 		SendByte(COMMAND, SSD1309_INVERTDISPLAY);
 	} else {
@@ -603,7 +602,7 @@ void invertDisplay(uint8_t i) {
 	}
 }
 
-int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes) {
+int oled1309::SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes) {
 	int error;
 	unsigned char spiBuffer[20];
 
@@ -623,12 +622,12 @@ int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes) {
 	return error;
 }
 
-int SendByte(enum cmd cmdType, int data) {
+int oled1309::SendByte(enum cmd cmdType, int data) {
 	spiBuffer[0] = (unsigned char) (data & 0xFF);
 	return (SendSPIBlock(cmdType, spiBuffer, 1));
 }
 
-void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color) {
+void oled1309::drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color) {
 	bool bSwap = false;
 	int rotation = 0;
 
@@ -666,7 +665,7 @@ void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color) {
 	}
 }
 
-void initDisplay() {
+void oled1309::initDisplay() {
 	digitalWrite(RESETLINE, HIGH);
 	digitalWrite(RESETLINE, LOW);
 	usleep(15000);
@@ -734,14 +733,14 @@ void initDisplay() {
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Instruction Setting
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void Set_Start_Column(unsigned char d) {
+void oled1309::Set_Start_Column(unsigned char d) {
 	SendByte(COMMAND, 0x00 + d % 16); // Set Lower Column Start Address for Page Addressing Mode
 	//   Default => 0x00
 	SendByte(COMMAND, 0x10 + d / 16); // Set Higher Column Start Address for Page Addressing Mode
 									  //   Default => 0x10
 }
 
-void Set_Addressing_Mode(unsigned char d) {
+void oled1309::Set_Addressing_Mode(unsigned char d) {
 	SendByte(COMMAND, 0x20);                    // Set Memory Addressing Mode
 	SendByte(COMMAND, d);                       //   Default => 0x02
 	//     0x00 => Horizontal Addressing Mode
@@ -749,19 +748,19 @@ void Set_Addressing_Mode(unsigned char d) {
 	//     0x02 => Page Addressing Mode
 }
 
-void Set_Column_Address(unsigned char a, unsigned char b) {
+void oled1309::Set_Column_Address(unsigned char a, unsigned char b) {
 	SendByte(COMMAND, 0x21);                    // Set Column Address
 	SendByte(COMMAND, a);            //   Default => 0x00 (Column Start Address)
 	SendByte(COMMAND, b);              //   Default => 0x7F (Column End Address)
 }
 
-void Set_Page_Address(unsigned char a, unsigned char b) {
+void oled1309::Set_Page_Address(unsigned char a, unsigned char b) {
 	SendByte(COMMAND, 0x22);                    // Set Page Address
 	SendByte(COMMAND, a);              //   Default => 0x00 (Page Start Address)
 	SendByte(COMMAND, b);                //   Default => 0x07 (Page End Address)
 }
 
-void Display_Picture(unsigned char *p) {
+void oled1309::Display_Picture(unsigned char *p) {
 	unsigned char *picture;
 	unsigned char i, j;
 	picture = p;
@@ -777,7 +776,7 @@ void Display_Picture(unsigned char *p) {
 	}
 }
 
-void init_Hardware(void) {
+void oled1309::init_Hardware(void) {
 	int status;
 
 	pinMode(RESETLINE, OUTPUT);
@@ -788,7 +787,7 @@ void init_Hardware(void) {
 	}
 }
 
-void setContrast(unsigned char level) {
+void oled1309::setContrast(unsigned char level) {
 	unsigned char buffer[3];
 	buffer[0] = 0x81;
 	buffer[1] = level;
@@ -811,7 +810,7 @@ void fBuffer() {
 }
 
 // Draw a custom Font Character
-void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
+void oled1309::drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 		uint16_t bg, uint8_t size) {
 
 	// Character is assumed previously filtered by write() to eliminate
@@ -913,7 +912,7 @@ void oled1309::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
 
 }
 
-void writeString(int x, int y, int size, const char *string) {
+void oled1309::writeString(int x, int y, int size, const char *string) {
 
 	unsigned char ch, c;
 
