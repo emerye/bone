@@ -1,3 +1,11 @@
+/*
+ * oled1309.cpp
+ *
+ *  Created on: 11 Feb 2017
+ *      Author: root
+ */
+
+#include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,6 +14,7 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <inttypes.h>
+#include "oled1309.h"
 #include "SSD1309.h"
 #include "glcdfont.h"
 #include "gfxfont.h"
@@ -14,8 +23,23 @@
 #include "Fonts/FreeSerif12pt7b.h"
 #include "Fonts/FreeSans12pt7b.h"
 
-#define RESETLINE 29
-#define DCLINE 28 
+
+oled1309::oled1309(int x) {
+	this->x = x;
+	// TODO Auto-generated constructor stub
+}
+
+oled1309::~oled1309() {
+	// TODO Auto-generated destructor stub
+}
+
+void oled1309::print(void) {
+	printf("XValue %d\n", x);
+}
+
+
+//#define RESETLINE 29
+//#define DCLINE 28
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -37,7 +61,7 @@ int rotation = 0;
 
 GFXfont gfxFont;
 
-unsigned char picBuf[1024]; 
+unsigned char picBuf[1024];
 
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 #define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
@@ -185,21 +209,19 @@ const unsigned char pic2[]=
 0x9F,0x8F,0x80,0x9F,0x9F,0x80,0x80,0x9F,0x9F,0x80,0x80,0x9F,0x9F,0x80,0x80,0xFF,
 };
 
-void setFont(const GFXfont font) {
+void oled1309::setFont(const GFXfont font) {
 	gfxFont = font;
 }
 
-extern void fontTest(GFXfont (gfxFont));
-
-int width() {
+int oled1309::width() {
 	return SSD1309_LCDWIDTH;
 }
 
-int height() {
+int oled1309::height() {
 	return (SSD1309_LCDHEIGHT);
 }
 
-void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void oled1309::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 	// Update in subclasses if desired!
 	for (int16_t i = x; i < x + w; i++) {
 		drawFastVLine(i, y, h, color);
@@ -361,7 +383,7 @@ void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
 }
 
 // the most basic function, set a single pixel
-void drawPixel(int16_t x, int16_t y, uint16_t color) {
+void oled1309::drawPixel(int16_t x, int16_t y, uint16_t color) {
 	if ((x < 0) || (x >= width()) || (y < 0) || (y >= height()))
 		return;
 
@@ -855,7 +877,7 @@ void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 } // End classic vs custom font
 
 // Draw a character in classic font.
-void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
+void oled1309::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color,
 		uint16_t bg, uint8_t size) {
 
 	if ((x >= WIDTH) || // Clip right
@@ -911,6 +933,7 @@ void writeString(int x, int y, int size, const char *string) {
 
 }
 
+/*
 void test() {
 
 	int xstart = 0;
@@ -952,29 +975,4 @@ void test() {
 		sleep(1);
 	}
 }
-
-
-int main(int argc, char **argv) {
-
-//	gfxFont = FreeMono12pt7b;
-	setFont(FreeMono12pt7b);
-
-	setFont(FreeSans12pt7b);
-
-	wiringPiSetup();
-	init_Hardware();
-	initDisplay();
-	setContrast(0xFF);
-
-	int picSize = sizeof(pic);
-	printf("Size %d\n", picSize);
-	Display_Picture((unsigned char *)pic);
-	sleep(2);
-
-	//   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
-
-	test();
-	fontTest(gfxFont);
-	puts("Done");
-	return 0;
-}
+*/
