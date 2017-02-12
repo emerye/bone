@@ -954,6 +954,8 @@ void test() {
 }
 
 
+
+
 int main(int argc, char **argv) {
 
 //	gfxFont = FreeMono12pt7b;
@@ -971,7 +973,8 @@ int main(int argc, char **argv) {
 	Display_Picture((unsigned char *)pic);
 	sleep(2);
 
-	//   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
+
+
 
 	test();
 	fontTest(gfxFont);

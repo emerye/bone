@@ -31,9 +31,12 @@ public:
 	GFXfont gfxFont;
 
 	oled1309(int x);
+	void print2(void);
+
 	virtual ~oled1309();
-	void print(void);
-	virtual void setFont(const GFXfont font);
+
+
+    virtual void setFont(GFXfont font);
 	virtual void drawPixel(int16_t x, int16_t y, uint16_t color);
 	virtual void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
 	virtual void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
@@ -52,7 +55,8 @@ public:
 	virtual void setContrast(unsigned char level);
 	virtual void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 			uint16_t bg, uint8_t size);
-	virtual void oled1309::writeString(int x, int y, int size, const char *string);
+	virtual void writeString(int x, int y, int size, const char *string);
+	virtual void print(void);
 
 
 

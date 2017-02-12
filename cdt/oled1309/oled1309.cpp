@@ -33,8 +33,14 @@ oled1309::~oled1309() {
 	// TODO Auto-generated destructor stub
 }
 
+extern void oled1309::print2(void) {
+	puts("Print2rrrrr");
+}
+
+
 void oled1309::print(void) {
-	printf("XValue %d\n", x);
+	printf("XValue new value %d\n", x);
+
 }
 
 
@@ -228,6 +234,7 @@ void oled1309::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
 	}
 }
 
+extern "C"
 // Draw a circle outline
 void oled1309::drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color) {
 	int16_t f = 1 - r;
@@ -776,6 +783,8 @@ void oled1309::Display_Picture(unsigned char *p) {
 	}
 }
 
+
+
 void oled1309::init_Hardware(void) {
 	int status;
 
@@ -931,6 +940,8 @@ void oled1309::writeString(int x, int y, int size, const char *string) {
 	}
 
 }
+
+
 
 /*
 void test() {
