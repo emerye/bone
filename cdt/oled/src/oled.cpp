@@ -916,12 +916,12 @@ void test() {
 	int xstart = 0;
 	int ystart = 18;
 	int width = 40;
-	int height = 22;
+	int height = 23;
 	int i;
 
 	fBuffer();
 	Display_Picture(fbuffer);
-	drawFastHLine(0, 63, 128, WHITE);
+	drawFastHLine(0, 0, 127, WHITE);
 	//   drawFastVLine(15, 8, 30, WHITE);
 	//  drawCircle(32,32,16,WHITE);
 	//   drawLine(0, 0, 60, 100,
@@ -936,20 +936,20 @@ void test() {
 //	drawCharCustom(90, 30, 'G',
 //	WHITE, BLACK, 1);
 	// writeString(stText);
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 1; i++) {
 		fillRect(xstart, 37, 130, height, BLACK);
 		writeString(xstart, 18, 1, "ABCDEFGHI");
 		writeString(xstart, 36, 1, "123456789");
 		writeString(xstart, 54, 1, "abcdefgh");
 		Display_Picture(buffer);
-		sleep(1);
+	//	sleep(1);
 		writeString(0, 18, 1, "ABCDEFGHI");
 		writeString(0, 36, 1, "123456789");
 		fillRect(xstart, 37, 130, height, BLACK);
 		writeString(0, 54, 1, "2/5/2017");
 
 		Display_Picture(buffer);
-		sleep(1);
+	//	sleep(1);
 	}
 }
 
@@ -971,7 +971,7 @@ int main(int argc, char **argv) {
 	int picSize = sizeof(pic);
 	printf("Size %d\n", picSize);
 	Display_Picture((unsigned char *)pic);
-	sleep(2);
+//	sleep(2);
 
 
 

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <string.h>
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -11,6 +12,7 @@
 #include "FreeMono12pt7b.h"
 #include "Fonts/FreeSerif12pt7b.h"
 #include "Fonts/FreeSans12pt7b.h"
+
 
 const unsigned char pic[]=
 {/*--ER-OLED015-2.bmp  --*/
@@ -82,12 +84,56 @@ const unsigned char pic[]=
 };
 
 
+void test(oled1309 display) {
+
+	int xstart = 0;
+	int ystart = 18;
+	int width = 40;
+	int height = 22;
+	int i;
+
+
+	display.drawFastHLine(0, 63, 128, WHITE);
+	//   drawFastVLine(15, 8, 30, WHITE);
+	//  drawCircle(32,32,16,WHITE);
+	//   drawLine(0, 0, 60, 100,
+	//    WHITE);
+	//  drawRect(10,10,50,50,WHITE);
+	//  drawPixel(100,50,WHITE);
+	//  fillRect(40,10, 50,20,WHITE);
+//	drawChar(80, 40, 'C', WHITE, BLACK, 1);
+//	drawChar(87, 40, 'D', WHITE, BLACK, 1);
+//	drawCharCustom(70, 30, 'H',
+//	WHITE, BLACK, 1);
+//	drawCharCustom(90, 30, 'G',
+//	WHITE, BLACK, 1);
+	// writeString(stText);
+	for (i = 0; i < 3; i++) {
+		display.fillRect(xstart, 37, 130, height, BLACK);
+		display.writeString(xstart, 18, 1, "ABCDEFGHI");
+		display.writeString(xstart, 36, 1, "123456789");
+		display.writeString(xstart, 54, 1, "abcdefgh");
+		display.displayPicture();
+		sleep(1);
+		display.writeString(0, 18, 1, "ABCDEFGHI");
+		display.writeString(0, 36, 1, "123456789");
+		display.fillRect(xstart, 37, 130, height, BLACK);
+		display.writeString(0, 54, 1, "2/5/2017");
+
+		display.displayPicture();
+		sleep(1);
+	}
+}
+
+
+
 int main(int argc, char **argv) {
 
 	printf("Started\n");
-	oled1309 display(1);
+	oled1309 display;
 
 	display.setFont(FreeMono12pt7b);
+//	display.setFont(FreeMono24pt7b);
 	wiringPiSetup();
 	display.init_Hardware();
 	display.initDisplay();
@@ -95,10 +141,19 @@ int main(int argc, char **argv) {
 
 	int picSize = sizeof(pic);
 	printf("Size %d\n", picSize);
-	display.Display_Picture((unsigned char *) pic);
 
-	sleep(2);
-	/*
+
+    memcpy((void *)display.buffer, pic, 1024);
+    	display.displayPicture();
+    	sleep(1);
+
+    memset(display.buffer, 0, 1024);
+
+	display.displayPicture();
+	sleep(1);
+
+	 test(display);
+/*
 	 //   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
 
 	 test();
