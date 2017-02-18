@@ -11,6 +11,7 @@
 #include "SSD1309.h"
 #include "gfxfont.h"
 #include "glcdfont.h"
+#include "stdint.h"
 
 #define RESETLINE 29
 #define DCLINE 28
