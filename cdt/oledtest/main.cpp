@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include <time.h>
 #include "../oled1309/oled1309.h"
 #include "../oled1309/gfxfont.h"
 #include "../oled1309/glcdfont.h"
@@ -117,7 +118,9 @@ void test(oled1309 display) {
 		display.setFont(TomThumb);
 		display.fillRect(xstart, 37, 130, height, BLACK);
 		display.writeString(xstart, 18, 1, "ABCDEFGHI");
+		display.setFont(FreeMono9pt7b);
 		display.writeString(xstart, 36, 1, "123456789");
+		display.setFont(FreeSerif12pt7b);
 		display.writeString(xstart, 54, 1, "abcdefgh");
 		display.displayPicture();
 		sleep(1);
@@ -142,6 +145,8 @@ int main(int argc, char **argv) {
 	fflush(stdout);
 	oled1309 display;
 
+
+
 	display.setFont(FreeMono12pt7b);
 	display.setFont(FreeSansBold12pt7b);
 //	display.setFont(FreeMono24pt7b);
@@ -150,25 +155,17 @@ int main(int argc, char **argv) {
 	display.init_Hardware();
 	display.initDisplay();
 	display.setContrast(0xFF);
+	display.clearDisplay();
 
 	int picSize = sizeof(pic);
 	printf("Size %d\n", picSize);
-
-
-    memcpy((void *)display.buffer, pic, 1024);
-    	display.displayPicture();
-    	sleep(1);
-
-    memset(display.buffer, 0, 1024);
-
-	display.displayPicture();
 	sleep(1);
 
-	 test(display);
+	test(display);
 
-	 //   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
+	//   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
 
-	 puts("End");
+	puts("End");
 	return 0;
 
 }
