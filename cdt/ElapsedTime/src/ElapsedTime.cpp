@@ -13,8 +13,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <wiringPi.h>
+#include <wiringPiSPI.h>
 #include <time.h>
+#include "../oled1309/oled1309.h"
+#include "../oled1309/gfxfont.h"
+#include "../oled1309/glcdfont.h"
+#include "FreeMono12pt7b.h"
 #include "oled1309.h"
+#include "FreeMono24pt7b.h"
+
 
 /* number of times the handle will run: */
 volatile int elapsedSeconds = 0;
@@ -32,28 +40,55 @@ void handle(int sig) {
 int main() {
 	time_t startTime, currentTime;
 	unsigned int elapsedMinutes = 0;
-	unsigned int newMinutes;
+	unsigned int newMinutes = 0;
+	int xstart = 0;
+	int ystart = 30;
+	int height = 24 + 4;
+	char buffer[10];
+	int divider = 1;   //Change to 60 for release
+	int testOffset = 0;
 
 	oled1309 display;
 
+	display.setFont(FreeMono12pt7b);
+	display.setFont(FreeMono24pt7b);
+	wiringPiSetup();
+	display.init_Hardware();
+	display.initDisplay();
+	display.setContrast(0xFF);
+	display.clearDisplay();
+
+	printf("%3um\n", elapsedMinutes);
 	time(&startTime);
+	sprintf(buffer, "%3dm", elapsedMinutes);
+	display.writeString(xstart, ystart, 1, buffer);
+	display.displayPicture();
+
 	signal(SIGALRM, handle);
 	alarm(1);
-	printf("%3d m\n", elapsedMinutes);
-	fflush(stdout);
-	while (1) {
+
+
+	for (int i=0; i<10; i++) {
 		if (newDataAvail > 0) {
 			newDataAvail = 0;
 			time(&currentTime);
-			newMinutes = (currentTime - startTime) / 60;
+			newMinutes = ((currentTime - startTime) / divider) + testOffset;
 			if (newMinutes != elapsedMinutes) {
 				elapsedMinutes = newMinutes;
-				printf("%3u m\n", elapsedMinutes);
+				printf("%3um\n", elapsedMinutes);
 				fflush(stdout);
+				sprintf(buffer, "%3dm", elapsedMinutes);
+				display.fillRect(xstart, ystart-height, 127, height+4, BLACK);
+				display.writeString(xstart, ystart, 1, buffer);
+
+				display.fillRect(xstart, ystart-height+32, 127, height+4, BLACK);
+				display.writeString(xstart, ystart+32, 1, buffer);
+
+				display.displayPicture();
 			}
 		}
 		sleep(1);
 	}
-	printf("done\n");
+	printf("Done\n");
 	return 0;
 }

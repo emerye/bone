@@ -12,7 +12,6 @@
 #include "FreeMono12pt7b.h"
 #include "Fonts/FreeSerif12pt7b.h"
 #include "Fonts/FreeSans12pt7b.h"
-#define PROGMEM
 #include "Fonts/FreeMono9pt7b.h"
 #include "Fonts/FreeSansBold12pt7b.h"
 #include "Fonts/TomThumb.h"
@@ -145,8 +144,6 @@ int main(int argc, char **argv) {
 	fflush(stdout);
 	oled1309 display;
 
-
-
 	display.setFont(FreeMono12pt7b);
 	display.setFont(FreeSansBold12pt7b);
 //	display.setFont(FreeMono24pt7b);
@@ -157,13 +154,7 @@ int main(int argc, char **argv) {
 	display.setContrast(0xFF);
 	display.clearDisplay();
 
-	int picSize = sizeof(pic);
-	printf("Size %d\n", picSize);
-	sleep(1);
-
 	test(display);
-
-	//   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
 
 	puts("End");
 	return 0;
