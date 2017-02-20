@@ -140,6 +140,13 @@ const unsigned char pic[]=
 
 //Constructor
 oled1309::oled1309() {
+	setFont(FreeMono24pt7b);
+	wiringPiSetup();
+	init_Hardware();
+	initDisplay();
+	setContrast(0xFF);
+	clearDisplay();
+
 }
 
 oled1309::~oled1309() {

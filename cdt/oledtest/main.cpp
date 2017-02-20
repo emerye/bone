@@ -144,16 +144,7 @@ int main(int argc, char **argv) {
 	fflush(stdout);
 	oled1309 display;
 
-	display.setFont(FreeMono12pt7b);
 	display.setFont(FreeSansBold12pt7b);
-//	display.setFont(FreeMono24pt7b);
-//	display.setFont(FreeMono9pt7b);
-	wiringPiSetup();
-	display.init_Hardware();
-	display.initDisplay();
-	display.setContrast(0xFF);
-	display.clearDisplay();
-
 	test(display);
 
 	puts("End");

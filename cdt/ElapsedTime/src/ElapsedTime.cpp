@@ -50,13 +50,13 @@ int main() {
 
 	oled1309 display;
 
-	display.setFont(FreeMono12pt7b);
-	display.setFont(FreeMono24pt7b);
-	wiringPiSetup();
-	display.init_Hardware();
-	display.initDisplay();
-	display.setContrast(0xFF);
-	display.clearDisplay();
+//	display.setFont(FreeMono12pt7b);
+//	display.setFont(FreeMono24pt7b);
+//	wiringPiSetup();
+//	display.init_Hardware();
+//	display.initDisplay();
+//	display.setContrast(0xFF);
+//	display.clearDisplay();
 
 	printf("%3um\n", elapsedMinutes);
 	time(&startTime);
@@ -81,8 +81,8 @@ int main() {
 				display.fillRect(xstart, ystart-height, 127, height+4, BLACK);
 				display.writeString(xstart, ystart, 1, buffer);
 
-				display.fillRect(xstart, ystart-height+32, 127, height+4, BLACK);
-				display.writeString(xstart, ystart+32, 1, buffer);
+	//			display.fillRect(xstart, ystart-height+32, 127, height+4, BLACK);
+	//			display.writeString(xstart, ystart+32, 1, buffer);
 
 				display.displayPicture();
 			}
