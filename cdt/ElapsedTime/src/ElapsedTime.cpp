@@ -3,9 +3,8 @@
 // Author      : Andy Hughes
 // Version     :
 // Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Description : Elapsed Time Clock
 //============================================================================
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,19 +22,17 @@
 #include "oled1309.h"
 #include "FreeMono24pt7b.h"
 
-
 /* number of times the handle will run: */
 volatile int elapsedSeconds = 0;
 volatile int newDataAvail = 0;
 volatile int elapsedMinutes = 0;
-
+volatile int pixelColor = 0;
 
 void handle(int sig) {
 	elapsedSeconds += 1;
 	newDataAvail = 1;
-    alarm(1);
+	alarm(1);
 }
-
 
 int main() {
 	time_t startTime, currentTime;
@@ -45,18 +42,10 @@ int main() {
 	int ystart = 30;
 	int height = 24 + 4;
 	char buffer[10];
-	int divider = 1;   //Change to 60 for release
+	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
 
 	oled1309 display;
-
-//	display.setFont(FreeMono12pt7b);
-//	display.setFont(FreeMono24pt7b);
-//	wiringPiSetup();
-//	display.init_Hardware();
-//	display.initDisplay();
-//	display.setContrast(0xFF);
-//	display.clearDisplay();
 
 	printf("%3um\n", elapsedMinutes);
 	time(&startTime);
@@ -67,8 +56,8 @@ int main() {
 	signal(SIGALRM, handle);
 	alarm(1);
 
-
-	for (int i=0; i<10; i++) {
+	for (int i = 0; i < 10; i++) {
+		//for (;;) {
 		if (newDataAvail > 0) {
 			newDataAvail = 0;
 			time(&currentTime);
@@ -78,16 +67,16 @@ int main() {
 				printf("%3um\n", elapsedMinutes);
 				fflush(stdout);
 				sprintf(buffer, "%3dm", elapsedMinutes);
-				display.fillRect(xstart, ystart-height, 127, height+4, BLACK);
+				display.fillRect(xstart, ystart - height, 127, height + 4,
+						BLACK);
 				display.writeString(xstart, ystart, 1, buffer);
-
-	//			display.fillRect(xstart, ystart-height+32, 127, height+4, BLACK);
-	//			display.writeString(xstart, ystart+32, 1, buffer);
-
-				display.displayPicture();
 			}
 		}
+		pixelColor ^= 1;
+		display.drawPixel(127, 63, pixelColor);
+		display.displayPicture();
 		sleep(1);
+
 	}
 	printf("Done\n");
 	return 0;
