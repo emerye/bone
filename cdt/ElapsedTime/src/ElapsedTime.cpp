@@ -56,8 +56,8 @@ int main() {
 	signal(SIGALRM, handle);
 	alarm(1);
 
-	for (int i = 0; i < 10; i++) {
-		//for (;;) {
+	//for (int i = 0; i < 10; i++) {
+	  for (;;) {
 		if (newDataAvail > 0) {
 			newDataAvail = 0;
 			time(&currentTime);

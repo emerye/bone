@@ -36,7 +36,7 @@
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
 
-unsigned char spiBuffer[20];	//Buffer to hold SPI data
+//unsigned char spiBuffer[20];	//Buffer to hold SPI data
 
 int spiFD;
 int rotation = 0;
@@ -577,7 +577,10 @@ int oled1309::SendSPIBlock(enum cmd cmdType, unsigned char *spiData,
 	return error;
 }
 
+
 int oled1309::sendByte(enum cmd cmdType, int data) {
+	unsigned char spiBuffer[20];
+
 	spiBuffer[0] = (unsigned char) (data & 0xFF);
 	return (SendSPIBlock(cmdType, spiBuffer, 1));
 }
