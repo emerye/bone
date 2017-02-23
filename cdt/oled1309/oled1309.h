@@ -11,6 +11,7 @@
 #include "SSD1309.h"
 #include "gfxfont.h"
 #include "glcdfont.h"
+#include "stdint.h"
 
 #define RESETLINE 29
 #define DCLINE 28
@@ -53,7 +54,8 @@ public:
 	virtual void drawCharCustom(int16_t x, int16_t y, unsigned char c, uint16_t color,
 			uint16_t bg, uint8_t size);
 	virtual void writeString(int x, int y, int size, const char *string);
-	void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+	virtual void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+	virtual void clearDisplay();
 
 private:
 	void Set_Page_Address(unsigned char a, unsigned char b);

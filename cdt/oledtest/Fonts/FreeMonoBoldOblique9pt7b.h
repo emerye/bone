@@ -1,4 +1,4 @@
-const uint8_t FreeMonoBoldOblique9pt7bBitmaps[] PROGMEM = {
+const uint8_t FreeMonoBoldOblique9pt7bBitmaps[] = {
   0x39, 0xCC, 0x67, 0x31, 0x8C, 0x07, 0x38, 0x6C, 0xD9, 0x36, 0x48, 0x80,
   0x09, 0x0D, 0x86, 0xCF, 0xF7, 0xF9, 0xB3, 0xFD, 0xFE, 0x6C, 0x36, 0x1B,
   0x00, 0x00, 0x06, 0x07, 0x07, 0xE6, 0x33, 0x01, 0xE0, 0x7C, 0x06, 0x43,
@@ -98,7 +98,7 @@ const uint8_t FreeMonoBoldOblique9pt7bBitmaps[] PROGMEM = {
   0x0C, 0x0C, 0x0F, 0x0F, 0x18, 0x18, 0x10, 0x30, 0xF0, 0xE0, 0x38, 0x7C,
   0xF7, 0xC1, 0xC0 };
 
-const GFXglyph FreeMonoBoldOblique9pt7bGlyphs[] PROGMEM = {
+const GFXglyph FreeMonoBoldOblique9pt7bGlyphs[] = {
   {     0,   0,   0,  11,    0,    1 },   // 0x20 ' '
   {     0,   5,  11,  11,    4,  -10 },   // 0x21 '!'
   {     7,   7,   5,  11,    4,  -10 },   // 0x22 '"'
@@ -195,7 +195,7 @@ const GFXglyph FreeMonoBoldOblique9pt7bGlyphs[] PROGMEM = {
   {  1148,   8,  14,  11,    2,  -10 },   // 0x7D '}'
   {  1162,   9,   4,  11,    2,   -6 } }; // 0x7E '~'
 
-const GFXfont FreeMonoBoldOblique9pt7b PROGMEM = {
+const GFXfont FreeMonoBoldOblique9pt7b = {
   (uint8_t  *)FreeMonoBoldOblique9pt7bBitmaps,
   (GFXglyph *)FreeMonoBoldOblique9pt7bGlyphs,
   0x20, 0x7E, 18 };

@@ -4,14 +4,17 @@
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include <time.h>
 #include "../oled1309/oled1309.h"
 #include "../oled1309/gfxfont.h"
 #include "../oled1309/glcdfont.h"
-#include "../oled1309/oled1309.h"
 #include "FreeMono24pt7b.h"
 #include "FreeMono12pt7b.h"
 #include "Fonts/FreeSerif12pt7b.h"
 #include "Fonts/FreeSans12pt7b.h"
+#include "Fonts/FreeMono9pt7b.h"
+#include "Fonts/FreeSansBold12pt7b.h"
+#include "Fonts/TomThumb.h"
 
 
 const unsigned char pic[]=
@@ -109,12 +112,20 @@ void test(oled1309 display) {
 //	WHITE, BLACK, 1);
 	// writeString(stText);
 	for (i = 0; i < 3; i++) {
+		memset(display.buffer, 0, 1024);
+		display.displayPicture();
+		display.setFont(TomThumb);
 		display.fillRect(xstart, 37, 130, height, BLACK);
 		display.writeString(xstart, 18, 1, "ABCDEFGHI");
+		display.setFont(FreeMono9pt7b);
 		display.writeString(xstart, 36, 1, "123456789");
+		display.setFont(FreeSerif12pt7b);
 		display.writeString(xstart, 54, 1, "abcdefgh");
 		display.displayPicture();
 		sleep(1);
+		memset(display.buffer, 0, 1024);
+		display.displayPicture();
+		display.setFont(FreeMono9pt7b);
 		display.writeString(0, 18, 1, "ABCDEFGHI");
 		display.writeString(0, 36, 1, "123456789");
 		display.fillRect(xstart, 37, 130, height, BLACK);
@@ -130,36 +141,13 @@ void test(oled1309 display) {
 int main(int argc, char **argv) {
 
 	printf("Started\n");
+	fflush(stdout);
 	oled1309 display;
 
-	display.setFont(FreeMono12pt7b);
-//	display.setFont(FreeMono24pt7b);
-	wiringPiSetup();
-	display.init_Hardware();
-	display.initDisplay();
-	display.setContrast(0xFF);
+	display.setFont(FreeSansBold12pt7b);
+	test(display);
 
-	int picSize = sizeof(pic);
-	printf("Size %d\n", picSize);
-
-
-    memcpy((void *)display.buffer, pic, 1024);
-    	display.displayPicture();
-    	sleep(1);
-
-    memset(display.buffer, 0, 1024);
-
-	display.displayPicture();
-	sleep(1);
-
-	 test(display);
-/*
-	 //   SendByte(COMMAND,SSD1309_INVERTDISPLAY);
-
-	 test();
-	 fontTest(gfxFont);
-	 puts("Done");
-	 */
+	puts("End");
 	return 0;
 
 }

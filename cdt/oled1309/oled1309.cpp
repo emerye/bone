@@ -36,7 +36,7 @@
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
 
-unsigned char spiBuffer[20];	//Buffer to hold SPI data
+//unsigned char spiBuffer[20];	//Buffer to hold SPI data
 
 int spiFD;
 int rotation = 0;
@@ -140,6 +140,13 @@ const unsigned char pic[]=
 
 //Constructor
 oled1309::oled1309() {
+	setFont(FreeMono24pt7b);
+	wiringPiSetup();
+	init_Hardware();
+	initDisplay();
+	setContrast(0xFF);
+	clearDisplay();
+
 }
 
 oled1309::~oled1309() {
@@ -309,6 +316,15 @@ void oled1309::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 			err += dx;
 		}
 	}
+}
+
+/** Clear display
+ *
+ */
+void oled1309::clearDisplay(void) {
+
+    memset(buffer, 0, 1024);
+	displayPicture();
 }
 
 // Draw a rectangle
@@ -561,7 +577,10 @@ int oled1309::SendSPIBlock(enum cmd cmdType, unsigned char *spiData,
 	return error;
 }
 
+
 int oled1309::sendByte(enum cmd cmdType, int data) {
+	unsigned char spiBuffer[20];
+
 	spiBuffer[0] = (unsigned char) (data & 0xFF);
 	return (SendSPIBlock(cmdType, spiBuffer, 1));
 }
