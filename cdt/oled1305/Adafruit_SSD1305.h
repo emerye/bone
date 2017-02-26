@@ -42,7 +42,7 @@ All text above, and the splash screen must be included in any redistribution
 #define SSD1305_128_64
 /*=========================================================================*/
 
-#define  SSD1305_LCDWIDTH        128
+#define  SSD1305_LCDWIDTH        132
 #define  SSD1305_LCDHEIGHT        64
 
 
@@ -86,7 +86,7 @@ All text above, and the splash screen must be included in any redistribution
 class Adafruit_SSD1305 : public Adafruit_GFX {
  public:
 	Hardware hdwObj;
-Adafruit_SSD1305():Adafruit_GFX(SSD1305_LCDWIDTH, SSD1305_LCDHEIGHT) {
+    Adafruit_SSD1305():Adafruit_GFX(SSD1305_LCDWIDTH, SSD1305_LCDHEIGHT) {
 }
 
 /*
@@ -99,20 +99,18 @@ Adafruit_SSD1305():Adafruit_GFX(SSD1305_LCDWIDTH, SSD1305_LCDHEIGHT) {
   
   void data(uint8_t c);
   void initDisplay();
-
+  void displayBuffer(void);
+  void init_Hardware(void);
   void clearDisplay(void);
   void invertDisplay(uint8_t i);
   void setBrightness(uint8_t i);
   void display();
+  void Set_Start_Column(unsigned char d);
 
   void drawPixel(int16_t x, int16_t y, uint16_t color);
- // virtual ~Adafruit_SSD1305();
+  virtual ~Adafruit_SSD1305();
 
 private:
- // int8_t sid, sclk, dc, rst, cs;
-  void spixfer(uint8_t x);
-#ifdef __AVR__
-  volatile uint8_t *mosiport, *clkport;
-  uint8_t mosipinmask, clkpinmask;
-#endif
+
+
 };
