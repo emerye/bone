@@ -865,11 +865,10 @@ void oled1309::writeString(int x, int y, int size, const char *string) {
 		c = ch;
 		c -= gfxFont.first;
 		GFXglyph glyph = gfxFont.glyph[c];
-		int8_t xa = glyph.xAdvance;
+		int8_t xa = glyph.xAdvance - 4;
 		drawCharCustom(x, y, ch,
 		WHITE, BLACK, size);
 		x += xa * size;
 	}
-
 }
 

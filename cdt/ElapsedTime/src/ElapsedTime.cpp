@@ -20,7 +20,7 @@
 #include "../oled1309/glcdfont.h"
 #include "FreeMono12pt7b.h"
 #include "oled1309.h"
-#include "FreeMono24pt7b.h"
+#include "FreeMono18pt7b.h"
 
 /* number of times the handle will run: */
 volatile int elapsedSeconds = 0;
@@ -39,25 +39,27 @@ int main() {
 	unsigned int elapsedMinutes = 0;
 	unsigned int newMinutes = 0;
 	int xstart = 0;
-	int ystart = 30;
-	int height = 24 + 4;
+	int ystart = 22;
+	int height = 22 + 8;
 	char buffer[10];
-	int divider = 60;   //Change to 60 for release
+	int divider = 1;   //Change to 60 for release
 	int testOffset = 0;
 
 	oled1309 display;
+	display.setFont(FreeMono18pt7b);
 
 	printf("%3um\n", elapsedMinutes);
 	time(&startTime);
 	sprintf(buffer, "%3dm", elapsedMinutes);
 	display.writeString(xstart, ystart, 1, buffer);
+
 	display.displayPicture();
 
 	signal(SIGALRM, handle);
 	alarm(1);
 
-	//for (int i = 0; i < 10; i++) {
-	  for (;;) {
+	for (int i = 0; i < 300; i++) {
+	 // for (;;) {
 		if (newDataAvail > 0) {
 			newDataAvail = 0;
 			time(&currentTime);
@@ -67,7 +69,7 @@ int main() {
 				printf("%3um\n", elapsedMinutes);
 				fflush(stdout);
 				sprintf(buffer, "%3dm", elapsedMinutes);
-				display.fillRect(xstart, ystart - height, 127, height + 4,
+				display.fillRect(xstart, 0, 127, height,
 						BLACK);
 				display.writeString(xstart, ystart, 1, buffer);
 			}
