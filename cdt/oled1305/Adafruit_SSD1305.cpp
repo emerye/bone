@@ -295,8 +295,9 @@ int main() {
     oledObj.drawRect(2,0,128,64,WHITE);
     oledObj.drawChar(20,20,'f',WHITE, BLACK, 1);
     oledObj.drawChar(40,20,'F',WHITE, BLACK, 4);
+    oledObj.drawChar(75,10,'A',WHITE, BLACK, 6);
     oledObj.displayBuffer();
-    puts("Started");
+    puts("Finished");
 
 	return 0;
 }
