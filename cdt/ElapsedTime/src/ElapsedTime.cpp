@@ -25,7 +25,7 @@
 #include "FreeMono9pt7b.h"
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define TEMPOFFSET -0.3
+#define TEMPOFFSET -0.1
 
 /* number of times the handle will run: */
 volatile int elapsedSeconds = 0;
@@ -61,8 +61,9 @@ int main() {
 	int ystart = 24;
 	int height = 24 + 8;
 	char buffer[10];
-	int divider = 1;   //Change to 60 for release
+	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
+	bool debug = false;
 	double temperature, temperatureF, pressure, humidity;
 
 	oled1309 display;
@@ -75,18 +76,17 @@ int main() {
 
 	display.setFont(FreeMono18pt7b);
 
-	printf("%3um\n", elapsedMinutes);
 	time(&startTime);
-//	sprintf(buffer, "%3d", elapsedMinutes);
-//	display.writeString(xstart, ystart, 1, buffer);
-    display.clearDisplay();
+	display.clearDisplay();
+	sprintf(buffer, "%3dm", elapsedMinutes);
+	display.writeString(xstart, ystart, 1, buffer);
 	display.displayPicture();
 
 	signal(SIGALRM, handle);
 	alarm(1);
 
-	for (int i = 0; i < 400; i++) {
-	 // for (;;) {
+//	for (int i = 0; i < 400; i++) {
+	for (;;) {
 		if (newDataAvail > 0) {
 			newDataAvail = 0;
 			time(&currentTime);
@@ -95,9 +95,9 @@ int main() {
 				elapsedMinutes = newMinutes;
 				printf("%3um\n", elapsedMinutes);
 				fflush(stdout);
-				sprintf(buffer, "%3dM", elapsedMinutes);
+				sprintf(buffer, "%3dm", elapsedMinutes);
 				display.fillRect(xstart, 0, 127, height,
-						BLACK);
+				BLACK);
 				memset(display.buffer, 0, 1024);
 				display.writeString(xstart, ystart, 1, buffer);
 			}
@@ -106,25 +106,29 @@ int main() {
 		display.drawPixel(127, 63, pixelColor);
 
 		temperature = sensor.readTemperature();
-		temperatureF = temperature * 9.0 / 5.0 + 32 TEMPOFFSET;
-		memset(buffer,0,10);
-		printf("Temperature is %.1f\n", temperatureF);
+		temperatureF = temperature * 9.0 / 5.0 + 32TEMPOFFSET;
+		memset(buffer, 0, 10);
+		if (debug)
+			printf("Temperature is %.1f\n", temperatureF);
 
 		sprintf(buffer, "%.1fT", temperatureF);
+		display.fillRect(0, 32, 127, 30,
+		BLACK);
 		display.writeString(0, 60, 1, buffer);
 
 		pressure = sensor.readPressure() / 100.0F;
-		printf("Pressure in hPa is %f\n", pressure);
-
-		printf("Pressure in inches of mercury is %f\n",
-				pressure / 33.8638866667);
+		if (debug) {
+			printf("Pressure in hPa is %f\n", pressure);
+			printf("Pressure in inches of mercury is %f\n",
+					pressure / 33.8638866667);
+		}
 
 		humidity = sensor.readHumidity();
-		printf("Humidity is %f \n", humidity);
+		if (debug)
+			printf("Humidity is %f \n", humidity);
 
 		display.displayPicture();
 		sleep(1);
-
 	}
 	printf("Done\n");
 	return 0;
