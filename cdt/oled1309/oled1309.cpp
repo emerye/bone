@@ -138,6 +138,7 @@ const unsigned char pic[]=
 		0x8F, 0x80, 0x9F, 0x9F, 0x80, 0x80, 0x9F, 0x9F, 0x80, 0x80, 0x9F, 0x9F,
 		0x80, 0x80, 0xFF, };
 
+
 //Constructor
 oled1309::oled1309() {
 	setFont(FreeMono24pt7b);
@@ -152,6 +153,7 @@ oled1309::oled1309() {
 oled1309::~oled1309() {
 }
 
+extern "C"
 void oled1309::setFont(const GFXfont font) {
 	gfxFont = font;
 }
@@ -860,12 +862,14 @@ void oled1309::writeString(int x, int y, int size, const char *string) {
 	unsigned char ch, c;
 
 	while (*string != 0) {
+		int xa;
+
 		ch = *string;
 		string++;
 		c = ch;
 		c -= gfxFont.first;
-		GFXglyph glyph = gfxFont.glyph[c];
-		int8_t xa = glyph.xAdvance - 4;
+		xa = gfxFont.glyph[c].xAdvance;
+	//	int8_t xa = glyph.xAdvance - 1;
 		drawCharCustom(x, y, ch,
 		WHITE, BLACK, size);
 		x += xa * size;

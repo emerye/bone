@@ -3,6 +3,7 @@
 	<name>ElapsedTime</name>
 	<comment></comment>
 	<projects>
+		<project>BME280</project>
 		<project>oled1309</project>
 	</projects>
 	<buildSpec>
