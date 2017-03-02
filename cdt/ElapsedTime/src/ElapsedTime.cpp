@@ -25,7 +25,7 @@
 #include "FreeMono9pt7b.h"
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define TEMPOFFSET -0.1
+
 
 /* number of times the handle will run: */
 volatile int elapsedSeconds = 0;
@@ -106,7 +106,7 @@ int main() {
 		display.drawPixel(127, 63, pixelColor);
 
 		temperature = sensor.readTemperature();
-		temperatureF = temperature * 9.0 / 5.0 + 32TEMPOFFSET;
+		temperatureF = temperature * 9.0 / 5.0 + 32;
 		memset(buffer, 0, 10);
 		if (debug)
 			printf("Temperature is %.1f\n", temperatureF);
