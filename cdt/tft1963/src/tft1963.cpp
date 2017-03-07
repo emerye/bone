@@ -14,11 +14,24 @@
 #include <wiringPiSPI.h>
 #include "tft1963.h"
 
-
-
+//Constructor
 RpiHardware::RpiHardware() {
-	wiringPiSetup () ;
-	spiDescriptor = wiringPiSPISetup (0, 6000000);
+
+	HDP=479;
+	HT=531;
+	HPS=43;
+	LPS=8;
+	HPW=10;
+
+	VDP=271;
+	VT=288;
+	VPS=12;
+	FPS=4;
+	VPW=10;
+
+
+	wiringPiSetup();
+	spiDescriptor = wiringPiSPISetup(0, 6000000);
 	if (spiDescriptor < 0) {
 		puts("SPI Initialisation Failed");
 	}
@@ -27,22 +40,13 @@ RpiHardware::RpiHardware() {
 RpiHardware::~RpiHardware() {
 }
 
+void RpiHardware::initRpiHardware() {
+	pinMode(RESETGPIO, OUTPUT);
+	pinMode(DATACMDGPIO, OUTPUT);
+	pinMode(WRITEGPIO, OUTPUT);
+	digitalWrite(RESETGPIO, HIGH);
+	pinMode(WRITEGPIO, HIGH);
 
-void RpiHardware::initRpiHardware()
-{
-  pinMode(RESETGPIO, OUTPUT);
-  pinMode(DATACMDGPIO, OUTPUT);
-  pinMode(WRITEGPIO, OUTPUT);
-  digitalWrite (RESETGPIO, HIGH);
-  pinMode(WRITEGPIO, HIGH);
-
-}
-
-
-void RpiHardware::TFT_Set_Address (unsigned int px1, unsigned int py1, unsigned int px2,
-		 unsigned int py2) {
-
-	Address_set(px1, py1, px2, py2);
 }
 
 
@@ -61,18 +65,15 @@ void RpiHardware::SendCommand(cmdType cmd) {
 
 }
 
+void RpiHardware::TFT_FillDisp(unsigned int color) {
+	unsigned int i, j;
 
-void RpiHardware::TFT_FillDisp (unsigned int color)
-{
-  unsigned int i, j;
-
-  TFT_Set_Address (0, 0, XMAXPIXEL, YMAXPIXEL);
-  Write_Data (color);
-  for (i = 0; i <= XMAXPIXEL; i++)
-    {
-      for (j = 0; j <= YMAXPIXEL; j++)
-	SendCommand (WRITEDATA);
-    }
+	setAddress(0, 0, XMAXPIXEL, YMAXPIXEL);
+	Write_Data(color);
+	for (i = 0; i <= XMAXPIXEL; i++) {
+		for (j = 0; j <= YMAXPIXEL; j++)
+			SendCommand(WRITEDATA);
+	}
 }
 
 void RpiHardware::Write_Command(unsigned int data) {
@@ -94,30 +95,28 @@ void RpiHardware::Write_Data(unsigned int data) {
 	SendCommand(WRITEDATA);
 }
 
-
 //Init sequence for ssd1963 and eBay 4.3 inch TFT.
-void RpiHardware::Init_ssd1963(void)
-{
+void RpiHardware::Init_ssd1963(void) {
 	//Reset Line
-	digitalWrite (RESETGPIO, HIGH);
-    usleep(15000);
-    digitalWrite (RESETGPIO, LOW);
-    usleep(15000);
-    digitalWrite (RESETGPIO, HIGH);
-    usleep(25000);
+	digitalWrite(RESETGPIO, HIGH);
+	usleep(15000);
+	digitalWrite(RESETGPIO, LOW);
+	usleep(15000);
+	digitalWrite(RESETGPIO, HIGH);
+	usleep(25000);
 
-    Write_Command(0x00E2);	//PLL multiplier, set PLL clock to 120M
+	Write_Command(0x00E2);	//PLL multiplier, set PLL clock to 120M
 	Write_Data(0x002d);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
 	Write_Data(0x0002);
 	Write_Data(0x0054);
 
 	Write_Command(0x00E0);  // PLL enable
 	Write_Data(0x0001);
-	usleep(1000*5);       //Wait 5 usec
+	usleep(1000 * 5);       //Wait 5 usec
 
 	Write_Command(0x00E0);  //Use PLL as system clock. Enable PLL
 	Write_Data(0x0003);
-	usleep(1000*5);
+	usleep(1000 * 5);
 
 	Write_Command(0x0001);  // software reset
 	usleep(5000);
@@ -133,80 +132,79 @@ void RpiHardware::Init_ssd1963(void)
 	Write_Command(0x00B0);	//LCD SPECIFICATION
 	Write_Data(0x0020);     //24 bit
 	Write_Data(0x0000);
-	Write_Data((HDP>>8)&0X00FF);  //Set HDP
-	Write_Data(HDP&0X00FF);
-    Write_Data((VDP>>8)&0X00FF);  //Set VDP
-	Write_Data(VDP&0X00FF);
-    Write_Data(0x0000);
-	usleep(5*1000);
+	Write_Data((HDP >> 8) & 0X00FF);  //Set HDP
+	Write_Data(HDP & 0X00FF);
+	Write_Data((VDP >> 8) & 0X00FF);  //Set VDP
+	Write_Data(VDP & 0X00FF);
+	Write_Data(0x0000);
+	usleep(5 * 1000);
 
 	Write_Command(0x00B4);	//HSYNC
-	Write_Data((HT>>8)&0X00FF);  //Set HT
-	Write_Data(HT&0X00FF);
-	Write_Data((HPS>>8)&0X00FF);  //Set HPS
-	Write_Data(HPS&0X00FF);
+	Write_Data((HT >> 8) & 0X00FF);  //Set HT
+	Write_Data(HT & 0X00FF);
+	Write_Data((HPS >> 8) & 0X00FF);  //Set HPS
+	Write_Data(HPS & 0X00FF);
 	Write_Data(HPW);			   //Set HPW
-	Write_Data((LPS>>8)&0X00FF);  //SetLPS
-	Write_Data(LPS&0X00FF);
+	Write_Data((LPS >> 8) & 0X00FF);  //SetLPS
+	Write_Data(LPS & 0X00FF);
 	Write_Data(0x0000);
 
 	Write_Command(0x00B6);	//VSYNC
-	Write_Data((VT>>8)&0X00FF);   //Set VT
-	Write_Data(VT&0X00FF);
-	Write_Data((VPS>>8)&0X00FF);  //Set VPS
-	Write_Data(VPS&0X00FF);
+	Write_Data((VT >> 8) & 0X00FF);   //Set VT
+	Write_Data(VT & 0X00FF);
+	Write_Data((VPS >> 8) & 0X00FF);  //Set VPS
+	Write_Data(VPS & 0X00FF);
 	Write_Data(VPW);			   //Set VPW
-	Write_Data((FPS>>8)&0X00FF);  //Set FPS
-	Write_Data(FPS&0X00FF);
+	Write_Data((FPS >> 8) & 0X00FF);  //Set FPS
+	Write_Data(FPS & 0X00FF);
 
 	Write_Command(0x0029); //display on
-    usleep(25000);
+	usleep(25000);
 
-/*
-	LCD_WR_REG(0x00BE); //set PWM for B/L
-	LCD_WR_Data(0x0006);
-	LCD_WR_Data(0x00f0);
-	LCD_WR_Data(0x0001);
-	LCD_WR_Data(0x00f0);
-	LCD_WR_Data(0x0000);
-	LCD_WR_Data(0x0000);
-*/
+	/*
+	 LCD_WR_REG(0x00BE); //set PWM for B/L
+	 LCD_WR_Data(0x0006);
+	 LCD_WR_Data(0x00f0);
+	 LCD_WR_Data(0x0001);
+	 LCD_WR_Data(0x00f0);
+	 LCD_WR_Data(0x0000);
+	 LCD_WR_Data(0x0000);
+	 */
 
+	/*
+	 Write_Command(0x00d0);
+	 Write_Data(0x000d);
 
-/*
-	Write_Command(0x00d0);
-	Write_Data(0x000d);
+	 //----------LCD RESET---GPIO0-------------------//
+	 Write_Command(0x00B8);
+	 Write_Data(0x0000);    //GPIO3=input, GPIO[2:0]=output
+	 Write_Data(0x0001);    //GPIO0 normal
 
-        //----------LCD RESET---GPIO0-------------------//
-	Write_Command(0x00B8);
-	Write_Data(0x0000);    //GPIO3=input, GPIO[2:0]=output
-	Write_Data(0x0001);    //GPIO0 normal
-
-	Write_Command(0x00BA);
-	Write_Data(0x0000);
-*/
+	 Write_Command(0x00BA);
+	 Write_Data(0x0000);
+	 */
 }
 
-void RpiHardware::Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2)
-{
-    Write_Command(0x002A);		//Set Column Address
+void RpiHardware::setAddress(unsigned int x1, unsigned int y1, unsigned int x2,
+		unsigned int y2) {
+	Write_Command(0x002A);		//Set Column Address
 
-    Write_Data(x1>>8);
-    Write_Data(x1&0xff);
-    Write_Data(x2>>8);
-    Write_Data(x2&0xff);
+	Write_Data(x1 >> 8);
+	Write_Data(x1 & 0xff);
+	Write_Data(x2 >> 8);
+	Write_Data(x2 & 0xff);
 
-    Write_Command(0x002b);		//Set page address
+	Write_Command(0x002b);		//Set page address
 
-    Write_Data(y1>>8);
-    Write_Data(y1&0x00ff);
-    Write_Data(y2>>8);
-    Write_Data(y2&0x00ff);
+	Write_Data(y1 >> 8);
+	Write_Data(y1 & 0x00ff);
+	Write_Data(y2 >> 8);
+	Write_Data(y2 & 0x00ff);
 
-    Write_Command(0x002c);		//Write Memory Start
+	Write_Command(0x002c);		//Write Memory Start
 }
 
-
+/*
 int main(int argc, char * argv[]) {
 	int i, status;
 	RpiHardware rpiObj;
@@ -217,28 +215,12 @@ int main(int argc, char * argv[]) {
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
 	rpiObj.TFT_FillDisp(BLUE);
+	rpiObj.TFT_FillDisp(WHITE);
+	rpiObj.TFT_FillDisp(RED);
+	rpiObj.TFT_FillDisp(GREEN);
 
-	/*
-	for (i=0; i<700; i++)
-	  {
-	    digitalWrite (RESETGPIO, HIGH);
-	    digitalWrite (DATACMDGPIO, HIGH);
-	    digitalWrite (WRITEGPIO, HIGH);
-	    delay (1) ;
-	    digitalWrite (DATACMDGPIO,  LOW);
-	    digitalWrite (RESETGPIO, LOW);
-	    digitalWrite (WRITEGPIO, LOW);
-	    delay(1);
-	  }
-	for (i=0; i<10000; i++) {
-		buffer[0] = 0x55;
-		buffer[1] = 0xAA;
-		status = wiringPiSPIDataRW (rpiObj.spiDescriptor, buffer, 2) ;
-		if (status == -1) {
-			puts("Error writing byte to SPI");
-		}
-	}
-	*/
+
 	puts("End");
 	return 0;
 }
+*/

@@ -18,7 +18,7 @@
 #define RED    0xF800
 #define GREEN  0x07E0
 #define BLUE   0x001F
-#define WHITE  0xFFFF
+#define WHITE  0xFFFE
 #define PURPLE 0xF11F
 #define YELLOW 0xFFE0
 #define CYAN   0x07FF
@@ -28,18 +28,6 @@
 #define XMAXPIXEL  479
 #define YMAXPIXEL  271
 #define SSD1963		 1
-
-unsigned int  HDP=479;
-unsigned int  HT=531;
-unsigned int  HPS=43;
-unsigned int  LPS=8;
-unsigned char HPW=10;
-
-unsigned int  VDP=271;
-unsigned int  VT=288;
-unsigned int  VPS=12;
-unsigned int  FPS=4;
-unsigned char VPW=10;
 
 typedef enum
 {
@@ -59,17 +47,25 @@ public:
 	void Write_Command (unsigned int data);
 	void Write_Data (unsigned int data);
 	void Init_ssd1963(void);
-	void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2);
 	void TFT_FillDisp(unsigned int color);
-	void TFT_Set_Address (unsigned int px1, unsigned int py1, unsigned int px2,
+	void setAddress (unsigned int px1, unsigned int py1, unsigned int px2,
 			 unsigned int py2);
 	void SendCommand(cmdType cmd);
 
-
 private:
+	unsigned int  HDP;
+		unsigned int  HT;
+		unsigned int  HPS;
+		unsigned int  LPS;
+		unsigned char HPW;
+
+		unsigned int  VDP;
+		unsigned int  VT;
+		unsigned int  VPS;
+		unsigned int  FPS;
+		unsigned char VPW;
 
 };
-
 
 
 #endif /* TFT1963_H_ */
