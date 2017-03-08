@@ -8,6 +8,7 @@
 #ifndef TFT1963_H_
 #define TFT1963_H_
 
+#include "Adafruit_GFX.h"
 
 #define WRITEGPIO 21
 #define DATACMDGPIO 28
@@ -29,14 +30,16 @@
 #define YMAXPIXEL  271
 #define SSD1963		 1
 
-typedef enum
+enum cmdType
 {
    WRITECMD,
    WRITEDATA
-} cmdType;
+};
 
 
-class RpiHardware{
+class RpiHardware : public Adafruit_GFX
+{
+
 public:
 	RpiHardware();
 	~RpiHardware();
@@ -50,7 +53,7 @@ public:
 	void TFT_FillDisp(unsigned int color);
 	void setAddress (unsigned int px1, unsigned int py1, unsigned int px2,
 			 unsigned int py2);
-	void SendCommand(cmdType cmd);
+	void SendCommand(cmdType);
 
 private:
 	unsigned int  HDP;

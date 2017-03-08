@@ -13,12 +13,17 @@
 //namespace oledTest {
 
 DispDraw::DispDraw() {
-	// TODO Auto-generated constructor stub
 
 }
 
 DispDraw::~DispDraw() {
 	// TODO Auto-generated destructor stub
+}
+
+
+void DispDraw::drawPixel(int16_t x, int16_t y, uint16_t color) {
+	drawDot(x,y,color);
+
 }
 
 void DispDraw::drawDot(unsigned int x, unsigned int y, unsigned int color) {

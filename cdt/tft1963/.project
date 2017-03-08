@@ -3,6 +3,7 @@
 	<name>tft1963</name>
 	<comment></comment>
 	<projects>
+		<project>gfx</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

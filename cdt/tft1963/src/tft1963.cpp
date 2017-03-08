@@ -13,9 +13,10 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include "tft1963.h"
+#include "Adafruit_GFX.h"
 
 //Constructor
-RpiHardware::RpiHardware() {
+RpiHardware::RpiHardware() : Adafruit_GFX(XMAXPIXEL, YMAXPIXEL) {
 
 	HDP=479;
 	HT=531;
@@ -204,23 +205,4 @@ void RpiHardware::setAddress(unsigned int x1, unsigned int y1, unsigned int x2,
 	Write_Command(0x002c);		//Write Memory Start
 }
 
-/*
-int main(int argc, char * argv[]) {
-	int i, status;
-	RpiHardware rpiObj;
-	unsigned char buffer[100];
 
-	puts("Hello World\n");
-	fflush(stdout);
-	rpiObj.initRpiHardware();
-	rpiObj.Init_ssd1963();
-	rpiObj.TFT_FillDisp(BLUE);
-	rpiObj.TFT_FillDisp(WHITE);
-	rpiObj.TFT_FillDisp(RED);
-	rpiObj.TFT_FillDisp(GREEN);
-
-
-	puts("End");
-	return 0;
-}
-*/

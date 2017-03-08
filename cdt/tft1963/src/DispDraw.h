@@ -9,6 +9,7 @@
 #define DISPDRAW_H_
 
 #include "tft1963.h"
+#include "Adafruit_GFX.h"
 
 
 class DispDraw: public RpiHardware {
@@ -22,7 +23,7 @@ public:
 		    unsigned int color);
 	void drawVertLine (unsigned int y1, unsigned int y2, unsigned int x_pos,
 		    unsigned int color);
-
+	void drawPixel(int16_t x, int16_t y, uint16_t color);
 
 };
 
