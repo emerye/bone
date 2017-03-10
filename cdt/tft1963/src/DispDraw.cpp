@@ -28,23 +28,11 @@ void DispDraw::drawPixel(int16_t x, int16_t y, uint16_t color) {
 
 void DispDraw::drawDot(unsigned int x, unsigned int y, unsigned int color) {
 
-	setAddress(x, y, x + 1, y);
+	setAddress(x, y, x , y);
 	Write_Data(color);
-	//  SendCommand(WRITEDATA);
+    SendCommand(WRITEDATA);
 }
 
-void DispDraw::drawBox(unsigned int x1, unsigned int y1, unsigned int x2,
-		unsigned int y2, unsigned int color) {
-	unsigned int i, j;
-
-	setAddress(x1, y1, x2, y2);
-	Write_Data(color);
-	for (i = y1; i <= y2; i++) {
-		for (j = x1; j <= x2; j++) {
-			SendCommand(WRITEDATA);
-		}
-	}
-}
 
 void DispDraw::drawVertLine(unsigned int y1, unsigned int y2,
 		unsigned int x_pos, unsigned int color) {

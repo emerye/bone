@@ -54,6 +54,10 @@ public:
 	void setAddress (unsigned int px1, unsigned int py1, unsigned int px2,
 			 unsigned int py2);
 	void SendCommand(cmdType);
+	void drawFastVLine(short x1, short y1,  short y2,
+			unsigned short color);
+	void drawFastHLine(int16_t x, int16_t y,
+	 int16_t w, uint16_t color);
 
 private:
 	unsigned int  HDP;

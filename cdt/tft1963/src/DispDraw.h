@@ -21,9 +21,12 @@ public:
 		 unsigned int color);
 	void drawHorzLine (int x1, int x2, int y_pos,
 		    unsigned int color);
-	void drawVertLine (unsigned int y1, unsigned int y2, unsigned int x_pos,
-		    unsigned int color);
+	void drawFastVLinelcl (short y1, short y2, short x_pos,
+		    unsigned short color);
 	void drawPixel(int16_t x, int16_t y, uint16_t color);
+	void drawVertLine(unsigned int y1, unsigned int y2,
+			unsigned int x_pos, unsigned int color);
+
 
 };
 

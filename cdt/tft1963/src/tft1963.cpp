@@ -32,7 +32,7 @@ RpiHardware::RpiHardware() : Adafruit_GFX(XMAXPIXEL, YMAXPIXEL) {
 
 
 	wiringPiSetup();
-	spiDescriptor = wiringPiSPISetup(0, 6000000);
+	spiDescriptor = wiringPiSPISetup(0, 8000000);
 	if (spiDescriptor < 0) {
 		puts("SPI Initialisation Failed");
 	}
@@ -47,7 +47,6 @@ void RpiHardware::initRpiHardware() {
 	pinMode(WRITEGPIO, OUTPUT);
 	digitalWrite(RESETGPIO, HIGH);
 	pinMode(WRITEGPIO, HIGH);
-
 }
 
 
@@ -64,6 +63,28 @@ void RpiHardware::SendCommand(cmdType cmd) {
 	digitalWrite(WRITEGPIO, HIGH);
 	digitalWrite(DATACMDGPIO, HIGH);
 
+}
+
+//Overriding base class
+void RpiHardware::drawFastVLine(short x1, short y1,  short y2,
+		unsigned short color) {
+	int i, j;
+
+	setAddress(x1, y1, x1, y2+y1);
+	Write_Data(color);
+	for (i = y1; i <= y2+y1; i++) {
+			SendCommand(WRITEDATA);
+	}
+}
+
+void RpiHardware::drawFastHLine(int16_t x, int16_t y,
+ int16_t w, uint16_t color) {
+
+	setAddress(x, y, x+w, y);
+		Write_Data(color);
+		for (int k = x; k <= x+w; k++) {
+			SendCommand(WRITEDATA);
+		}
 }
 
 void RpiHardware::TFT_FillDisp(unsigned int color) {
@@ -204,5 +225,7 @@ void RpiHardware::setAddress(unsigned int x1, unsigned int y1, unsigned int x2,
 
 	Write_Command(0x002c);		//Write Memory Start
 }
+
+
 
 

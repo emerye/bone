@@ -244,6 +244,7 @@ void Adafruit_GFX::drawRect(int16_t x, int16_t y, int16_t w, int16_t h,
 void Adafruit_GFX::drawFastVLine(int16_t x, int16_t y,
  int16_t h, uint16_t color) {
   // Update in subclasses if desired!
+
   drawLine(x, y, x, y+h-1, color);
 }
 
@@ -778,97 +779,26 @@ void Adafruit_GFX::getTextBounds(char *str, int16_t x, int16_t y,
   } // End classic vs custom font
 }
 
-/*
-// Same as above, but for PROGMEM strings
-void Adafruit_GFX::getTextBounds(const __FlashStringHelper *str,
- int16_t x, int16_t y, int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h) {
-  uint8_t *s = (uint8_t *)str, c;
+void Adafruit_GFX::writeString(int16_t x, int16_t y, int size, const char *string, unsigned short color) {
 
-  *x1 = x;
-  *y1 = y;
-  *w  = *h = 0;
+	unsigned char ch, c;
 
-  if(gfxFont) {
+	while (*string != 0) {
+		int xa;
 
-    GFXglyph *glyph;
-    uint8_t   first = pgm_read_byte(&gfxFont->first),
-              last  = pgm_read_byte(&gfxFont->last),
-              gw, gh, xa;
-    int8_t    xo, yo;
-    int16_t   minx = _width, miny = _height, maxx = -1, maxy = -1,
-              gx1, gy1, gx2, gy2, ts = (int16_t)textsize,
-              ya = ts * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
+		ch = *string;
+		string++;
+		c = ch;
+		c -= gfxFont->first;
 
-    while((c = pgm_read_byte(s++))) {
-      if(c != '\n') { // Not a newline
-        if(c != '\r') { // Not a carriage return, is normal char
-          if((c >= first) && (c <= last)) { // Char present in current font
-            c    -= first;
-            glyph = &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
-            gw    = pgm_read_byte(&glyph->width);
-            gh    = pgm_read_byte(&glyph->height);
-            xa    = pgm_read_byte(&glyph->xAdvance);
-            xo    = pgm_read_byte(&glyph->xOffset);
-            yo    = pgm_read_byte(&glyph->yOffset);
-            if(wrap && ((x + (((int16_t)xo + gw) * ts)) >= _width)) {
-              // Line wrap
-              x  = 0;  // Reset x to 0
-              y += ya; // Advance y by 1 line
-            }
-            gx1 = x   + xo * ts;
-            gy1 = y   + yo * ts;
-            gx2 = gx1 + gw * ts - 1;
-            gy2 = gy1 + gh * ts - 1;
-            if(gx1 < minx) minx = gx1;
-            if(gy1 < miny) miny = gy1;
-            if(gx2 > maxx) maxx = gx2;
-            if(gy2 > maxy) maxy = gy2;
-            x += xa * ts;
-          }
-        } // Carriage return = do nothing
-      } else { // Newline
-        x  = 0;  // Reset x
-        y += ya; // Advance y by 1 line
-      }
-    }
-    // End of string
-    *x1 = minx;
-    *y1 = miny;
-    if(maxx >= minx) *w  = maxx - minx + 1;
-    if(maxy >= miny) *h  = maxy - miny + 1;
-
-  } else { // Default font
-
-    uint16_t lineWidth = 0, maxWidth = 0; // Width of current, all lines
-
-    while((c = pgm_read_byte(s++))) {
-      if(c != '\n') { // Not a newline
-        if(c != '\r') { // Not a carriage return, is normal char
-          if(wrap && ((x + textsize * 6) >= _width)) {
-            x  = 0;            // Reset x to 0
-            y += textsize * 8; // Advance y by 1 line
-            if(lineWidth > maxWidth) maxWidth = lineWidth; // Save widest line
-            lineWidth  = textsize * 6; // First char on new line
-          } else { // No line wrap, just keep incrementing X
-            lineWidth += textsize * 6; // Includes interchar x gap
-          }
-        } // Carriage return = do nothing
-      } else { // Newline
-        x  = 0;            // Reset x to 0
-        y += textsize * 8; // Advance y by 1 line
-        if(lineWidth > maxWidth) maxWidth = lineWidth; // Save widest line
-        lineWidth = 0;     // Reset lineWidth for new line
-      }
-    }
-    // End of string
-    if(lineWidth) y += textsize * 8; // Add height of last (or only) line
-    if(lineWidth > maxWidth) maxWidth = lineWidth; // Is the last or only line the widest?
-    *w = maxWidth - 1;               // Don't include last interchar x gap
-    *h = y - *y1;
-
-  } // End classic vs custom font
+		xa = gfxFont->glyph[c].xAdvance;
+	//	int8_t xa = glyph.xAdvance - 1;
+		drawChar(x, y, ch, color, 0x80, size);
+		x += xa * size;
+	}
 }
-*/
+
+
 
 // Return the size of the display (per current rotation)
 int16_t Adafruit_GFX::width(void) const {

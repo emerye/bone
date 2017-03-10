@@ -62,10 +62,12 @@ class Adafruit_GFX {
     cp437(bool x=true),
     setFont(const GFXfont *f = NULL),
     getTextBounds(char *string, int16_t x, int16_t y,
-      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
+      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h),
+
+    writeString(int16_t x, int16_t y, int size, const char *string, unsigned short color);
 	  /*
     getTextBounds(const __FlashStringHelper *s, int16_t x, int16_t y,
-      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h);
+      int16_t *x1, int16_t *y1, uint16_t *w, uint16_t *h)
       */
 
 #if ARDUINO >= 100
