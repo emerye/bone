@@ -14,6 +14,14 @@
 
 DispDraw::DispDraw() {
 
+	ptr = new int;
+	*ptr = 0;
+}
+
+DispDraw::DispDraw(const DispDraw &obj) {
+	puts("DisplayDraw copy constructor.");
+   ptr = new int;
+   *ptr = *obj.ptr; // copy the value
 }
 
 DispDraw::~DispDraw() {

@@ -42,7 +42,7 @@ class RpiHardware : public Adafruit_GFX
 
 public:
 	RpiHardware();
-	~RpiHardware();
+	virtual ~RpiHardware();
 
 	int spiDescriptor;
 
