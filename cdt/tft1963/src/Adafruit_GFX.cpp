@@ -779,6 +779,23 @@ void Adafruit_GFX::getTextBounds(char *str, int16_t x, int16_t y,
   } // End classic vs custom font
 }
 
+/**
+ * Erase rectangle then write string
+ *
+ * @param short x Starting x
+ * @param yOffset Subtracted from starting erase on y axis to erase more rows at the top of region.
+ */
+void Adafruit_GFX::writeStringErase(int16_t x, int16_t y, int size, const char *string, unsigned short foreColor, unsigned short backColor, int yOffset) {
+
+    int16_t x1, y1;
+    uint16_t w, h;
+
+	getTextBounds((char *)string, x, y, &x1,  &y1,  &w,  &h);
+	fillRect((unsigned int)x, (unsigned int)y1-yOffset, (unsigned int) w + (x1-x), (unsigned int) h, (unsigned int)backColor);
+	writeString(x,y,size,string, foreColor);
+
+}
+
 void Adafruit_GFX::writeString(int16_t x, int16_t y, int size, const char *string, unsigned short color) {
 
 	unsigned char ch, c;
