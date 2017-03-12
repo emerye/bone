@@ -40,13 +40,16 @@ int main(int argc, char * argv[]) {
 
 	for (i = 0; i < 3; i++) {
 
-		rpiObj.writeStringErase(0, 70, 2, "HelloThere", GREEN, BLACK, 0);
+		rpiObj.Write_Command(SSD1963_GET_ADDRESS_MODE);
+		rpiObj.Write_Data(0x0040);
 
-		rpiObj.writeStringErase(x, 120, 1, "HIGHHFDHHD", RED, BLACK, 0);
+		rpiObj.writeString(x, 70, 2, "HelloThere", GREEN);
 
-		rpiObj.writeStringErase(x, 120, 1, "012.34567", GREEN, BLACK, 1);
+	//	rpiObj.writeStringErase(x, 120, 1, "HIGHHFDHHD", RED, BLACK, 0);
 
-		rpiObj.writeString(x, 150, 1, "ABCD..EFG", BLUE);
+		rpiObj.writeString(x, 120, 1, "012.34567", GREEN);
+
+		rpiObj.writeString(x, 170, 1, "ABCD..EFG", BLUE);
 
 		rpiObj.setFont(&FreeSans12pt7b);
 		rpiObj.writeString(50, 200, 1, "ABCD..EFG", BLUE);

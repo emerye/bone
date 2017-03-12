@@ -148,6 +148,7 @@ void RpiHardware::Init_ssd1963(void) {
 	Write_Data(0x00be);
 
 	usleep(5000);
+
 	Write_Command(0x00F0); //pixel data interface
 	Write_Data(0x0003);    //16 bit 565
 

@@ -45,7 +45,6 @@ void displayUnits() {
 	displayRef->setFont(FreeMono9pt7b);
 	int xstart = 20;
 	int ystart = 9;
-	int height = 9 + 8;
 
 	displayRef->setFont(FreeMono9pt7b);
 	displayRef->writeString(xstart,ystart ,1,"Min");
