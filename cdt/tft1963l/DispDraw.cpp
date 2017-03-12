@@ -36,9 +36,8 @@ void DispDraw::drawPixel(int16_t x, int16_t y, uint16_t color) {
 
 void DispDraw::drawDot(unsigned int x, unsigned int y, unsigned int color) {
 
-	setAddress(x, y, x , y);
-	Write_Data(color);
-    SendCommand(WRITEDATA);
+	setAddress(x, y, x, y);
+	Write_Data(color);	//Write Memory Start
 }
 
 

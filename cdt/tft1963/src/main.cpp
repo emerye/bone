@@ -22,7 +22,6 @@
 DispDraw *clsObj;
 
 
-
 int main(int argc, char * argv[]) {
 
 	DispDraw rpiObj;
@@ -38,12 +37,27 @@ int main(int argc, char * argv[]) {
 	rpiObj.TFT_FillDisp(BLACK);
 	rpiObj.drawDot(1, 1, WHITE);
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 1; i++) {
 
-		rpiObj.Write_Command(SSD1963_GET_ADDRESS_MODE);
-		rpiObj.Write_Data(0x0040);
+		rpiObj.drawDot(20,20,BLUE);
 
-		rpiObj.writeString(x, 70, 2, "HelloThere", GREEN);
+		rpiObj.drawDot(22,20,RED);
+		rpiObj.drawDot(24,20,GREEN);
+
+		rpiObj.drawDot(26,20,PURPLE);
+		rpiObj.drawDot(27,20,PURPLE);
+
+		int xOff = 0;
+
+		rpiObj.fillRect(xOff+=20, 200, 50+xOff, 50, 0xffff);
+		rpiObj.fillRect(xOff+=20, 200, 50+xOff, 50, 0x0F00);
+		rpiObj.fillRect(xOff+=20, 200, 50+xOff, 50, 0x000F);
+		rpiObj.fillRect(xOff+=20, 200, 50+xOff, 50, 0x001F);
+		rpiObj.fillRect(xOff+=20, 200, 50+xOff, 50, WHITE);
+	//	rpiObj.fillRect(xOff+=20, 200, 50+xOff, 50, 0xffff);
+
+
+		rpiObj.writeString(x, 40, 1, "Hello", RED | GREEN | BLUE);
 
 	//	rpiObj.writeStringErase(x, 120, 1, "HIGHHFDHHD", RED, BLACK, 0);
 

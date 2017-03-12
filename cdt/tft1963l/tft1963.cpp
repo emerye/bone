@@ -94,7 +94,7 @@ void RpiHardware::TFT_FillDisp(unsigned int color) {
 	Write_Data(color);
 	for (i = 0; i <= XMAXPIXEL; i++) {
 		for (j = 0; j <= YMAXPIXEL; j++)
-			SendCommand(WRITEDATA);
+			SendCommand(WRITEDATA);;
 	}
 }
 
@@ -198,10 +198,6 @@ void RpiHardware::Init_ssd1963(void) {
 	 Write_Command(0x00d0);
 	 Write_Data(0x000d);
 
-	 //----------LCD RESET---GPIO0-------------------//
-	 Write_Command(0x00B8);
-	 Write_Data(0x0000);    //GPIO3=input, GPIO[2:0]=output
-	 Write_Data(0x0001);    //GPIO0 normal
 
 	 Write_Command(0x00BA);
 	 Write_Data(0x0000);
@@ -223,8 +219,7 @@ void RpiHardware::setAddress(unsigned int x1, unsigned int y1, unsigned int x2,
 	Write_Data(y1 & 0x00ff);
 	Write_Data(y2 >> 8);
 	Write_Data(y2 & 0x00ff);
-
-	Write_Command(0x002c);		//Write Memory Start
+	Write_Command(0x002c);
 }
 
 
