@@ -813,7 +813,7 @@ void Adafruit_GFX::writeString(int16_t x, int16_t y, int size, const char *strin
 
 		xa = gfxFont->glyph[c].xAdvance;
 	//	int8_t xa = glyph.xAdvance - 1;
-		drawChar(x, y, ch, color, 0x80, size);
+		drawChar(x, y, ch, color, 0x00, size);
 		x += xa * size;
 	}
 }
