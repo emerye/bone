@@ -24,6 +24,12 @@
 #define YELLOW 0xFFE0
 #define CYAN   0x07FF
 #define MAGENTA 0xF81F
+#define NAVY 	0x0010
+#define TEAL  	0x0410
+#define OLIVE 	0x8400
+#define MAROON 	0x8000
+#define SILVER 	0xC618
+#define GRAY 	0x8410
 
 //480 x 272
 #define XMAXPIXEL  479
