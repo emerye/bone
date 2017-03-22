@@ -1,4 +1,4 @@
-CC = gcc -fPIC -g -Wall
+CC = g++ -fPIC -g -Wall
  
 BIN = lib/libnmea.a 
 MODULES = generate generator parse parser tok context time info gmath sentence  

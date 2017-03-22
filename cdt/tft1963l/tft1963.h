@@ -19,7 +19,7 @@
 #define RED    0xF800
 #define GREEN  0x07E0
 #define BLUE   0x001F
-#define WHITE  0xFFFE
+#define WHITE  0xFFFF
 #define PURPLE 0xF11F
 #define YELLOW 0xFFE0
 #define CYAN   0x07FF
@@ -138,16 +138,12 @@ public:
 
 	void initRpiHardware(void);
 	void Write_Command (unsigned int data);
-	void Write_Data (unsigned int data);
+	void Write_Data (unsigned short data);
 	void Init_ssd1963(void);
-	void TFT_FillDisp(unsigned int color);
 	void setAddress (unsigned int px1, unsigned int py1, unsigned int px2,
 			 unsigned int py2);
 	void SendCommand(cmdType);
-	void drawFastVLine(short x1, short y1,  short y2,
-			unsigned short color);
-	void drawFastHLine(int16_t x, int16_t y,
-	 int16_t w, uint16_t color);
+
 
 private:
 	unsigned int  HDP;

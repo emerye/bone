@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include <errno.h>
 #include "tft1963.h"
 #include "Adafruit_GFX.h"
 
@@ -51,20 +52,20 @@ void RpiHardware::initRpiHardware() {
 
 
 void RpiHardware::SendCommand(cmdType cmd) {
-
 	if (cmd == WRITECMD) {
 		digitalWrite(DATACMDGPIO, LOW);
 		digitalWrite(WRITEGPIO, LOW);
+		digitalWrite(DATACMDGPIO, LOW);
 	} else if (cmd == WRITEDATA) {
 		digitalWrite(DATACMDGPIO, HIGH);
 		digitalWrite(WRITEGPIO, LOW);
 	}
 	digitalWrite(WRITEGPIO, HIGH);
-	digitalWrite(WRITEGPIO, HIGH);
 	digitalWrite(DATACMDGPIO, HIGH);
-
 }
 
+
+/*
 //Overriding base class
 void RpiHardware::drawFastVLine(short x1, short y1,  short y2,
 		unsigned short color) {
@@ -87,16 +88,19 @@ void RpiHardware::drawFastHLine(int16_t x, int16_t y,
 		}
 }
 
+
+//This does not write to frame buffer
 void RpiHardware::TFT_FillDisp(unsigned int color) {
 	unsigned int i, j;
 
 	setAddress(0, 0, XMAXPIXEL, YMAXPIXEL);
 	Write_Data(color);
-	for (i = 0; i <= XMAXPIXEL; i++) {
-		for (j = 0; j <= YMAXPIXEL; j++)
+	for (i = 0; i < XMAXPIXEL; i++) {
+		for (j = 0; j < YMAXPIXEL; j++)
 			SendCommand(WRITEDATA);;
 	}
 }
+*/
 
 void RpiHardware::Write_Command(unsigned int data) {
 
@@ -104,16 +108,25 @@ void RpiHardware::Write_Command(unsigned int data) {
 	data = data & 0xFFFF;
 	buffer[0] = (unsigned char) ((data >> 8) & 0xFF);
 	buffer[1] = (unsigned char) (data & 0xFF);
-	wiringPiSPIDataRW(spiDescriptor, buffer, 2);
+    int status = wiringPiSPIDataRW(spiDescriptor, buffer, 2);
+    if (status < 0) {
+    	int error = errno;
+    	printf("Write SPI command failed in Write_Command. Error: %d\n", error);
+    }
 	SendCommand(WRITECMD);
 }
 
-void RpiHardware::Write_Data(unsigned int data) {
+void RpiHardware::Write_Data(unsigned short data) {
+
 	unsigned char buffer[2];
 	data = data & 0xFFFF;
 	buffer[0] = (unsigned char) ((data >> 8) & 0xFF);
 	buffer[1] = (unsigned char) (data & 0xFF);
-	wiringPiSPIDataRW(spiDescriptor, buffer, 2);
+	int status = wiringPiSPIDataRW(spiDescriptor, buffer, 2);
+	if (status < 1) {
+		int error = errno;
+		printf("Write SPI data failed in Write_Command. Error: %d\n", error);
+	}
 	SendCommand(WRITEDATA);
 }
 
@@ -123,7 +136,7 @@ void RpiHardware::Init_ssd1963(void) {
 	digitalWrite(RESETGPIO, HIGH);
 	usleep(15000);
 	digitalWrite(RESETGPIO, LOW);
-	usleep(15000);
+	usleep(25000);
 	digitalWrite(RESETGPIO, HIGH);
 	usleep(25000);
 
@@ -134,23 +147,29 @@ void RpiHardware::Init_ssd1963(void) {
 
 	Write_Command(0x00E0);  // PLL enable
 	Write_Data(0x0001);
-	usleep(1000 * 5);       //Wait 5 usec
+	usleep(1000 * 50);       //Wait 5 usec
 
 	Write_Command(0x00E0);  //Use PLL as system clock. Enable PLL
 	Write_Data(0x0003);
-	usleep(1000 * 5);
+	usleep(1000 * 50);
 
 	Write_Command(0x0001);  // software reset
 	usleep(5000);
-	Write_Command(0x00E6);	//PLL setting for PCLK, depends on resolution
+	Write_Command(0x00E6);	//PLL setting fWHITEor PCLK, depends on resolution
 	Write_Data(0x0000);
 	Write_Data(0x00ff);
 	Write_Data(0x00be);
 
-	usleep(5000);
+	usleep(50000);
 
 	Write_Command(0x00F0); //pixel data interface
-	Write_Data(0x0003);    //16 bit 565
+	Write_Data(0x0003);    //16 bit 565= 3
+	usleep(1000);
+
+	//Rotation
+	Write_Command(SSD1963_SET_ADDRESS_MODE);
+	Write_Data(0);
+
 
 	Write_Command(0x00B0);	//LCD SPECIFICATION
 	Write_Data(0x0020);     //24 bit
@@ -160,7 +179,7 @@ void RpiHardware::Init_ssd1963(void) {
 	Write_Data((VDP >> 8) & 0X00FF);  //Set VDP
 	Write_Data(VDP & 0X00FF);
 	Write_Data(0x0000);
-	usleep(5 * 1000);
+	usleep(5 * 10000);
 
 	Write_Command(0x00B4);	//HSYNC
 	Write_Data((HT >> 8) & 0X00FF);  //Set HT
@@ -219,6 +238,7 @@ void RpiHardware::setAddress(unsigned int x1, unsigned int y1, unsigned int x2,
 	Write_Data(y1 & 0x00ff);
 	Write_Data(y2 >> 8);
 	Write_Data(y2 & 0x00ff);
+
 	Write_Command(0x002c);
 }
 
