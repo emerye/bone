@@ -600,9 +600,9 @@ void Adafruit_GFX::drawChar(int16_t x, int16_t y, unsigned char c,
         }
         if(bits & 0x80) {
           if(size == 1) {
-            drawPixel(x+xo+xx, y+yo+yy, color);
+            drawPixel(x+xo+xx+1, y+yo+yy, color);
           } else {
-            fillRect(x+(xo16+xx)*size, y+(yo16+yy)*size, size, size, color);
+            fillRect(x+(xo16+xx)*size +1, y+(yo16+yy)*size, size, size, color);
           }
         }
         bits <<= 1;

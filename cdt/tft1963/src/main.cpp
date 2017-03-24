@@ -27,11 +27,12 @@ int main(int argc, char * argv[]) {
 
 	DispDraw rpiObj;
 
-	int i, x = 5;
+	int i=0, x = 5;
 	int y = 30;
 	int j;
 	char cBuffer[30];
-	char tBuf[10];
+	char tBuf[20] = { 0 };
+	char iBuf[20];
 
 	clsObj = &rpiObj;
 
@@ -40,14 +41,17 @@ int main(int argc, char * argv[]) {
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
 
-	for (int i = 0; i < 30; i++) {
+	for (int i = 1; i < 400; i++) {
+//	while(1) {
+	//	i+=1;
 		y = 30;
 		memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
 
-		strcpy(cBuffer,"Count ");
-		sprintf(tBuf, "%d", i);
+        iBuf[0] = '\0';
+        cBuffer[0] = '\0';
+		sprintf(iBuf, "   %d", i);
+		sprintf(tBuf, "%s", iBuf);
         strcat(cBuffer, tBuf);
-
 
 		try {
 			rpiObj.writeString(x, 30, 1, "OK", PURPLE);
@@ -56,14 +60,12 @@ int main(int argc, char * argv[]) {
 
 			rpiObj.writeString(x, y += 40, 1, "HIGHHFDHHD", RED);
 
-			rpiObj.writeString(x, y += 80, 2, "012.34567", YELLOW);
+			rpiObj.writeString(x, y += 40, 1, "012.34567", YELLOW);
 
-			rpiObj.writeString(x, y += 40, 1, cBuffer, GREEN);
+			rpiObj.writeString(x, y += 80, 1, tBuf, GREEN);
 
 			rpiObj.bufftoDisplay();
-			sleep(1);
-			printf("Loop\n");
-			fflush(stdout);
+			sleep(0.1);
 		} catch (int ex) {
 			printf("Exception number %d\n", ex);
 

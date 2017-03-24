@@ -33,7 +33,7 @@ RpiHardware::RpiHardware() : Adafruit_GFX(XMAXPIXEL, YMAXPIXEL) {
 
 
 	wiringPiSetup();
-	spiDescriptor = wiringPiSPISetup(0, 8000000);
+	spiDescriptor = wiringPiSPISetup(0, 10000000);
 	if (spiDescriptor < 0) {
 		puts("SPI Initialisation Failed");
 	}
@@ -130,7 +130,7 @@ void RpiHardware::Write_Data(unsigned short data) {
 	SendCommand(WRITEDATA);
 }
 
-//Init sequence for ssd1963 and eBay 4.3 inch TFT.
+//Init sequence for SSD1963 and eBay 4.3 inch TFT.
 void RpiHardware::Init_ssd1963(void) {
 	//Reset Line
 	digitalWrite(RESETGPIO, HIGH);
@@ -169,7 +169,6 @@ void RpiHardware::Init_ssd1963(void) {
 	//Rotation
 	Write_Command(SSD1963_SET_ADDRESS_MODE);
 	Write_Data(0);
-
 
 	Write_Command(0x00B0);	//LCD SPECIFICATION
 	Write_Data(0x0020);     //24 bit
