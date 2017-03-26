@@ -33,7 +33,7 @@ RpiHardware::RpiHardware() : Adafruit_GFX(XMAXPIXEL, YMAXPIXEL) {
 
 
 	wiringPiSetup();
-	spiDescriptor = wiringPiSPISetup(0, 10000000);
+	spiDescriptor = wiringPiSPISetup(0, 8000000);
 	if (spiDescriptor < 0) {
 		puts("SPI Initialisation Failed");
 	}
@@ -55,7 +55,6 @@ void RpiHardware::SendCommand(cmdType cmd) {
 	if (cmd == WRITECMD) {
 		digitalWrite(DATACMDGPIO, LOW);
 		digitalWrite(WRITEGPIO, LOW);
-		digitalWrite(DATACMDGPIO, LOW);
 	} else if (cmd == WRITEDATA) {
 		digitalWrite(DATACMDGPIO, HIGH);
 		digitalWrite(WRITEGPIO, LOW);

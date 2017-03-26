@@ -517,7 +517,6 @@ void Adafruit_GFX::write(uint8_t c) {
         cursor_x += pgm_read_byte(&glyph->xAdvance) * (int16_t)textsize;
       }
     }
-
   }
 #if ARDUINO >= 100
   return 1;
