@@ -28,6 +28,11 @@ doc:
 	
 remake: clean all
 
+install: libnmea.so.1.0
+	sudo -i cd /home/andy/bone/src/nmealib	
+	sudo -i cp /home/andy/bone/src/nmealib/libnmea.so.1.0 /usr/local/lib
+	sudo ldconfig
+
 $(BIN): $(LINKOBJ)
 	ar rsc $@ $^
 	ranlib $@
