@@ -41,8 +41,8 @@ int main(int argc, char * argv[]) {
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
 
-//	for (int i = 1; i < 400; i++) {
-	while(1) {
+	for (int i = 1; i < 400; i++) {
+//	while(1) {
 		i+=1;
 		y = 30;
 		memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));

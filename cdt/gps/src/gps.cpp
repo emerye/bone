@@ -22,6 +22,54 @@ nmeaINFO info;
 nmeaPARSER parser;
 nmeaTIME nmeaTime;
 
+int parseNmea(const char *cmd, int count) {
+
+	int status = nmea_parse(&parser, cmd, count, &info);
+//	printf("%s", inBuffer);
+	return status;
+}
+
+
+void readGPS() {
+
+	int ch;
+	int count, i;
+	nmea_parser_init(&parser);
+
+	fd = serialOpen("/dev/serial0", 9600);
+	if (fd < 0) {
+		puts("Unable to open serial port.");
+	}
+	count = 0;
+	while (((ch != 0x0a) && (count < 100)) == 1) {
+		ch = (serialGetchar(fd) & 0xFF);
+		inBuffer[count] = ch;
+		count += 1;
+	}
+	inBuffer[count] = '\0';
+	ch = 0;
+//	printf("%s\n",inBuffer);
+
+	if ((strstr(inBuffer, "$GPGGA") != NULL)) {
+		int status = parseNmea(inBuffer, count);
+		if (status != 1)
+			printf("Status returned error %d\n", status);
+	} else if ((strstr(inBuffer, "$GPGSV") != NULL)) {
+		int status = parseNmea(inBuffer, count);
+		if (status != 1)
+			printf("Status returned error %d\n", status);
+	} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
+		int status = parseNmea(inBuffer, count);
+		if (status != 1)
+			printf("Status returned error %d\n", status);
+	} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
+		printNmea();
+	}
+
+	memset(inBuffer, 0, 512);
+}
+
+
 
 void printNmea(void) {
 
@@ -35,12 +83,7 @@ void printNmea(void) {
 }
 
 
-int parseNmea(const char *cmd, int count) {
 
-	int status = nmea_parse(&parser, cmd, count, &info);
-//	printf("%s", inBuffer);
-	return status;
-}
 
 
 int main() {
