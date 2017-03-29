@@ -22,6 +22,17 @@ nmeaINFO info;
 nmeaPARSER parser;
 nmeaTIME nmeaTime;
 
+void printNmea(void) {
+
+	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
+	printf("Altitude %f ft\n", info.elv * 3.28084);
+	nmea_time_now(&nmeaTime);
+	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
+	printf("Direction %f\n", info.direction);
+	printf("Speed %.2f\n", info.speed);
+	fflush(stdout);
+}
+
 int parseNmea(const char *cmd, int count) {
 
 	int status = nmea_parse(&parser, cmd, count, &info);
@@ -68,20 +79,6 @@ void readGPS() {
 
 	memset(inBuffer, 0, 512);
 }
-
-
-
-void printNmea(void) {
-
-	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
-	printf("Altitude %f ft\n", info.elv * 3.28084);
-	nmea_time_now(&nmeaTime);
-	printf("Hour %d min %d\n", nmeaTime.hour, nmeaTime.min);
-	printf("Direction %f\n", info.direction);
-	printf("Speed %.2f\n", info.speed);
-	fflush(stdout);
-}
-
 
 
 

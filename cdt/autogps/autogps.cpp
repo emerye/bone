@@ -42,8 +42,42 @@ nmeaINFO info;
 nmeaPARSER parser;
 nmeaTIME nmeaTime;
 bool debug = true;
+unsigned int count;
+double speedAverage= 0.0;
 
 DispDraw *displayRef;
+
+static char *compassDirection[] = { "N","NE","E","SE","S","SW","W","NW" };
+
+
+int averageSpeed(int currentSpeed) {
+	speedAverage = speedAverage + (currentSpeed - speedAverage) / count;
+	return (int)speedAverage;
+}
+
+char* getDirection() {
+
+	double direction = info.direction;
+
+	if (direction > 337.5 || direction < 22.5) {
+		return compassDirection[0];
+	} else if (direction >= 22.5 && direction < 67.5) {
+		return compassDirection[1];
+	} else if (direction >= 67.5 && direction < 112.5) {
+		return compassDirection[2];
+	} else if (direction >= 112.5 && direction < 157.5) {
+		return compassDirection[3];
+	} else if (direction >= 157.5 && direction < 202.5) {
+		return compassDirection[4];
+	} else if (direction >= 202.5 && direction < 247.5) {
+		return compassDirection[5];
+	} else if (direction >= 247.5 && direction < 292.5) {
+		return compassDirection[6];
+	} else if (direction >= 292.5 && direction < 337.5) {
+		return compassDirection[7];
+	}
+	return compassDirection[0];
+}
 
 
 int parseNmea(const char *cmd, int count) {
@@ -143,7 +177,7 @@ int main() {
 	unsigned int newMinutes = 0;
 	unsigned short int xstart = 0;
 	unsigned short int ystart = 30;
-	int i;
+	int i, tick=0;
 	char buffer[50];
 	char buffer2[50];
 	int divider = 60;   //Change to 60 for release
@@ -164,7 +198,6 @@ int main() {
 	}
 	nmea_parser_init(&parser);
 	time(&startTime);
-	sprintf(buffer, "%3dm", elapsedMinutes);
 
 	memset(display.fBuffer, 0x00, sizeof(display.fBuffer));
 	display.bufftoDisplay();
@@ -175,6 +208,8 @@ int main() {
 	while (1) {
 		readGPS();
 		printNmea();
+		tick ^= 1;
+		count++;
 
 		if (debug)
 			printf("Altitude %f ft\n", info.elv * 3.28084);
@@ -187,15 +222,27 @@ int main() {
 		sprintf(buffer, "Long: %.4f", info.lon);
 		display.writeString(xstart, ystart +30, 1, buffer, GREEN);
 
-		display.setFont(&FreeSans24pt7b);
-		sprintf(buffer, "Alt %dft     %dmph", (int) (info.elv * 3.28084),
+
+		sprintf(buffer, "Altitude %dft     %d mph", (int) (info.elv * 3.28084),
 				(int) (info.speed * 0.621371));
-		display.writeString(xstart, ystart+80, 1, buffer, WHITE);
+		display.writeString(xstart, ystart+60, 1, buffer, WHITE);
+
+		display.setFont(&FreeSans24pt7b);
+		double curSpeed = info.speed * 0.621371;
+		sprintf(buffer, "%d mph    Ave %d mph", (int)curSpeed, averageSpeed(curSpeed));
+		display.writeString(xstart, ystart +100, 1, buffer, WHITE);
+
 
 		time(&currentTime);
 		newMinutes = ((currentTime - startTime) / divider) + testOffset;
-		sprintf(buffer, "ET %3dmin", newMinutes);
-		display.writeString(xstart, ystart + 130, 1, buffer, BLUE);
+		sprintf(buffer, "ET %3d min", newMinutes);
+		display.writeString(xstart, ystart + 140, 1, buffer, BLUE);
+
+		sprintf(buffer, "%d Deg  %s", (int)info.direction, getDirection());
+		display.writeString(xstart, ystart + 190, 1, buffer, PURPLE);
+
+		if(tick==1) display.drawPixel(479,271,WHITE);
+
 
 		display.bufftoDisplay();
 		memset(display.fBuffer, 0x00, sizeof(display.fBuffer));
