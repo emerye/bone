@@ -223,23 +223,22 @@ int main() {
 		display.writeString(xstart, ystart +30, 1, buffer, GREEN);
 
 
-		sprintf(buffer, "Altitude %dft     %d mph", (int) (info.elv * 3.28084),
-				(int) (info.speed * 0.621371));
-		display.writeString(xstart, ystart+60, 1, buffer, WHITE);
+		sprintf(buffer, "Altitude %dft", (int) (info.elv * 3.28084));
+		display.writeString(xstart, ystart+65, 1, buffer, WHITE);
 
 		display.setFont(&FreeSans24pt7b);
 		double curSpeed = info.speed * 0.621371;
 		sprintf(buffer, "%d mph    Ave %d mph", (int)curSpeed, averageSpeed(curSpeed));
-		display.writeString(xstart, ystart +100, 1, buffer, WHITE);
+		display.writeString(xstart, ystart +105, 1, buffer, WHITE);
 
 
 		time(&currentTime);
 		newMinutes = ((currentTime - startTime) / divider) + testOffset;
 		sprintf(buffer, "ET %3d min", newMinutes);
-		display.writeString(xstart, ystart + 140, 1, buffer, BLUE);
+		display.writeString(xstart, ystart + 150, 1, buffer, BLUE);
 
 		sprintf(buffer, "%d Deg  %s", (int)info.direction, getDirection());
-		display.writeString(xstart, ystart + 190, 1, buffer, PURPLE);
+		display.writeString(xstart, ystart + 195, 1, buffer, PURPLE);
 
 		if(tick==1) display.drawPixel(479,271,WHITE);
 
