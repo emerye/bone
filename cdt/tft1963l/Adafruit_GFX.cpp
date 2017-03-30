@@ -517,7 +517,6 @@ void Adafruit_GFX::write(uint8_t c) {
         cursor_x += pgm_read_byte(&glyph->xAdvance) * (int16_t)textsize;
       }
     }
-
   }
 #if ARDUINO >= 100
   return 1;
@@ -577,8 +576,6 @@ void Adafruit_GFX::drawChar(int16_t x, int16_t y, unsigned char c,
       yo16 = yo;
     }
 
-    // Todo: Add character clipping here
-
     // NOTE: THERE IS NO 'BACKGROUND' COLOR OPTION ON CUSTOM FONTS.
     // THIS IS ON PURPOSE AND BY DESIGN.  The background color feature
     // has typically been used with the 'classic' font to overwrite old
@@ -602,9 +599,9 @@ void Adafruit_GFX::drawChar(int16_t x, int16_t y, unsigned char c,
         }
         if(bits & 0x80) {
           if(size == 1) {
-            drawPixel(x+xo+xx, y+yo+yy, color);
+            drawPixel(x+xo+xx+1, y+yo+yy, color);
           } else {
-            fillRect(x+(xo16+xx)*size, y+(yo16+yy)*size, size, size, color);
+            fillRect(x+(xo16+xx)*size +1, y+(yo16+yy)*size, size, size, color);
           }
         }
         bits <<= 1;
@@ -613,6 +610,7 @@ void Adafruit_GFX::drawChar(int16_t x, int16_t y, unsigned char c,
 
   } // End classic vs custom font
 }
+
 
 void Adafruit_GFX::setCursor(int16_t x, int16_t y) {
   cursor_x = x;
@@ -812,8 +810,7 @@ void Adafruit_GFX::writeString(int16_t x, int16_t y, int size, const char *strin
 		c -= gfxFont->first;
 
 		xa = gfxFont->glyph[c].xAdvance;
-	//	int8_t xa = glyph.xAdvance - 1;
-		drawChar(x, y, ch, color, 0x80, size);
+		drawChar(x, y, ch, color, 0x00, size);
 		x += xa * size;
 	}
 }

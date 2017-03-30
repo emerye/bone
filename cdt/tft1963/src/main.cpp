@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include "Adafruit_GFX.h"
 #include "tft1963.h"
 #include "DispDraw.h"
 #include "gfxfont.h"
 #include "glcdfont.c"
-#include "Adafruit_GFX.h"
+
 #include "Fonts/FreeMono9pt7b.h"
 #include "Fonts/FreeMono12pt7b.h"
 #include "Fonts/FreeMono18pt7b.h"
@@ -21,36 +23,53 @@
 
 DispDraw *clsObj;
 
-
-
 int main(int argc, char * argv[]) {
 
 	DispDraw rpiObj;
 
-	int i, x = 0;
+	int i=0, x = 5;
+	int y = 30;
+	int j;
+	char cBuffer[30];
+	char tBuf[20] = { 0 };
+	char iBuf[20];
 
-	puts("Hello World\n");
+	clsObj = &rpiObj;
+
 	fflush(stdout);
 	rpiObj.setFont(&FreeSans24pt7b);
-
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
-	rpiObj.TFT_FillDisp(BLACK);
-	rpiObj.drawDot(1, 1, WHITE);
 
-	for (i = 0; i < 3; i++) {
+	for (int i = 1; i < 400; i++) {
+//	while(1) {
+		i+=1;
+		y = 30;
+		memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
 
-		rpiObj.writeStringErase(0, 70, 2, "HelloThere", GREEN, BLACK, 0);
+        iBuf[0] = '\0';
+        cBuffer[0] = '\0';
+		sprintf(iBuf, "   %d", i);
+		sprintf(tBuf, "%s", iBuf);
+        strcat(cBuffer, tBuf);
 
-		rpiObj.writeStringErase(x, 120, 1, "HIGHHFDHHD", RED, BLACK, 0);
+		try {
+			rpiObj.writeString(x, 30, 1, "OK", PURPLE);
 
-		rpiObj.writeStringErase(x, 120, 1, "012.34567", GREEN, BLACK, 1);
+			rpiObj.writeString(x, y += 40, 1, "Hello", BLUE);
 
-		rpiObj.writeString(x, 150, 1, "ABCD..EFG", BLUE);
+			rpiObj.writeString(x, y += 40, 1, "HIGHHFDHHD", RED);
 
-		rpiObj.setFont(&FreeSans12pt7b);
-		rpiObj.writeString(50, 200, 1, "ABCD..EFG", BLUE);
-		rpiObj.setFont(&FreeSans24pt7b);
+			rpiObj.writeString(x, y += 40, 1, "012.34567", YELLOW);
+
+			rpiObj.writeString(x, y += 80, 2, tBuf, GREEN);
+
+			rpiObj.bufftoDisplay();
+			sleep(0.1);
+		} catch (int ex) {
+			printf("Exception number %d\n", ex);
+
+		}
 
 	}
 

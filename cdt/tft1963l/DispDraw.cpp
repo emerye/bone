@@ -7,38 +7,65 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include "DispDraw.h"
+#include "tft1963.h"
 
-//namespace oledTest {
 
 DispDraw::DispDraw() {
 
+	memset(fBuffer, 0, sizeof(fBuffer));
 	ptr = new int;
 	*ptr = 0;
 }
 
 DispDraw::DispDraw(const DispDraw &obj) {
 	puts("DisplayDraw copy constructor.");
-   ptr = new int;
-   *ptr = *obj.ptr; // copy the value
+	ptr = new int;
+	*ptr = *obj.ptr; // copy the value
 }
+
 
 DispDraw::~DispDraw() {
-	// TODO Auto-generated destructor stub
+
 }
 
-
+/**
+ * Write one dot to frame buffer
+ */
 void DispDraw::drawPixel(int16_t x, int16_t y, uint16_t color) {
-	drawDot(x,y,color);
-
+	if (y > YMAXPIXEL + 1) {
+		printf("Y coordinate is out of range in drawDot\n");
+		return;
+	}
+	fBuffer[y * XMAXPIXEL + x] = color;
 }
 
-void DispDraw::drawDot(unsigned int x, unsigned int y, unsigned int color) {
 
-	setAddress(x, y, x , y);
-	Write_Data(color);
-    SendCommand(WRITEDATA);
+/**
+ * Update entire display from buffer
+ */
+void DispDraw::bufftoDisplay() {
+
+	int i, j;
+	unsigned short curValue = 0x0002;
+	unsigned short nextValue = 0xFFFF;
+
+	setAddress(0, 0, XMAXPIXEL, YMAXPIXEL);
+	for (i = 0; i < YMAXPIXEL + 1; i++) {
+		for (j = 0; j < XMAXPIXEL + 1; j++) {
+			nextValue = fBuffer[i * XMAXPIXEL + j];
+			if (curValue == nextValue) {
+				SendCommand(WRITEDATA);
+				curValue = fBuffer[i * XMAXPIXEL + j];
+			} else {
+				Write_Command(SSD1963_WRITE_MEMORY_CONTINUE);
+				Write_Data(fBuffer[i * XMAXPIXEL + j]);
+				curValue = fBuffer[i * XMAXPIXEL + j];
+			}
+		}
+	}
 }
 
 
@@ -54,6 +81,7 @@ void DispDraw::drawVertLine(unsigned int y1, unsigned int y2,
 	}
 }
 
+
 void DispDraw::drawHorzLine(int x1, int x2, int y_pos, unsigned int color) {
 	int k;
 
@@ -61,7 +89,7 @@ void DispDraw::drawHorzLine(int x1, int x2, int y_pos, unsigned int color) {
 	Write_Data(color);
 
 	for (k = x1; k <= x2; k++) {
-		drawDot(k, y_pos, color);
+		drawPixel(k, y_pos, color);
 	}
 }
 
