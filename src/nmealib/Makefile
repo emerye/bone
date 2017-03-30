@@ -38,8 +38,8 @@ $(BIN): $(LINKOBJ)
 	ranlib $@
 
 sharedlib: $(LINKOBJ)
-	gcc -shared -Wl,-soname,libnmea.so.1 \
-	-o libnmea.so.1.0 $^  -lc  
+	gcc -shared -Wl,-soname,libnmea.so \
+	-o libnmea.so.1 $^  -lc  
 
 build/nmea_gcc/%.o: src/%.c 
 	$(CC) $(INCS) -c $< -o $@
