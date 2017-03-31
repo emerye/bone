@@ -126,10 +126,9 @@ void readGPS() {
 			printf("Status returned error %d\n", status);
 	} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
 		status = parseNmea(inBuffer, count);
-		return;
 		//Not available in GS229 use RMC to terminate.
 	} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
-	//	printNmea();
+		printNmea();
 		return;
 	}
 	memset(inBuffer, 0, 512);
@@ -172,7 +171,7 @@ void TextDemo() {
 
 int main() {
 //	Adafruit_BME280 sensor;
-	time_t startTime, currentTime;
+	time_t startTime, currentTime, gpsStartTime, gpsEndTime;
 	unsigned int elapsedMinutes = 0;
 	unsigned int newMinutes = 0;
 	unsigned short int xstart = 0;
@@ -206,8 +205,13 @@ int main() {
 
 //	for (i = 0; i < 15; i++) {
 	while (1) {
+		time(&gpsStartTime);
 		readGPS();
-		printNmea();
+		time(&gpsEndTime);
+		while (gpsStartTime == gpsEndTime) {
+			sleep(0.05);
+			time(&gpsEndTime);
+		}
 		tick ^= 1;
 		count++;
 
@@ -247,6 +251,7 @@ int main() {
 		memset(display.fBuffer, 0x00, sizeof(display.fBuffer));
 
 		puts("\n");
+		fflush(stdout);
 	}
 
 
