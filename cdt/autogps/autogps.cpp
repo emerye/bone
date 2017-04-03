@@ -47,7 +47,7 @@ double speedAverage= 0.0;
 
 DispDraw *displayRef;
 
-static char *compassDirection[] = { "N","NE","E","SE","S","SW","W","NW" };
+static char *compassDirection[] = { "North","NEast","East","SEast","South","SWest","West","NWest" };
 
 
 int averageSpeed(int currentSpeed) {
@@ -170,7 +170,7 @@ void TextDemo() {
 
 
 int main() {
-//	Adafruit_BME280 sensor;
+	Adafruit_BME280 sensor;
 	time_t startTime, currentTime, gpsStartTime, gpsEndTime;
 	unsigned int elapsedMinutes = 0;
 	unsigned int newMinutes = 0;
@@ -186,6 +186,9 @@ int main() {
 
 	DispDraw display;
 	displayRef = &display;
+
+	sensor.sensorRef = &sensor;
+	sensor.initHardware();
 
 	display.setFont(&FreeSans24pt7b);
 	display.initRpiHardware();
@@ -203,13 +206,14 @@ int main() {
 
 	time(&startTime);
 
-//	for (i = 0; i < 15; i++) {
-	while (1) {
+	for (i = 0; i < 15; i++) {
+//	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
 		while (gpsStartTime == gpsEndTime) {
-			sleep(0.05);
+			temperature = sensor.readTemperature();
+			temperatureF = temperature * 9.0 / 5.0 + 32;
 			time(&gpsEndTime);
 		}
 		tick ^= 1;
@@ -226,7 +230,6 @@ int main() {
 		sprintf(buffer, "Long: %.4f", info.lon);
 		display.writeString(xstart, ystart +30, 1, buffer, GREEN);
 
-
 		sprintf(buffer, "Altitude %dft", (int) (info.elv * 3.28084));
 		display.writeString(xstart, ystart+65, 1, buffer, WHITE);
 
@@ -235,17 +238,17 @@ int main() {
 		sprintf(buffer, "%d mph    Ave %d mph", (int)curSpeed, averageSpeed(curSpeed));
 		display.writeString(xstart, ystart +105, 1, buffer, WHITE);
 
-
 		time(&currentTime);
 		newMinutes = ((currentTime - startTime) / divider) + testOffset;
 		sprintf(buffer, "ET %3d min", newMinutes);
-		display.writeString(xstart, ystart + 150, 1, buffer, BLUE);
+		display.writeString(xstart, ystart + 155, 1, buffer, BLUE);
+		sprintf(buffer, "%.1f DegF", temperatureF);
+		display.writeString(xstart+240, ystart + 155, 1, buffer, RED);
 
 		sprintf(buffer, "%d Deg  %s", (int)info.direction, getDirection());
 		display.writeString(xstart, ystart + 195, 1, buffer, PURPLE);
 
 		if(tick==1) display.drawPixel(479,271,WHITE);
-
 
 		display.bufftoDisplay();
 		memset(display.fBuffer, 0x00, sizeof(display.fBuffer));
