@@ -114,6 +114,9 @@ void readGPS() {
 		count += 1;
 	}
 	inBuffer[count] = '\0';
+	if(count == 100) {
+		return;
+	}
 	ch = 0;
 
 	if ((strstr(inBuffer, "$GPGGA") != NULL)) {
@@ -126,6 +129,8 @@ void readGPS() {
 			printf("Status returned error %d\n", status);
 	} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
 		status = parseNmea(inBuffer, count);
+		printNmea();
+		return;
 		//Not available in GS229 use RMC to terminate.
 	} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
 		printNmea();
@@ -206,16 +211,17 @@ int main() {
 
 	time(&startTime);
 
-	for (i = 0; i < 15; i++) {
-//	while (1) {
+//	for (i = 0; i < 40; i++) {
+	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
 		while (gpsStartTime == gpsEndTime) {
-			temperature = sensor.readTemperature();
-			temperatureF = temperature * 9.0 / 5.0 + 32;
+			sleep(0.01);
 			time(&gpsEndTime);
 		}
+		temperature = sensor.readTemperature();
+		temperatureF = temperature * 9.0 / 5.0 + 32;
 		tick ^= 1;
 		count++;
 
@@ -243,10 +249,10 @@ int main() {
 		sprintf(buffer, "ET %3d min", newMinutes);
 		display.writeString(xstart, ystart + 155, 1, buffer, BLUE);
 		sprintf(buffer, "%.1f DegF", temperatureF);
-		display.writeString(xstart+240, ystart + 155, 1, buffer, RED);
+		display.writeString(xstart+255, ystart + 155, 1, buffer, RED);
 
 		sprintf(buffer, "%d Deg  %s", (int)info.direction, getDirection());
-		display.writeString(xstart, ystart + 195, 1, buffer, PURPLE);
+		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);
 
 		if(tick==1) display.drawPixel(479,271,WHITE);
 
@@ -261,9 +267,6 @@ int main() {
 //	Init BME280;
 //	sensor.sensorRef = &sensor;
 //	sensor.initHardware();
-
-
-	//display.writeString(xstart, ystart, 1, buffer, BLUE);
 
 //	signal(SIGALRM, handle);
 //	alarm(1);
