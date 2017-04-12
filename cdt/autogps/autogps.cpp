@@ -106,38 +106,44 @@ void readGPS() {
 	int count;
 	nmea_parser_init(&parser);
 	int status;
+	bool exit = false;
 
-	count = 0;
-	while (((ch != 0x0a) && (count < 100)) == 1) {
-		ch = (serialGetchar(gpsfd) & 0xFF);
-		inBuffer[count] = ch;
-		count += 1;
-	}
-	inBuffer[count] = '\0';
-	if(count == 100) {
-		return;
-	}
-	ch = 0;
+	while (exit == false) {
 
-	if ((strstr(inBuffer, "$GPGGA") != NULL)) {
-		status = parseNmea(inBuffer, count);
-		if (status != 1)
-			printf("Status returned error %d\n", status);
-	} else if ((strstr(inBuffer, "$GPGSV") != NULL)) {
-		status = parseNmea(inBuffer, count);
-		if (status != 1)
-			printf("Status returned error %d\n", status);
-	} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
-		status = parseNmea(inBuffer, count);
-		printNmea();
-		return;
-		//Not available in GS229 use RMC to terminate.
-	} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
-		printNmea();
-		return;
+		count = 0;
+		while (((ch != 0x0a) && (count < 100)) == 1) {
+			ch = (serialGetchar(gpsfd) & 0xFF);
+			inBuffer[count] = ch;
+			count += 1;
+		}
+		inBuffer[count] = '\0';
+		if (count == 100) {
+			return;
+		}
+		ch = 0;
+
+		if ((strstr(inBuffer, "$GPGGA") != NULL)) {
+			status = parseNmea(inBuffer, count);
+			if (status != 1)
+				printf("Status returned error %d\n", status);
+		} else if ((strstr(inBuffer, "$GPGSV") != NULL)) {
+			status = parseNmea(inBuffer, count);
+			if (status != 1)
+				printf("Status returned error %d\n", status);
+		} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
+			status = parseNmea(inBuffer, count);
+			//Not available in GS229 use RMC to terminate.
+		} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
+			parseNmea(inBuffer, count);
+		} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
+			parseNmea(inBuffer, count);
+		} else if ((strstr(inBuffer, "$GPVTG") != NULL)) {
+			parseNmea(inBuffer, count);
+			exit = true;
+			printNmea();
+		}
+		memset(inBuffer, 0, 512);
 	}
-	memset(inBuffer, 0, 512);
-	readGPS();
 }
 
 
@@ -217,7 +223,7 @@ int main() {
 		readGPS();
 		time(&gpsEndTime);
 		while (gpsStartTime == gpsEndTime) {
-			sleep(0.01);
+			sleep(0.05);
 			time(&gpsEndTime);
 		}
 	//	temperature = sensor.readTemperature();
@@ -255,7 +261,6 @@ int main() {
 		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);
 
 		if(tick==1) display.drawPixel(479,271,WHITE);
-
 		display.bufftoDisplay();
 		memset(display.fBuffer, 0x00, sizeof(display.fBuffer));
 

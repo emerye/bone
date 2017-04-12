@@ -49,6 +49,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tft1963l/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.2081470908" superClass="gnu.cpp.link.option.flags" value="-pthread" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1003743699" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
