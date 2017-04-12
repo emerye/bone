@@ -15,10 +15,12 @@
 class DispDraw: public RpiHardware {
 
 public:
-	unsigned short fBuffer[((XMAXPIXEL + 1) * (YMAXPIXEL + 1))];
+	int width, height;
+	unsigned short fBuffer[((800 + 1) * (480 + 1))];
 
 	DispDraw();
-	DispDraw(const DispDraw &obj);
+	DispDraw(int width, int height);
+
 	virtual ~DispDraw();
 
     void bufftoDisplay(void);
@@ -33,7 +35,7 @@ public:
 			unsigned int x_pos, unsigned int color);
 
 private:
-	int *ptr;
+
 };
 
 

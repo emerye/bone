@@ -193,7 +193,7 @@ int main() {
 	displayRef = &display;
 
 	sensor.sensorRef = &sensor;
-	sensor.initHardware();
+	//sensor.initHardware();
 
 	display.setFont(&FreeSans24pt7b);
 	display.initRpiHardware();
@@ -211,8 +211,8 @@ int main() {
 
 	time(&startTime);
 
-//	for (i = 0; i < 40; i++) {
-	while (1) {
+	for (i = 0; i < 40; i++) {
+//	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
@@ -220,8 +220,8 @@ int main() {
 			sleep(0.01);
 			time(&gpsEndTime);
 		}
-		temperature = sensor.readTemperature();
-		temperatureF = temperature * 9.0 / 5.0 + 32;
+	//	temperature = sensor.readTemperature();
+	//	temperatureF = temperature * 9.0 / 5.0 + 32;
 		tick ^= 1;
 		count++;
 

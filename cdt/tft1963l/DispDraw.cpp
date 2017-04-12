@@ -13,17 +13,9 @@
 #include "tft1963.h"
 
 
-DispDraw::DispDraw() {
-
-	memset(fBuffer, 0, sizeof(fBuffer));
-	ptr = new int;
-	*ptr = 0;
-}
-
-DispDraw::DispDraw(const DispDraw &obj) {
-	puts("DisplayDraw copy constructor.");
-	ptr = new int;
-	*ptr = *obj.ptr; // copy the value
+DispDraw::DispDraw(int width, int height): RpiHardware(width, height) {
+	this->width = width;
+	this->height = height;
 }
 
 
@@ -35,11 +27,11 @@ DispDraw::~DispDraw() {
  * Write one dot to frame buffer
  */
 void DispDraw::drawPixel(int16_t x, int16_t y, uint16_t color) {
-	if (y > YMAXPIXEL + 1) {
+	if (y > height + 1) {
 		printf("Y coordinate is out of range in drawDot\n");
 		return;
 	}
-	fBuffer[y * XMAXPIXEL + x] = color;
+	fBuffer[y * width + x] = color;
 }
 
 
@@ -52,17 +44,17 @@ void DispDraw::bufftoDisplay() {
 	unsigned short curValue = 0x0002;
 	unsigned short nextValue = 0xFFFF;
 
-	setAddress(0, 0, XMAXPIXEL, YMAXPIXEL);
-	for (i = 0; i < YMAXPIXEL + 1; i++) {
-		for (j = 0; j < XMAXPIXEL + 1; j++) {
-			nextValue = fBuffer[i * XMAXPIXEL + j];
+	setAddress(0, 0, width, height);
+	for (i = 0; i < height + 1; i++) {
+		for (j = 0; j < width + 1; j++) {
+			nextValue = fBuffer[i * width + j];
 			if (curValue == nextValue) {
 				SendCommand(WRITEDATA);
-				curValue = fBuffer[i * XMAXPIXEL + j];
+				curValue = fBuffer[i * width + j];
 			} else {
 				Write_Command(SSD1963_WRITE_MEMORY_CONTINUE);
-				Write_Data(fBuffer[i * XMAXPIXEL + j]);
-				curValue = fBuffer[i * XMAXPIXEL + j];
+				Write_Data(fBuffer[i * width + j]);
+				curValue = fBuffer[i * width + j];
 			}
 		}
 	}

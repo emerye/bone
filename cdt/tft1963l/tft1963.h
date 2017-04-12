@@ -32,8 +32,13 @@
 #define GRAY 	0x8410
 
 //480 x 272
-#define XMAXPIXEL  479
-#define YMAXPIXEL  271
+//#define XMAXPIXEL  479
+//#define YMAXPIXEL  271
+//7 inch 800 x 480
+//#define XMAXPIXEL  800
+//#define YMAXPIXEL  480
+
+
 #define SSD1963		 1
 
 #define SSD1963_NOP						0x00
@@ -132,6 +137,9 @@ class RpiHardware : public Adafruit_GFX
 
 public:
 	RpiHardware();
+	int width;
+	int height;
+	RpiHardware(int width, int height);
 	virtual ~RpiHardware();
 
 	int spiDescriptor;

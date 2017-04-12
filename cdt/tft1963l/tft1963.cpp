@@ -16,9 +16,15 @@
 #include "tft1963.h"
 #include "Adafruit_GFX.h"
 
-//Constructor
-RpiHardware::RpiHardware() : Adafruit_GFX(XMAXPIXEL, YMAXPIXEL) {
 
+//Constructor
+RpiHardware::RpiHardware(int width, int height) : Adafruit_GFX(width, height) {
+
+	this->width = width;
+	this->height = height;
+
+	if (width != 800) {
+	/* 4.3 inch display */
 	HDP=479;
 	HT=531;
 	HPS=43;
@@ -30,6 +36,23 @@ RpiHardware::RpiHardware() : Adafruit_GFX(XMAXPIXEL, YMAXPIXEL) {
 	VPS=12;
 	FPS=4;
 	VPW=10;
+	} else {
+
+	/* 7 inch display 800x480
+	 *
+	 */
+	HDP = 799;
+	HT = 928;
+	HPS = 46;
+	LPS = 15;
+	HPW = 48;
+
+	VDP = 479;
+	VT = 525;
+	VPS = 16;
+	FPS = 8;
+	VPW = 16;
+	}
 
 
 	wiringPiSetup();
@@ -167,10 +190,18 @@ void RpiHardware::Init_ssd1963(void) {
 
 	//Rotation
 	Write_Command(SSD1963_SET_ADDRESS_MODE);
-	Write_Data(0);
+	if (width < 780) {
+		Write_Data(0);  //4.3inch Display
+	} else {
+		Write_Data(2);  //7 inch Display
+	}
 
 	Write_Command(0x00B0);	//LCD SPECIFICATION
-	Write_Data(0x0020);     //24 bit
+	if (width < 780) {
+		Write_Data(0x0020);     //24 bit 4.3" Display
+	} else {
+		Write_Data(0x0000);     //18 bit 7" Display
+	}
 	Write_Data(0x0000);
 	Write_Data((HDP >> 8) & 0X00FF);  //Set HDP
 	Write_Data(HDP & 0X00FF);

@@ -25,7 +25,7 @@ DispDraw *clsObj;
 
 int main(int argc, char * argv[]) {
 
-	DispDraw rpiObj;
+	DispDraw rpiObj(800,480);
 
 	int i=0, x = 5;
 	int y = 30;
@@ -40,9 +40,11 @@ int main(int argc, char * argv[]) {
 	rpiObj.setFont(&FreeSans24pt7b);
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
+	memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
+	rpiObj.bufftoDisplay();
 
-	for (int i = 1; i < 400; i++) {
-//	while(1) {
+	//for (int i = 1; i < 20; i++) {
+   while(1) {
 		i+=1;
 		y = 30;
 		memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
@@ -62,7 +64,9 @@ int main(int argc, char * argv[]) {
 
 			rpiObj.writeString(x, y += 40, 1, "012.34567", YELLOW);
 
-			rpiObj.writeString(x, y += 80, 2, tBuf, GREEN);
+			rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
+
+			rpiObj.drawPixel(799,479, WHITE);
 
 			rpiObj.bufftoDisplay();
 			sleep(0.1);
@@ -70,7 +74,6 @@ int main(int argc, char * argv[]) {
 			printf("Exception number %d\n", ex);
 
 		}
-
 	}
 
 	puts("End");
