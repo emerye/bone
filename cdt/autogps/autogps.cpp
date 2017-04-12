@@ -41,13 +41,14 @@ int gpsfd;
 nmeaINFO info;
 nmeaPARSER parser;
 nmeaTIME nmeaTime;
-bool debug = true;
+bool debug = false;
 unsigned int count;
 double speedAverage= 0.0;
+double temperatureCal = -3.0;
 
 DispDraw *displayRef;
 
-static char *compassDirection[] = { "North","NEast","East","SEast","South","SWest","West","NWest" };
+const char *compassDirection[] = { "North","NEast","East","SEast","South","SWest","West","NWest" };
 
 
 int averageSpeed(int currentSpeed) {
@@ -55,7 +56,7 @@ int averageSpeed(int currentSpeed) {
 	return (int)speedAverage;
 }
 
-char* getDirection() {
+const char* getDirection() {
 
 	double direction = info.direction;
 
@@ -83,12 +84,13 @@ char* getDirection() {
 int parseNmea(const char *cmd, int count) {
 
 	int status = nmea_parse(&parser, cmd, count, &info);
-//	printf("%s", inBuffer);
 	return status;
 }
 
 
 void printNmea(void) {
+
+	if(debug == false) return;
 
 	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
@@ -183,13 +185,11 @@ void TextDemo() {
 int main() {
 	Adafruit_BME280 sensor;
 	time_t startTime, currentTime, gpsStartTime, gpsEndTime;
-	unsigned int elapsedMinutes = 0;
 	unsigned int newMinutes = 0;
 	unsigned short int xstart = 0;
 	unsigned short int ystart = 30;
-	int i, tick=0;
+	int tick=0;
 	char buffer[50];
-	char buffer2[50];
 	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
 	bool debug = false;
@@ -199,7 +199,7 @@ int main() {
 	displayRef = &display;
 
 	sensor.sensorRef = &sensor;
-	//sensor.initHardware();
+	sensor.initHardware();
 
 	display.setFont(&FreeSans24pt7b);
 	display.initRpiHardware();
@@ -217,8 +217,8 @@ int main() {
 
 	time(&startTime);
 
-	for (i = 0; i < 40; i++) {
-//	while (1) {
+//	for (int i = 0; i < 40; i++) {
+	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
@@ -226,8 +226,8 @@ int main() {
 			sleep(0.05);
 			time(&gpsEndTime);
 		}
-	//	temperature = sensor.readTemperature();
-	//	temperatureF = temperature * 9.0 / 5.0 + 32;
+		temperature = sensor.readTemperature() + temperatureCal;
+		temperatureF = temperature * 9.0 / 5.0 + 32;
 		tick ^= 1;
 		count++;
 
@@ -235,73 +235,40 @@ int main() {
 			printf("Altitude %f ft\n", info.elv * 3.28084);
 
 		display.setFont(&FreeSans18pt7b);
-		sprintf(buffer, "Lat:  %.4f", info.lat);
+		sprintf(buffer, "Lat:  %.6f", info.lat);
 		display.writeString(xstart, ystart, 1, buffer, GREEN);
 
 		display.setFont(&FreeSans18pt7b);
-		sprintf(buffer, "Long: %.4f", info.lon);
-		display.writeString(xstart, ystart +30, 1, buffer, GREEN);
+		sprintf(buffer, "Long: %.6f", info.lon);
+		display.writeString(xstart, ystart + 30, 1, buffer, GREEN);
 
 		sprintf(buffer, "Altitude %dft", (int) (info.elv * 3.28084));
-		display.writeString(xstart, ystart+65, 1, buffer, WHITE);
+		display.writeString(xstart, ystart + 65, 1, buffer, WHITE);
 
 		display.setFont(&FreeSans24pt7b);
 		double curSpeed = info.speed * 0.621371;
-		sprintf(buffer, "%d mph    Ave %d mph", (int)curSpeed, averageSpeed(curSpeed));
-		display.writeString(xstart, ystart +105, 1, buffer, WHITE);
+		sprintf(buffer, "%d mph    Ave %d mph", (int) curSpeed,
+				averageSpeed(curSpeed));
+		display.writeString(xstart, ystart + 105, 1, buffer, WHITE);
 
 		time(&currentTime);
 		newMinutes = ((currentTime - startTime) / divider) + testOffset;
 		sprintf(buffer, "ET %3d min", newMinutes);
 		display.writeString(xstart, ystart + 155, 1, buffer, BLUE);
 		sprintf(buffer, "%.1f DegF", temperatureF);
-		display.writeString(xstart+255, ystart + 155, 1, buffer, RED);
+		display.writeString(xstart + 255, ystart + 155, 1, buffer, RED);
 
-		sprintf(buffer, "%d Deg  %s", (int)info.direction, getDirection());
+		sprintf(buffer, "%d Deg  %s", (int) info.direction, getDirection());
 		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);
 
-		if(tick==1) display.drawPixel(479,271,WHITE);
+		if (tick == 1)
+			display.drawPixel(479, 271, WHITE);
 		display.bufftoDisplay();
 		memset(display.fBuffer, 0x00, sizeof(display.fBuffer));
 
 		puts("\n");
 		fflush(stdout);
 	}
-
-
-//	Init BME280;
-//	sensor.sensorRef = &sensor;
-//	sensor.initHardware();
-
-//	signal(SIGALRM, handle);
-//	alarm(1);
-
-
-	/*
-
-//		temperature = sensor.readTemperature();
-		temperatureF = temperature * 9.0 / 5.0 + 32;
-		memset(buffer, 0, 10);
-		if (debug)
-			printf("Temperature is %.1f\n", temperatureF);
-
-		sprintf(buffer, "%.1fT", temperatureF);
-		display.fillRect(0, 32, 127, 30,
-		BLACK);
-		display.writeString(0, 60, 1, buffer, PURPLE);
-
-//		pressure = sensor.readPressure() / 100.0F;
-		if (debug) {
-			printf("Pressure in hPa is %f\n", pressure);
-			printf("Pressure in inches of mercury is %f\n",
-					pressure / 33.8638866667);
-		}
-
-//		humidity = sensor.readHumidity();
-		if (debug)
-			printf("Humidity is %f \n", humidity);
-
-*/
 	free(inBuffer);
 	serialClose(gpsfd);
 	printf("Done\n");
