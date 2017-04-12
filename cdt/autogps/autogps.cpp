@@ -195,7 +195,7 @@ int main() {
 	bool debug = false;
 	double temperature, temperatureF, pressure, humidity;
 
-	DispDraw display;
+	DispDraw display(480,272);
 	displayRef = &display;
 
 	sensor.sensorRef = &sensor;
