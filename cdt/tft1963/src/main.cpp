@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include <dirent.h>
+#include <sys/types.h>
+
 #include "Adafruit_GFX.h"
 #include "tft1963.h"
 #include "DispDraw.h"
@@ -22,6 +25,37 @@
 #include "Fonts/FreeSans24pt7b.h"
 
 DispDraw *clsObj;
+
+
+void list_dir(const char *path) {
+	struct dirent *entry;
+	DIR *dir = opendir(path);
+	if (dir == NULL) {
+		return;
+	}
+
+	while ((entry = readdir(dir)) != NULL) {
+		printf("%s\n", entry->d_name);
+	}
+
+	closedir(dir);
+}
+
+
+void dispPix(int width, int height, const char *fileName) {
+
+	unsigned short buffer[width*height];
+	int i,j;
+
+	int status = clsObj->rgb565(fileName, width, height, buffer);
+	memset(clsObj->fBuffer, 0x00, sizeof(clsObj->fBuffer));
+    for (i=0; i<height; i++) {
+    	for (j=0; j<width; j++) {
+    		clsObj->fBuffer[i*clsObj->width + j] = buffer[i*width+j];
+    	}
+    }
+    clsObj->bufftoDisplay();
+}
 
 int main(int argc, char * argv[]) {
 
@@ -43,8 +77,11 @@ int main(int argc, char * argv[]) {
 	memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
 	rpiObj.bufftoDisplay();
 
-	//for (int i = 1; i < 20; i++) {
-   while(1) {
+	system("ls -al");
+	list_dir("/home/andy/bone/images/image///");
+
+for (int i = 1; i < 2; i++) {
+ //  while(1) {
 		i+=1;
 		y = 30;
 		memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
@@ -75,6 +112,13 @@ int main(int argc, char * argv[]) {
 
 		}
 	}
+
+	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
+//	sleep(1);
+	dispPix(640, 480, "/home/andy/bone/images/image/nwharrahs.rgb");
+
+	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
+	sleep(1);
 
 	puts("End");
 	return 0;

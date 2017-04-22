@@ -85,3 +85,30 @@ void DispDraw::drawHorzLine(int x1, int x2, int y_pos, unsigned int color) {
 	}
 }
 
+
+/**
+ * Read rgb565 picture.
+ */
+int DispDraw::rgb565(const char *file, int width, int height, unsigned short *buffer) {
+	FILE *fp;
+	short int data;
+	int i, j;
+	int count = 0;
+	short cData;
+
+	if ((fp = fopen(file, "r")) != NULL) {
+		while (!feof(fp)) {
+			fread(&data, 2, 1, fp);
+			cData = (((data >> 8) & 0xFF) | ((data & 0xFF) << 8));
+			*buffer = cData;
+			buffer++;
+		}
+	} else {
+		printf("File %s could not be opened\n", file);
+		return 1;
+	}
+	fclose(fp);
+  return 0;
+}
+
+
