@@ -26,22 +26,6 @@
 
 DispDraw *clsObj;
 
-
-void list_dir(const char *path) {
-	struct dirent *entry;
-	DIR *dir = opendir(path);
-	if (dir == NULL) {
-		return;
-	}
-
-	while ((entry = readdir(dir)) != NULL) {
-		printf("%s\n", entry->d_name);
-	}
-
-	closedir(dir);
-}
-
-
 void dispPix(int width, int height, const char *fileName) {
 
 	unsigned short buffer[width*height];
@@ -57,9 +41,36 @@ void dispPix(int width, int height, const char *fileName) {
     clsObj->bufftoDisplay();
 }
 
+
+void show_dir(const char *path) {
+	struct dirent *entry;
+	DIR *dir = opendir(path);
+	char fileName[1024];
+	if (dir == NULL) {
+		return;
+	}
+
+	while ((entry = readdir(dir)) != NULL) {
+		strcpy(fileName, path);
+		strcat(fileName, entry->d_name);
+		if ( (strstr(fileName, "rgb")!= NULL)) {
+		dispPix(640, 480, fileName);
+		printf("%s\n", entry->d_name);
+		fflush(stdout);
+		sleep(2);
+		}
+	}
+
+	closedir(dir);
+}
+
+
+
+
 int main(int argc, char * argv[]) {
 
 	DispDraw rpiObj(800,480);
+//	DispDraw rpiObj(480,272);
 
 	int i=0, x = 5;
 	int y = 30;
@@ -74,13 +85,13 @@ int main(int argc, char * argv[]) {
 	rpiObj.setFont(&FreeSans24pt7b);
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
-	memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
+	memset(rpiObj.fBuffer, 0, sizeof(rpiObj.fBuffer));
+//	rpiObj.drawPixel(479,271,WHITE);
 	rpiObj.bufftoDisplay();
+	sleep(1);
 
-	system("ls -al");
-	list_dir("/home/andy/bone/images/image///");
 
-for (int i = 1; i < 2; i++) {
+for (int i = 1; i < 3; i++) {
  //  while(1) {
 		i+=1;
 		y = 30;
@@ -101,9 +112,9 @@ for (int i = 1; i < 2; i++) {
 
 			rpiObj.writeString(x, y += 40, 1, "012.34567", YELLOW);
 
-			rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
+	//		rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
 
-			rpiObj.drawPixel(799,479, WHITE);
+	//		rpiObj.drawPixel(799,479, WHITE);
 
 			rpiObj.bufftoDisplay();
 			sleep(0.1);
@@ -113,12 +124,15 @@ for (int i = 1; i < 2; i++) {
 		}
 	}
 
+	show_dir("/home/andy/images/");
+
 	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
 //	sleep(1);
 	dispPix(640, 480, "/home/andy/bone/images/image/nwharrahs.rgb");
 
 	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
 	sleep(1);
+
 
 	puts("End");
 	return 0;
