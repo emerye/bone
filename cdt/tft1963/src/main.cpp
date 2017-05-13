@@ -26,6 +26,17 @@
 
 DispDraw *clsObj;
 
+void fillWithColor(unsigned short color) {
+	int i;
+
+	for(i=0; i<480*272; i++) {
+		clsObj->fBuffer[i] = color;
+	}
+	clsObj->bufftoDisplay();
+	sleep(1);
+}
+
+
 void dispPix(int width, int height, const char *fileName) {
 
 	unsigned short buffer[width*height];
@@ -69,8 +80,8 @@ void show_dir(const char *path) {
 
 int main(int argc, char * argv[]) {
 
-	DispDraw rpiObj(800,480);
-//	DispDraw rpiObj(480,272);
+//	DispDraw rpiObj(800,480);
+	DispDraw rpiObj(480,272);
 
 	int i=0, x = 5;
 	int y = 30;
@@ -86,10 +97,13 @@ int main(int argc, char * argv[]) {
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
 	memset(rpiObj.fBuffer, 0, sizeof(rpiObj.fBuffer));
-//	rpiObj.drawPixel(479,271,WHITE);
+	rpiObj.drawPixel(479,271,WHITE);
 	rpiObj.bufftoDisplay();
-	sleep(1);
 
+	fillWithColor(RED);
+	fillWithColor(GREEN);
+	fillWithColor(BLUE);
+	sleep(2);
 
 for (int i = 1; i < 3; i++) {
  //  while(1) {
@@ -115,16 +129,18 @@ for (int i = 1; i < 3; i++) {
 	//		rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
 
 	//		rpiObj.drawPixel(799,479, WHITE);
+			rpiObj.drawPixel(479,271,WHITE);
 
 			rpiObj.bufftoDisplay();
-			sleep(0.1);
+			sleep(5);
+
 		} catch (int ex) {
 			printf("Exception number %d\n", ex);
 
 		}
 	}
 
-	show_dir("/home/andy/images/");
+//	show_dir("/home/andy/images/");
 
 	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
 //	sleep(1);
