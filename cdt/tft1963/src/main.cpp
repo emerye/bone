@@ -103,7 +103,8 @@ int main(int argc, char * argv[]) {
 	fillWithColor(RED);
 	fillWithColor(GREEN);
 	fillWithColor(BLUE);
-	sleep(2);
+	fillWithColor(WHITE);
+	sleep(1);
 
 for (int i = 1; i < 3; i++) {
  //  while(1) {
@@ -140,6 +141,7 @@ for (int i = 1; i < 3; i++) {
 		}
 	}
 
+if (0) {
 //	show_dir("/home/andy/images/");
 
 	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
@@ -148,7 +150,7 @@ for (int i = 1; i < 3; i++) {
 
 	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
 	sleep(1);
-
+}
 
 	puts("End");
 	return 0;
