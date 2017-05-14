@@ -24,7 +24,7 @@ int main() {
 
 	i2cHandle = wiringPiI2CSetup(LM75ADDRESS);
 	if (i2cHandle < 0) {
-		printf("Error opening device.\n");
+		printf("Error opening I2C device device.\n");
 	}
 	Sensors lm75(fd, LM75ADDRESS);
 
