@@ -172,7 +172,10 @@ void TextDemo() {
 	int x=1;
 	int y=20;
 
-//	memset(displayRef->fBuffer, 0, sizeof((unsigned short *)displayRef->fBuffer));
+	fillWithColor(RED);
+	fillWithColor(GREEN);
+	fillWithColor(BLUE);
+	fillWithColor(WHITE);
 	memset(displayRef->fBuffer, 0, sizeof(displayRef->fBuffer));
 	displayRef->setFont(&FreeMono9pt7b);
 	displayRef->writeString(x,y,1,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop", RED);
@@ -183,7 +186,7 @@ void TextDemo() {
 	displayRef->writeString(20,y+=30,1,"ABCDEFGHIJKLMNOPQ", SILVER);
 	displayRef->drawChar(1,y+=30,'A',WHITE, BLACK, (uint8_t) 1);
 	displayRef->setFont(&FreeMono24pt7b);
-	displayRef->writeString(x,y+=35,1,"ABCDEFGHIJKLMNOP", WHITE);
+	displayRef->writeString(x,y+=35,1,"ABCDEFGHIJKLMNOP", BLUE);
 	displayRef->setFont(&FreeMono18pt7b);
 	displayRef->writeString(x,y+=50,2,"ABCDEFGHIJK", OLIVE);
 	displayRef->setFont(&FreeMono24pt7b);
@@ -221,15 +224,8 @@ int main() {
 	display.initRpiHardware();
 	display.Init_ssd1963();
 
-
-	fillWithColor(RED);
-	fillWithColor(GREEN);
-	fillWithColor(BLUE);
-	fillWithColor(WHITE);
-
-	sleep(1);
-
 	TextDemo();
+
 	exit(0);
 
 	gpsfd = serialOpen("/dev/serial0", 9600);
