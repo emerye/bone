@@ -27,8 +27,6 @@
 #include "Fonts/FreeSans12pt7b.h"
 #include "Fonts/FreeSans18pt7b.h"
 #include "Fonts/FreeSans24pt7b.h"
-#include "sensors.h"
-
 
 #define LM75ADDRESS 0x48
 
@@ -48,9 +46,19 @@ nmeaTIME nmeaTime;
 bool debug = false;
 unsigned int count;
 double speedAverage= 0.0;
-double temperatureCal = -3.0;
 
 const char *compassDirection[] = { "North","NEast","East","SEast","South","SWest","West","NWest" };
+
+
+float getTemperature(int fd)
+ {
+	float degC;
+
+ 	int raw = wiringPiI2CReadReg16(fd, 0x00);
+ 	raw = ((raw << 8) & 0xFF00) + (raw >> 8);
+ 	degC = (float)((raw / 32.0) / 8.0);
+ 	return (float)(degC * 9.0/5.0 + 32);
+ }
 
 
 int averageSpeed(int currentSpeed) {
@@ -134,13 +142,15 @@ void readGPS() {
 			status = parseNmea(inBuffer, count);
 			if (status != 1)
 				printf("Status returned error %d\n", status);
-		} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
-			status = parseNmea(inBuffer, count);
+	//	} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
+	//		status = parseNmea(inBuffer, count);
 			//Not available in GS229 use RMC to terminate.
 		} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
 			parseNmea(inBuffer, count);
 		} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
 			parseNmea(inBuffer, count);
+			exit = true;
+			printNmea();
 		} else if ((strstr(inBuffer, "$GPVTG") != NULL)) {
 			parseNmea(inBuffer, count);
 			exit = true;
@@ -199,7 +209,7 @@ void TextDemo() {
 
 
 int main() {
-	int i2cHandle, i2cfd=0;
+	int i2cHandle;
 	time_t startTime, currentTime, gpsStartTime, gpsEndTime;
 	unsigned int newMinutes = 0;
 	unsigned short int xstart = 0;
@@ -209,7 +219,7 @@ int main() {
 	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
 	bool debug = false;
-	double temperature, temperatureF;
+	float temperatureF;
 
 	DispDraw display(480, 272);
 	displayRef = &display;
@@ -218,15 +228,12 @@ int main() {
 	if (i2cHandle < 0) {
 		printf("Error opening I2C device device.\n");
 	}
-	Sensors lm75(i2cfd, LM75ADDRESS);
 
 	display.setFont(&FreeSans24pt7b);
 	display.initRpiHardware();
 	display.Init_ssd1963();
-
-	TextDemo();
-
-	exit(0);
+	fillWithColor(BLUE);
+	sleep(1);
 
 	gpsfd = serialOpen("/dev/serial0", 9600);
 	if (gpsfd < 0) {
@@ -240,8 +247,8 @@ int main() {
 
 	time(&startTime);
 
-//	for (int i = 0; i < 40; i++) {
-	while (1) {
+	for (int i = 0; i < 40; i++) {
+//	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
@@ -249,8 +256,8 @@ int main() {
 			sleep(0.05);
 			time(&gpsEndTime);
 		}
-		temperature = lm75.getLM75Temperature() + temperatureCal;
-		temperatureF = temperature * 9.0 / 5.0 + 32;
+		temperatureF = getTemperature(i2cHandle);
+
 		tick ^= 1;
 		count++;
 
@@ -279,7 +286,7 @@ int main() {
 		sprintf(buffer, "ET %3d min", newMinutes);
 		display.writeString(xstart, ystart + 155, 1, buffer, BLUE);
 		sprintf(buffer, "%.1f DegF", temperatureF);
-		display.writeString(xstart + 255, ystart + 155, 1, buffer, RED);
+		display.writeString(xstart + 255, ystart + 155, 1, buffer, GREEN);
 
 		sprintf(buffer, "%d Deg  %s", (int) info.direction, getDirection());
 		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);

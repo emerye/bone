@@ -26,7 +26,6 @@
 								<option id="gnu.cpp.compiler.option.include.paths.2013996139" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tft1963l}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tft1963/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sensors}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.127746246" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -44,12 +43,10 @@
 								<option id="gnu.cpp.link.option.libs.181048880" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="tft1963l"/>
 									<listOptionValue builtIn="false" value="wiringPi"/>
-									<listOptionValue builtIn="false" value="sensors"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="nmea"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1638008568" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tft1963l/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sensors/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.120926646" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -111,7 +108,7 @@
 								<option id="gnu.cpp.link.option.paths.1860316760" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>
 								</option>
-								<option id="gnu.cpp.link.option.libs.1418309802" superClass="gnu.cpp.link.option.libs" valueType="libs">
+								<option id="gnu.cpp.link.option.libs.1418309802" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="nmea"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1986709411" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -148,6 +145,13 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/gps2"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/gps2"/>
+		</configuration>
+	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>
