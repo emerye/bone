@@ -1,5 +1,4 @@
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -12,7 +11,6 @@
 #include <time.h>
 #include "nmea/nmea.h"
 #include <wiringSerial.h>
-
 
 #include "Adafruit_GFX.h"
 #include "tft1963.h"
@@ -45,25 +43,23 @@ nmeaPARSER parser;
 nmeaTIME nmeaTime;
 bool debug = false;
 unsigned int count;
-double speedAverage= 0.0;
+double speedAverage = 0.0;
 
-const char *compassDirection[] = { "North","NEast","East","SEast","South","SWest","West","NWest" };
+const char *compassDirection[] = { "North", "NEast", "East", "SEast", "South",
+		"SWest", "West", "NWest" };
 
-
-float getTemperature(int fd)
- {
+float getTemperature(int fd) {
 	float degC;
 
- 	int raw = wiringPiI2CReadReg16(fd, 0x00);
- 	raw = ((raw << 8) & 0xFF00) + (raw >> 8);
- 	degC = (float)((raw / 32.0) / 8.0);
- 	return (float)(degC * 9.0/5.0 + 32);
- }
-
+	int raw = wiringPiI2CReadReg16(fd, 0x00);
+	raw = ((raw << 8) & 0xFF00) + (raw >> 8);
+	degC = (float) ((raw / 32.0) / 8.0);
+	return (float) (degC * 9.0 / 5.0 + 32);
+}
 
 int averageSpeed(int currentSpeed) {
 	speedAverage = speedAverage + (currentSpeed - speedAverage) / count;
-	return (int)speedAverage;
+	return (int) speedAverage;
 }
 
 const char* getDirection() {
@@ -90,27 +86,26 @@ const char* getDirection() {
 	return compassDirection[0];
 }
 
-
 int parseNmea(const char *cmd, int count) {
 
 	int status = nmea_parse(&parser, cmd, count, &info);
 	return status;
 }
 
-
 void printNmea(void) {
 
-	if(debug == false) return;
+	if (debug == false)
+		return;
 
 	printf("GGA Lat %f Lon %f\n", info.lat, info.lon);
 	printf("Altitude %f ft\n", info.elv * 3.28084);
 	nmea_time_now(&nmeaTime);
-	printf("Hour %d min %d sec %d\n", nmeaTime.hour, nmeaTime.min, nmeaTime.sec);
+	printf("Hour %d min %d sec %d\n", nmeaTime.hour, nmeaTime.min,
+			nmeaTime.sec);
 	printf("Direction %f\n", info.direction);
 	printf("Speed %.2f\n", info.speed);
 	fflush(stdout);
 }
-
 
 void readGPS() {
 
@@ -142,24 +137,19 @@ void readGPS() {
 			status = parseNmea(inBuffer, count);
 			if (status != 1)
 				printf("Status returned error %d\n", status);
-	//	} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
-	//		status = parseNmea(inBuffer, count);
 			//Not available in GS229 use RMC to terminate.
 		} else if ((strstr(inBuffer, "$GPGLL") != NULL)) {
 			parseNmea(inBuffer, count);
 		} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
 			parseNmea(inBuffer, count);
 			exit = true;
-			printNmea();
 		} else if ((strstr(inBuffer, "$GPVTG") != NULL)) {
 			parseNmea(inBuffer, count);
 			exit = true;
-			printNmea();
 		}
 		memset(inBuffer, 0, 512);
 	}
 }
-
 
 void handle(int sig) {
 	elapsedSeconds += 1;
@@ -170,17 +160,16 @@ void handle(int sig) {
 void fillWithColor(unsigned short color) {
 	int i;
 
-	for(i=0; i<480*272; i++) {
+	for (i = 0; i < 480 * 272; i++) {
 		displayRef->fBuffer[i] = color;
 	}
 	displayRef->bufftoDisplay();
 	sleep(1);
 }
 
-
 void TextDemo() {
-	int x=1;
-	int y=20;
+	int x = 1;
+	int y = 20;
 
 	fillWithColor(RED);
 	fillWithColor(GREEN);
@@ -188,25 +177,26 @@ void TextDemo() {
 	fillWithColor(WHITE);
 	memset(displayRef->fBuffer, 0, sizeof(displayRef->fBuffer));
 	displayRef->setFont(&FreeMono9pt7b);
-	displayRef->writeString(x,y,1,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop", RED);
-	displayRef->drawPixel(0,0,WHITE);
+	displayRef->writeString(x, y, 1,
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop", RED);
+	displayRef->drawPixel(0, 0, WHITE);
 	displayRef->setFont(&FreeMono12pt7b);
-	displayRef->writeString(x,y+=20,1,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef", PURPLE);
+	displayRef->writeString(x, y += 20, 1, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef",
+			PURPLE);
 	displayRef->setFont(&FreeMono18pt7b);
-	displayRef->writeString(20,y+=30,1,"ABCDEFGHIJKLMNOPQ", SILVER);
-	displayRef->drawChar(1,y+=30,'A',WHITE, BLACK, (uint8_t) 1);
+	displayRef->writeString(20, y += 30, 1, "ABCDEFGHIJKLMNOPQ", SILVER);
+	displayRef->drawChar(1, y += 30, 'A', WHITE, BLACK, (uint8_t) 1);
 	displayRef->setFont(&FreeMono24pt7b);
-	displayRef->writeString(x,y+=35,1,"ABCDEFGHIJKLMNOP", BLUE);
+	displayRef->writeString(x, y += 35, 1, "ABCDEFGHIJKLMNOP", BLUE);
 	displayRef->setFont(&FreeMono18pt7b);
-	displayRef->writeString(x,y+=50,2,"ABCDEFGHIJK", OLIVE);
+	displayRef->writeString(x, y += 50, 2, "ABCDEFGHIJK", OLIVE);
 	displayRef->setFont(&FreeMono24pt7b);
-	displayRef->writeString(x,y+=65,2,"12345678", GREEN);
-	displayRef->drawPixel(0,271,WHITE);
-	displayRef->drawPixel(479,271,WHITE);
-	displayRef->drawPixel(479,0,WHITE);
+	displayRef->writeString(x, y += 65, 2, "12345678", GREEN);
+	displayRef->drawPixel(0, 271, WHITE);
+	displayRef->drawPixel(479, 271, WHITE);
+	displayRef->drawPixel(479, 0, WHITE);
 	displayRef->bufftoDisplay();
 }
-
 
 int main() {
 	int i2cHandle;
@@ -214,7 +204,7 @@ int main() {
 	unsigned int newMinutes = 0;
 	unsigned short int xstart = 0;
 	unsigned short int ystart = 30;
-	int tick=0;
+	int tick = 0;
 	char buffer[50];
 	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
@@ -247,8 +237,8 @@ int main() {
 
 	time(&startTime);
 
-	for (int i = 0; i < 40; i++) {
-//	while (1) {
+//	for (int i = 0; i < 40; i++) {
+	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
@@ -286,7 +276,7 @@ int main() {
 		sprintf(buffer, "ET %3d min", newMinutes);
 		display.writeString(xstart, ystart + 155, 1, buffer, BLUE);
 		sprintf(buffer, "%.1f DegF", temperatureF);
-		display.writeString(xstart + 255, ystart + 155, 1, buffer, GREEN);
+		display.writeString(xstart + 255, ystart + 155, 1, buffer, YELLOW);
 
 		sprintf(buffer, "%d Deg  %s", (int) info.direction, getDirection());
 		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);
@@ -304,8 +294,4 @@ int main() {
 	printf("Done\n");
 	return 0;
 }
-
-
-
-
 
