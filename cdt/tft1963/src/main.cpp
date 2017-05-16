@@ -1,3 +1,19 @@
+
+#define SEVENINCH
+
+#ifdef SEVENINCH
+//7 inch display
+#define TFTWIDTH 800
+#define TFTHEIGHT 480
+#define PICWIDTH 640
+#else
+//4.3 inch display
+#define TFTWIDTH 480
+#define TFTHEIGHT 272
+#define PICWIDTH 362
+#endif
+
+
 #include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,12 +40,14 @@
 #include "Fonts/FreeSans18pt7b.h"
 #include "Fonts/FreeSans24pt7b.h"
 
+
 DispDraw *clsObj;
+
 
 void fillWithColor(unsigned short color) {
 	int i;
 
-	for(i=0; i<480*272; i++) {
+	for(i=0; i<TFTWIDTH*TFTHEIGHT; i++) {
 		clsObj->fBuffer[i] = color;
 	}
 	clsObj->bufftoDisplay();
@@ -39,7 +57,7 @@ void fillWithColor(unsigned short color) {
 
 void dispPix(int width, int height, const char *fileName) {
 
-	unsigned short buffer[width*height];
+	unsigned short buffer[800*480];
 	int i,j;
 
 	int status = clsObj->rgb565(fileName, width, height, buffer);
@@ -53,10 +71,10 @@ void dispPix(int width, int height, const char *fileName) {
 }
 
 
-void show_dir(const char *path) {
+void show_dir(const char *path, int width, int length) {
 	struct dirent *entry;
 	DIR *dir = opendir(path);
-	char fileName[1024];
+	char fileName[2048];
 	if (dir == NULL) {
 		return;
 	}
@@ -65,7 +83,7 @@ void show_dir(const char *path) {
 		strcpy(fileName, path);
 		strcat(fileName, entry->d_name);
 		if ( (strstr(fileName, "rgb")!= NULL)) {
-		dispPix(640, 480, fileName);
+		dispPix(width, length, fileName);
 		printf("%s\n", entry->d_name);
 		fflush(stdout);
 		sleep(2);
@@ -80,8 +98,9 @@ void show_dir(const char *path) {
 
 int main(int argc, char * argv[]) {
 
+
 //	DispDraw rpiObj(800,480);
-	DispDraw rpiObj(480,272);
+	DispDraw rpiObj(TFTWIDTH,TFTHEIGHT);
 
 	int i=0, x = 5;
 	int y = 30;
@@ -97,7 +116,7 @@ int main(int argc, char * argv[]) {
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
 	memset(rpiObj.fBuffer, 0, sizeof(rpiObj.fBuffer));
-	rpiObj.drawPixel(479,271,WHITE);
+	rpiObj.drawPixel(TFTWIDTH-1,TFTHEIGHT-1,WHITE);
 	rpiObj.bufftoDisplay();
 
 	fillWithColor(RED);
@@ -130,10 +149,9 @@ for (int i = 1; i < 3; i++) {
 	//		rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
 
 	//		rpiObj.drawPixel(799,479, WHITE);
-			rpiObj.drawPixel(479,271,WHITE);
+			rpiObj.drawPixel(TFTWIDTH-1,TFTHEIGHT-1,WHITE);
 
 			rpiObj.bufftoDisplay();
-			sleep(5);
 
 		} catch (int ex) {
 			printf("Exception number %d\n", ex);
@@ -141,15 +159,10 @@ for (int i = 1; i < 3; i++) {
 		}
 	}
 
-if (0) {
-//	show_dir("/home/andy/images/");
+if (1) {
+//	show_dir("/home/andy/pictures/", PICWIDTH, TFTHEIGHT);
+	show_dir("/home/andy/images/", PICWIDTH, TFTHEIGHT);
 
-	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
-//	sleep(1);
-	dispPix(640, 480, "/home/andy/bone/images/image/nwharrahs.rgb");
-
-	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
-	sleep(1);
 }
 
 	puts("End");

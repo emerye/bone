@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-cd /home/andy/images
+cd /home/andy/pictures
 
 FILES=`ls *.jpg`
 

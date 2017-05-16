@@ -1,6 +1,6 @@
 CC = gcc -fPIC -g -Wall
  
-BIN = lib/libnmea.a 
+BIN = lib/libnmea.so 
 MODULES = generate generator parse parser tok context time info gmath sentence  
 SAMPLES = generate generator parse parse_file math
  
@@ -28,9 +28,9 @@ doc:
 	
 remake: clean all
 
-install: libnmea.so.1.0
+install: libnmea.so
 	sudo -i cd /home/andy/bone/src/nmealib	
-	sudo -i cp /home/andy/bone/src/nmealib/libnmea.so.1.0 /usr/local/lib
+	sudo -i cp /home/andy/bone/src/nmealib/libnmea.so /usr/local/lib
 	sudo ldconfig
 
 $(BIN): $(LINKOBJ)
@@ -39,7 +39,7 @@ $(BIN): $(LINKOBJ)
 
 sharedlib: $(LINKOBJ)
 	gcc -shared -Wl,-soname,libnmea.so \
-	-o libnmea.so.1 $^  -lc  
+	-o libnmea.so $^ -lc  
 
 build/nmea_gcc/%.o: src/%.c 
 	$(CC) $(INCS) -c $< -o $@
