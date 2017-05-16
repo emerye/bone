@@ -26,7 +26,7 @@
 #include "Fonts/FreeSans18pt7b.h"
 #include "Fonts/FreeSans24pt7b.h"
 
-#define LM75ADDRESS 0x49
+#define LM75ADDRESS 0x48
 
 /* number of times the handle will run: */
 volatile int elapsedSeconds = 0;
@@ -43,7 +43,7 @@ nmeaPARSER parser;
 nmeaTIME nmeaTime;
 bool debug = false;
 unsigned int count;
-double speedAverage = 0.0;
+double speedAverage = 0;
 double tripMiles;
 
 const char *compassDirection[] = { "North", "NEast", "East", "SEast", "South",
@@ -238,8 +238,8 @@ int main() {
 
 	time(&startTime);
 
-//	for (int i = 0; i < 20; i++) {
-	while (1) {
+	for (int i = 0; i < 20; i++) {
+//	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
@@ -283,10 +283,9 @@ int main() {
 		sprintf(buffer, "%d Deg  %s", (int) info.direction, getDirection());
 		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);
 
-		tripMiles = (currentTime - startTime)/3600 * averageSpeed(curSpeed);
+		tripMiles = (currentTime - startTime)/3600 * speedAverage;
 		display.setFont(&FreeSans18pt7b);
 
-		sprintf(buffer, "Alt %dft", (int) (info.elv * 3.28084));
 		sprintf(buffer, "Trip  %.1f       Alt %dft", tripMiles, (int)(info.elv * 3.28084));
 		display.writeString(xstart, ystart, 1, buffer, GREEN);
 
