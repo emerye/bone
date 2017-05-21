@@ -116,7 +116,7 @@ int main(int argc, char * argv[]) {
 	rpiObj.initRpiHardware();
 	rpiObj.Init_ssd1963();
 	memset(rpiObj.fBuffer, 0, sizeof(rpiObj.fBuffer));
-	rpiObj.drawPixel(TFTHEIGHT-1,TFTWIDTH-1,WHITE);
+	rpiObj.drawPixel(TFTWIDTH-1,TFTHEIGHT-1,WHITE);
 	rpiObj.bufftoDisplay();
 
 	fillWithColor(RED);
