@@ -142,7 +142,7 @@ void readGPS() {
 			parseNmea(inBuffer, count);
 		} else if ((strstr(inBuffer, "$GPRMC") != NULL)) {
 			parseNmea(inBuffer, count);
-			exit = true;
+		//	exit = true;
 		} else if ((strstr(inBuffer, "$GPVTG") != NULL)) {
 			parseNmea(inBuffer, count);
 			exit = true;
