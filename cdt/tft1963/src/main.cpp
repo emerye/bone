@@ -1,5 +1,5 @@
 
-//#define SEVENINCH
+#define SEVENINCH
 
 #ifdef SEVENINCH
 //7 inch display
@@ -47,7 +47,7 @@ DispDraw *clsObj;
 void fillWithColor(unsigned short color) {
 	int i;
 
-	for(i=0; i<480*272; i++) {
+	for(i=0; i<TFTWIDTH*TFTHEIGHT; i++) {
 		clsObj->fBuffer[i] = color;
 	}
 	clsObj->bufftoDisplay();
@@ -160,16 +160,9 @@ for (int i = 1; i < 3; i++) {
 	}
 
 if (1) {
-	show_dir("/home/andy/pictures/", PICWIDTH, TFTHEIGHT);
+//	show_dir("/home/andy/pictures/", PICWIDTH, TFTHEIGHT);
 //	show_dir("/home/andy/images/", PICWIDTH, TFTHEIGHT);
-	/*
 
-//	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
-//	sleep(1);
-//	dispPix(640, 480, "/home/andy/bone/images/image/nwharrahs.rgb");
-
-//	dispPix(640, 480, "/home/andy/bone/images/image/paris.rgb");
-	sleep(1);
 }
 
 	puts("End");
