@@ -161,7 +161,7 @@ for (int i = 1; i < 3; i++) {
 
 if (1) {
 //	show_dir("/home/andy/pictures/", PICWIDTH, TFTHEIGHT);
-//	show_dir("/home/andy/images/", PICWIDTH, TFTHEIGHT);
+	show_dir("/home/andy/images/", PICWIDTH, TFTHEIGHT);
 
 }
 

@@ -34,6 +34,7 @@
 volatile int elapsedSeconds = 0;
 volatile int newDataAvail = 0;
 volatile int elapsedMinutes = 0;
+volatile double tripDistance;
 volatile int pixelColor = 0;
 
 char *inBuffer = (char *) malloc(2048);
@@ -251,10 +252,17 @@ int main() {
 				averageSpeed(curSpeed));
 		display.writeString(xstart, ystart + 105, 1, buffer, WHITE);
 
+		//Elapsed Time
 		time(&currentTime);
 		newMinutes = ((currentTime - startTime) / divider) + testOffset;
 		sprintf(buffer, "ET %3d min", newMinutes);
 		display.writeString(xstart, ystart + 155, 1, buffer, BLUE);
+
+		//Distance
+		tripDistance = ((currentTime - startTime) / divider) * averageSpeed(curSpeed);
+
+
+		//Temperature
 		sprintf(buffer, "%.1f DegF", temperatureF);
 		display.writeString(xstart + 255, ystart + 155, 1, buffer, RED);
 
