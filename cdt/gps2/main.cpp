@@ -43,7 +43,7 @@ nmeaPARSER parser;
 nmeaTIME nmeaTime;
 bool debug = false;
 unsigned int count;
-double speedAverage = 0;
+double speedAverage = 0.0;
 double tripMiles;
 
 const char *compassDirection[] = { "North", "NEast", "East", "SEast", "South",
@@ -206,7 +206,7 @@ int main() {
 	unsigned short int xstart = 0;
 	unsigned short int ystart = 30;
 	int tick = 0;
-	char buffer[50];
+	char buffer[70];
 	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
 	bool debug = false;
@@ -238,8 +238,8 @@ int main() {
 
 	time(&startTime);
 
-	for (int i = 0; i < 20; i++) {
-//	while (1) {
+//	for (int i = 0; i < 20; i++) {
+	while (1) {
 		time(&gpsStartTime);
 		readGPS();
 		time(&gpsEndTime);
@@ -252,23 +252,12 @@ int main() {
 		tick ^= 1;
 		count++;
 
-		if (debug)
-			printf("Altitude %f ft\n", info.elv * 3.28084);
-
-		/*
-		display.setFont(&FreeSans18pt7b);
-		sprintf(buffer, "Lat:  %.6f", info.lat);
-		display.writeString(xstart, ystart, 1, buffer, GREEN);
-
-		display.setFont(&FreeSans18pt7b);
-		sprintf(buffer, "Long: %.6f", info.lon);
-		display.writeString(xstart, ystart + 30, 1, buffer, GREEN);
-		*/
-
-	//	display.writeString(xstart, ystart + 65, 1, buffer, WHITE);
+	//	sprintf(buffer, "Lat:  %.6f", info.lat);
+	//	sprintf(buffer, "Long: %.6f", info.lon);
 
 		display.setFont(&FreeSans24pt7b);
 		double curSpeed = info.speed * 0.621371;
+
 		sprintf(buffer, "%d mph    Ave %d mph", (int) curSpeed,
 				averageSpeed(curSpeed));
 		display.writeString(xstart, ystart + 105, 1, buffer, WHITE);
@@ -283,9 +272,9 @@ int main() {
 		sprintf(buffer, "%d Deg  %s", (int) info.direction, getDirection());
 		display.writeString(xstart, ystart + 205, 1, buffer, PURPLE);
 
-		tripMiles = (currentTime - startTime)/3600 * speedAverage;
 		display.setFont(&FreeSans18pt7b);
-
+		tripMiles = (currentTime - startTime)/3600.0 * speedAverage;
+//		printf("NewMinutes %d  SpeedAverage  %f  TripMiles %f\n", newMinutes, speedAverage, tripMiles);
 		sprintf(buffer, "Trip  %.1f       Alt %dft", tripMiles, (int)(info.elv * 3.28084));
 		display.writeString(xstart, ystart, 1, buffer, GREEN);
 
