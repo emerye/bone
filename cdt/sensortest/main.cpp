@@ -9,7 +9,7 @@
 
 float getTemperature(int fd)
  {
-	float degC, degF;
+	float degC;
 
  	int raw = wiringPiI2CReadReg16(fd, 0x00);
  	raw = ((raw << 8) & 0xFF00) + (raw >> 8);
@@ -19,7 +19,7 @@ float getTemperature(int fd)
 
 
 int main() {
-	int i2cHandle, fd;
+	int i2cHandle, fd = 0;
 	float temperature;
 
 	i2cHandle = wiringPiI2CSetup(LM75ADDRESS);
