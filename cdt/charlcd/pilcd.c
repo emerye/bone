@@ -169,6 +169,16 @@ char *GetTime() {
 	return timeBuff;
 }
 
+
+float getTemperature(int fd) {
+	float degC;
+
+	int raw = wiringPiI2CReadReg16(fd, 0x00);
+	raw = ((raw << 8) & 0xFF00) + (raw >> 8);
+	degC = (float) ((raw / 32.0) / 8.0);
+	return (float) (degC * 9.0 / 5.0 + 32);
+}
+
 void Display(int i2cfd, unsigned char tgtAddress) {
 	int r;
 
@@ -186,6 +196,8 @@ int main(int argc, char **argv) {
 	int i2cfd, i;
 	int gpiopin = 0;
 	int tempSensorHandle;
+	float currentTemperature;
+	char buffer[30] = { 0 };
 
 	wiringPiSetup();
 	pinMode(gpiopin, OUTPUT);
@@ -210,7 +222,7 @@ int main(int argc, char **argv) {
 	WriteString(i2cfd, 0, 0, dateBuff);
 	WriteString(i2cfd, 1, 0, GetTime());
 	WriteString(i2cfd, 2, 0, "Going to Reno");
-	WriteString(i2cfd, 3, 0, "Hornet 6/10/2017");
+	WriteString(i2cfd, 2, 0, "Hornet 6/10/2017");
 
 	for (i = 0; i < 10; i++) {
 
@@ -225,6 +237,9 @@ int main(int argc, char **argv) {
 		} else {
 			digitalWrite(gpiopin, LOW);	// Off
 		}
+		currentTemperature = getTemperature(tempSensorHandle);
+		sprintf(buffer, "Temperature %.1f", currentTemperature);
+		WriteString(i2cfd, 2, 0, buffer);
 		sleep(1);
 	}
 
