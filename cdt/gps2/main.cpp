@@ -209,7 +209,6 @@ int main() {
 	char buffer[70];
 	int divider = 60;   //Change to 60 for release
 	int testOffset = 0;
-	bool debug = false;
 	float temperatureF;
 
 	DispDraw display(480, 272);
