@@ -221,10 +221,10 @@ int main(int argc, char **argv) {
 	GetTime();
 	WriteString(i2cfd, 0, 0, dateBuff);
 	WriteString(i2cfd, 1, 0, GetTime());
-	WriteString(i2cfd, 2, 0, "Going to Reno");
-	WriteString(i2cfd, 2, 0, "Hornet 6/10/2017");
+//	WriteString(i2cfd, 2, 0, "Going to Reno");
+	WriteString(i2cfd, 3, 0, "Hornet 6/10/2017");
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 20; i++) {
 
 //    while (1) {
 		GetTime();
