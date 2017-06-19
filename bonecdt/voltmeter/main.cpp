@@ -5,6 +5,7 @@
  *      Author: andy
  */
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -13,6 +14,8 @@
 #include <time.h>
 
 const char * adcFileName = "/sys/bus/iio/devices/iio:device0/in_voltage1_raw";
+char dataFileName[512];
+FILE *dtaFileHandle;
 
 bool showHelp = false;
 
@@ -23,10 +26,20 @@ void usage(void) {
 	puts("    Argument is file to write results. This file is always overwritten.\n");
 }
 
+int writeLog(char *dataLine) {
+
+	if( (dtaFileHandle = fopen(dataFileName, "a")) != NULL) {
+		fprintf(dtaFileHandle, "%s", dataLine);
+		fclose(dtaFileHandle);
+		return 1;
+	} else {
+		printf("Unable to open data file.\n");
+		return 1;
+	}
+}
 
 int readVoltage(void) {
 	int fd, status;
-	int adcCount;
 	unsigned char buffer[256] = { 0 };
 
 	fd = open(adcFileName, O_RDONLY);
@@ -54,59 +67,73 @@ int readVoltage(void) {
 
 int main(int argc, char * argv[]) {
 	time_t startTime, currentTime;
-	int rawAdc, i;
+	int rawAdc, i, status;
 	double ratio, voltage;
 	double eTime;
+	FILE *pdtaFile;
+	char dataBuffer[512];
 
 	char *cvalue = NULL;
 	int index;
 	int c;
 
-	 opterr = 0;
+	opterr = 0;
 
-	  while ((c = getopt (argc, argv, "hc:")) != -1)
-	    switch (c)
-	      {
-	      case 'h':
-	        showHelp = true;
-	        break;
-	      case 'c':
-	        cvalue = optarg;
-	        break;
-	      case '?':
-	        if (optopt == 'c')
-	          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-	        else if (isprint (optopt))
-	          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-	        else
-	          fprintf (stderr,
-	                   "Unknown option character `\\x%x'.\n",
-	                   optopt);
-	        fflush(stdout);
-	        fflush(stderr);
-	        sleep(3);
-	        return 1;
-	      default:
-	    	fprintf(stderr, "Unknown option\n\n");
-	    	usage();
-	    	sleep(3);
-	        abort ();
-	      }
+	while ((c = getopt(argc, argv, "hc:")) != -1)
+		switch (c) {
+		case 'h':
+			showHelp = true;
+			break;
+		case 'c':
+			cvalue = optarg;
+			break;
+		case '?':
+			if (optopt == 'c')
+				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+			else if (isprint(optopt))
+				fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+			else
+				fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+			fflush(stdout);
+			fflush(stderr);
+			sleep(3);
+			return 1;
+		default:
+			fprintf(stderr, "Unknown option\n\n");
+			usage();
+			sleep(3);
+			abort();
+		}
 
-	  printf ("cvalue = %s\n",cvalue);
+	printf("cvalue = %s\n", cvalue);
 
-	  for (index = optind; index < argc; index++)
-	    printf ("Non-option argument %s\n", argv[index]);
+	if (optind != 1) {
+		printf("Output file name required as an argument.\n");
+		usage();
+		return 0;
+	}
 
-	  //Actions
+	for (index = optind; index < argc; index++) {
+		printf("Non-option argument %s\n", argv[index]);
+		strcpy(dataFileName, argv[index]);
+	}
 
-	  if (showHelp == true) {
-		  usage();
-		  fflush(stdout);
-		  sleep(3);
-		  return 0;
-	  }
+	//Actions
 
+	if (showHelp == true) {
+		usage();
+		fflush(stdout);
+		sleep(3);
+		return 0;
+	}
+
+	if( (dtaFileHandle = fopen(dataFileName, "w")) != NULL) {
+		fprintf(dtaFileHandle, "Time,Voltage\n");
+		fclose(dtaFileHandle);
+	} else {
+		printf("Unable to open data file.\n");
+		return 1;
+	}
 
 	startTime = time(NULL);
 
@@ -115,7 +142,9 @@ int main(int argc, char * argv[]) {
 		eTime = difftime(currentTime, startTime);
 		rawAdc = readVoltage();
 		ratio = rawAdc / 4095.0;
-		printf("Time %.0f  Voltage = %.2f\n", eTime, (double) ratio * 1.80);
+		memset(dataBuffer, 0, sizeof(dataBuffer));
+		sprintf(dataBuffer, "%.0f,%.2f\n", eTime, (double) ratio * 1.80);
+		status = writeLog(dataBuffer);
 		fflush(stdout);
 		sleep(1);
 	}
