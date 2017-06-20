@@ -66,7 +66,7 @@ int readVoltage(void) {
 
 
 int main(int argc, char * argv[]) {
-	time_t startTime, currentTime;
+	time_t startTime, currentTime, now;
 	int rawAdc, i, status;
 	double ratio, voltage;
 	double eTime;
@@ -137,15 +137,20 @@ int main(int argc, char * argv[]) {
 
 	startTime = time(NULL);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 30; i++) {
 		currentTime = time(NULL);
 		eTime = difftime(currentTime, startTime);
 		rawAdc = readVoltage();
 		ratio = rawAdc / 4095.0;
 		memset(dataBuffer, 0, sizeof(dataBuffer));
-		sprintf(dataBuffer, "%.0f,%.2f\n", eTime, (double) ratio * 1.80);
+		sprintf(dataBuffer, "%.0f,%.2f\n", eTime, (double) ratio * 9.96);
+		printf("%s",dataBuffer);
 		status = writeLog(dataBuffer);
 		fflush(stdout);
-		sleep(1);
+		now = time(NULL);
+		while ( (difftime(now,currentTime) == 0) ) {
+			sleep(0.05);
+			now = time(NULL);
+		}
 	}
 }
