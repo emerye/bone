@@ -137,13 +137,15 @@ int main(int argc, char * argv[]) {
 
 	startTime = time(NULL);
 
-	for (i = 0; i < 30; i++) {
+	while(1) {
+//	for (i = 0; i < 30; i++) {
 		currentTime = time(NULL);
 		eTime = difftime(currentTime, startTime);
 		rawAdc = readVoltage();
+
 		ratio = rawAdc / 4095.0;
 		memset(dataBuffer, 0, sizeof(dataBuffer));
-		sprintf(dataBuffer, "%.0f,%.2f\n", eTime, (double) ratio * 9.96);
+		sprintf(dataBuffer, "%.0f,%.2f\n", eTime, (double) ratio * 5.769299);
 		printf("%s",dataBuffer);
 		status = writeLog(dataBuffer);
 		fflush(stdout);
