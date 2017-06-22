@@ -137,8 +137,8 @@ int main(int argc, char * argv[]) {
 
 	startTime = time(NULL);
 
-	while(1) {
-//	for (i = 0; i < 30; i++) {
+//	while(1) {
+	for (i = 0; i < 30; i++) {
 		currentTime = time(NULL);
 		eTime = difftime(currentTime, startTime);
 		rawAdc = readVoltage();

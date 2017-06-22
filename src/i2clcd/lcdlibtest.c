@@ -39,18 +39,6 @@ void Display(int i2cfd, unsigned char tgtAddress)
     WriteString(i2cfd, 0, 0, dateBuff);
     WriteString(i2cfd, 1, 0, GetTime());
 }
-/*
-int main(int argc, char **argv)
-{
-    int r;
-    int i2cfd;
-    char *dev = "/dev/i2c-1";
-
-    i2cfd = open(dev, O_RDWR);
-    if (i2cfd < 0) {
-	perror("Opening i2c device node.\n");
-	return -1;
-*/
 int
 main()
 {
