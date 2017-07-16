@@ -64,13 +64,16 @@ foreach my $f ( @weather )  {
 }
 
 print $fh "temperature=". $decoded->{main}{temp} . "\n";
+print $fh "temperature_min=" . $decoded->{main}{temp_min} . "\n";
+print $fh "temperature_max=" . $decoded->{main}{temp_max} . "\n";
 print $fh "pressure=" . $decoded->{'main'}{'pressure'} . "\n";
-#print $fh "sea_level=" . $decoded->{'main'}{'sea_level'} . "\n";
-#print $fh "grnd_level=" . $decoded->{'main'}{'grnd_level'} . "\n";
+#print $fh "grnd_level_pressure=" . $decoded->{'main'}{'grnd_level'} . "\n";
 print $fh "humidity=" . $decoded->{'main'}{'humidity'} . "\n";
 
 print $fh "windspeed=" . $decoded->{'wind'}{'speed'} . "\n";
 print $fh "winddeg=" . $decoded->{'wind'}{'deg'} . "\n";
+print $fh "country=" . $decoded->{'sys'}{'country'} . "\n";
+
 
 close($fh); 
 
