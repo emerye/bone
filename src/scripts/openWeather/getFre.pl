@@ -16,7 +16,7 @@ $ret = system($wgetcmd);
 print ("Getting weather returned value:  ",  $ret, "\n"); 
 if ($ret != 0) 
 {
-  print "Existing"; 
+  print "Exiting"; 
   exit(); 
 }
 
