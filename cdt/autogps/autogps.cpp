@@ -8,8 +8,8 @@
 #include <inttypes.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#include "nmea.h"
 #include <time.h>
-#include "nmea/nmea.h"
 #include <wiringSerial.h>
 
 #include "Adafruit_GFX.h"

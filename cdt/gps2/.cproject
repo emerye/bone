@@ -35,6 +35,7 @@
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.1597418372" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1207350994" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tft1963l}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1642451534" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
