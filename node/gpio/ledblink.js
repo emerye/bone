@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var Gpio = require('onoff').Gpio, // Constructor function for Gpio objects.
 	  led = new Gpio(17, 'out'),      // Export GPIO #17 as an output.
 	  iv;
