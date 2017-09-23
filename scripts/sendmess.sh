@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ssmtp andyh@emerye.com < msg.txt
+/usr/sbin/ssmtp andyh@emerye.com < ~/bone/scripts/msg.txt
 
