@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 'use strict';
 
 const FauxMo = require('fauxmojs');
@@ -30,6 +32,9 @@ let fauxMo = new FauxMo({
 
 console.log('started..');
 
+
+
+
 function message(action) {
     console.log("Office log", action);
 }
@@ -41,6 +46,5 @@ function write(action) {
     } else {
         led.writeSync(1);
     }
-
-    console.log('Written to pin', action);
+    console.log('State written to pin', action);
 }
