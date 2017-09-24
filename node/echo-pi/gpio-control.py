@@ -70,6 +70,7 @@ class device_handler(debounce_handler):
 if __name__ == "__main__":
     # Startup the fauxmo server
     fauxmo.DEBUG = True
+    print "name of program", __name__
     p = fauxmo.poller()
     u = fauxmo.upnp_broadcast_responder()
     u.init_socket()
