@@ -23,10 +23,14 @@ let fauxMo = new FauxMo({
             /*      handler: (action) => {
                 console.log('office fan action:', action);
 		
-            }
-      */
+            } */ 
             handler: (action) => write(action)
-        }
+        }, 
+        {
+            name: 'Wandas light',
+            port: 11002,
+            handler: (action) => write(action)
+        }, 
     ]
 });
 
