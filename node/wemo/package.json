@@ -1,11 +1,14 @@
 {
   "name": "wemo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Fake Wemo for Alexa",
+  "main": "pimo.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Andy",
-  "license": "ISC"
+  "author": "Andy Hughes",
+  "license": "ISC",
+  "dependencies": {
+    "fauxmojs": "^1.0.0"
+  }  
 }

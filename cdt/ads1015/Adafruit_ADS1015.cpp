@@ -367,7 +367,7 @@ int main(int argc, char **argv) {
 	adcObj.setGain(GAIN_ONE);
 	adcValue = adcObj.readADC_SingleEnded(0);
 
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 10000; i++) {
 		adcValue = adcObj.readADC_SingleEnded(0);
 		printf("ADC value 0x%04x  Decimal %d\n", adcValue, adcValue);
 		fflush(stdout);
