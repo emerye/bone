@@ -15,10 +15,10 @@ case "$device" in
 ;;
 "2") 
   if [ $operation = "on" ]; then 
-    ./codesend 1381683 1 150
+    ./codesend 1381827 1 150
     echo "Channel two on" 
   else 
-    ./codesend 1381692 1 150
+    ./codesend 1381836 1 150
     echo "Channel two off" 
   fi
 ;;
@@ -29,6 +29,15 @@ case "$device" in
   else 
     ./codesend 1382156 1 150
     echo "Channel three off" 
+  fi
+;;
+"4") 
+  if [ $operation = "on" ]; then 
+    ./codesend 1383683 1 150
+    echo "Channel four on" 
+  else 
+    ./codesend 1383692 1 150
+    echo "Channel four off" 
   fi
 ;;
 esac    
