@@ -42,16 +42,4 @@ case "$device" in
 ;;
 esac    
 
-#Channel 
-#./codesend 1381683 1 150
-
-#Channel 1 off
-#./codesend 1381692 1 150
-
-
-#Channel 3 On
-#./codesend 1382147 1 150 
-#Channel 3 Off
-#./codesend 1382156 1 150 
-
 
