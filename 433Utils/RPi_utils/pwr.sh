@@ -3,41 +3,43 @@
 device=$1
 operation=$2
 
+CODESEND='/home/andy/bone/433Utils/RPi_utils/codesend'; 
+
 case "$device" in 
 "1") 
   if [ $operation = "on" ]; then 
-    ./codesend 1381683 1 150
-    echo "Channel one on" 
+    $CODESEND 1381683 1 150
+    echo "Channel One On" 
   else 
-    ./codesend 1381692 1 150
-    echo "Channel one off" 
+    $CODESEND 1381692 1 150
+    echo "Channel One Off" 
   fi
 ;;
 "2") 
   if [ $operation = "on" ]; then 
-    ./codesend 1381827 1 150
-    echo "Channel two on" 
+    $CODESEND 1381827 1 150
+    echo "Channel Two On" 
   else 
-    ./codesend 1381836 1 150
-    echo "Channel two off" 
+    $CODESEND 1381836 1 150
+    echo "Channel Two Off" 
   fi
 ;;
 "3") 
   if [ $operation = "on" ]; then 
-    ./codesend 1382147 1 150
-    echo "Channel three  on" 
+    $CODESEND 1382147 1 150
+    echo "Channel Three On" 
   else 
-    ./codesend 1382156 1 150
-    echo "Channel three off" 
+    $CODESEND 1382156 1 150
+    echo "Channel Three Off" 
   fi
 ;;
 "4") 
   if [ $operation = "on" ]; then 
-    ./codesend 1383683 1 150
-    echo "Channel four on" 
+    $CODESEND 1383683 1 150
+    echo "Channel Four On" 
   else 
-    ./codesend 1383692 1 150
-    echo "Channel four off" 
+    $CODESEND 1383692 1 150
+    echo "Channel Four Off" 
   fi
 ;;
 esac    

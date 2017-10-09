@@ -1,17 +1,26 @@
 #!/usr/bin/env node
 'use strict';
 
+var tgtIpAddress; 
+const MYIP = '192.168.1.112';
+
 const FauxMo = require('fauxmojs');
 var Gpio = require('onoff').Gpio,
     led = new Gpio(17, "out"),
     cb;
-//var process = require('process'); 
+var process = require('process'); 
+var childProcess = require('child_process'); 
 
 process.argv.forEach((val, index) => {
   console.log(`${index}: ${val}`);
 });
 
-var tgtIpAddress = process.argv[2];
+   if (process.argv[2]) {
+   tgtIpAddress = process.argv[2];
+   } else {
+   tgtIpAddress = MYIP; 
+   }
+
 var portNumber = 11000;
 
 let fauxMo = new FauxMo({
@@ -26,76 +35,34 @@ let fauxMo = new FauxMo({
         {
             name: 'pie light',
             port: portNumber++,
-            /*      handler: (action) => {
-                console.log('office fan action:', action);
-		
-            } */
-            handler: (action) => write(action)
+            handler: (action) => write(0,action)
         },
         {
-            name: 'Wandas light',
+            name: 'Andy light',
             port: portNumber++,
             handler: (action) => write(action)
         },
         {
-            name: 'pie light two',
+            name: 'Socket One',
             port: portNumber++,
-            handler: (action) => write(action)
+            handler: (action) => writeSocket('1', action)
         },
         {
-            name: 'andy',
+            name: 'Socket Two',
             port: portNumber++,
-            handler: (action) => write(action)
+            handler: (action) => writeSocket('2', action)
         },
         {
-            name: 'andy one',
+            name: 'Socket Three',
             port: portNumber++,
-            handler: (action) => write(action)
+            handler: (action) => writeSocket('3', action)
+        },
+        {
+            name: 'Socket Four',
+            port: portNumber++,
+            handler: (action) => writeSocket('4', action)
         },
 
-        {
-            name: 'andy two',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-
-
-        {
-            name: 'andy three',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-
-        {
-            name: 'andy four',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-
-        {
-            name: 'andy five',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-
-        {
-            name: 'andy six',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-
-        {
-            name: 'andy seven',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-
-
-        {
-            name: 'andy eight',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
     ]
 });
 
@@ -110,6 +77,7 @@ function message(action) {
 
 
 function write(action) {
+    powerControl(1, action); 
     if (action == 'off') {
         led.writeSync(0);
     } else {
@@ -118,6 +86,17 @@ function write(action) {
     console.log('State written to pin: ', action);
 }
 
-setTimeout(function() {
-  console.log('hello there'); 
-}, 7000); 
+
+function writeSocket(deviceNumber, action) {
+    powerControl(deviceNumber, action); 
+    childProcess.exec(`/home/andy/bone/433Utils/RPi_utils/pwr.sh  ${deviceNumber} ${action} `, (error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);   
+    return;
+  }
+  console.log(`stdout: ${stdout}`); 
+  console.log(`stderr: ${stderr}`); 
+  }); 
+}
+
+
