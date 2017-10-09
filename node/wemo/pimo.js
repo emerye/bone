@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
-var tgtIpAddress; 
 const MYIP = '192.168.1.112';
 
+var tgtIpAddress; 
+var portNumber = 11000;
 const FauxMo = require('fauxmojs');
 var Gpio = require('onoff').Gpio,
     led = new Gpio(17, "out"),
@@ -11,9 +12,11 @@ var Gpio = require('onoff').Gpio,
 var process = require('process'); 
 var childProcess = require('child_process'); 
 
+/*
 process.argv.forEach((val, index) => {
   console.log(`${index}: ${val}`);
 });
+*/
 
    if (process.argv[2]) {
    tgtIpAddress = process.argv[2];
@@ -21,7 +24,6 @@ process.argv.forEach((val, index) => {
    tgtIpAddress = MYIP; 
    }
 
-var portNumber = 11000;
 
 let fauxMo = new FauxMo({
     ipAddress: tgtIpAddress,
@@ -62,11 +64,10 @@ let fauxMo = new FauxMo({
             port: portNumber++,
             handler: (action) => writeSocket('4', action)
         },
-
     ]
 });
 
-console.log('Started on IP', tgtIpAddress);
+console.log('Started on IP %s. Waiting for command.', tgtIpAddress);
 
 
 // functions
