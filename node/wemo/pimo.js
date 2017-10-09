@@ -35,7 +35,7 @@ let fauxMo = new FauxMo({
         {
             name: 'pie light',
             port: portNumber++,
-            handler: (action) => write(0,action)
+            handler: (action) => write(action)
         },
         {
             name: 'Andy light',
@@ -77,18 +77,16 @@ function message(action) {
 
 
 function write(action) {
-    powerControl(1, action); 
     if (action == 'off') {
         led.writeSync(0);
     } else {
         led.writeSync(1);
     }
-    console.log('State written to pin: ', action);
+    console.log('State written to pin: %s', action);
 }
 
 
 function writeSocket(deviceNumber, action) {
-    powerControl(deviceNumber, action); 
     childProcess.exec(`/home/andy/bone/433Utils/RPi_utils/pwr.sh  ${deviceNumber} ${action} `, (error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);   
