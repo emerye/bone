@@ -4,6 +4,7 @@ PACKAGES="gcc build-essential ntp i2c-tools vim libi2c-dev connman wireless-tool
 
 apt-get -y update 
 apt-get -y dist-upgrade -y
+apt-get -y remove openjdk*
 
 apt-get -y install $PACKAGES
 
