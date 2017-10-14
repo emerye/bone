@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const MYIP = '192.168.1.112';
+const MYIP = '192.168.1.102';
 
 var tgtIpAddress; 
 var portNumber = 11000;
