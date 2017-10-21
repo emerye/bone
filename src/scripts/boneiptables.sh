@@ -11,6 +11,10 @@ iptables -P FORWARD ACCEPT
 /sbin/iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
+#Git
+iptables -A OUTPUT -p tcp --dport 9418 -j ACCEPT
+iptables -A INPUT -p tcp --sport 9418 -j ACCEPT
+
 #Web
 iptables -A INPUT -p tcp --dport 2000 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -i eth0 -p tcp --dport 2000 -m state --state NEW,ESTABLISHED -j ACCEPT
@@ -18,7 +22,7 @@ iptables -A OUTPUT -o eth0 -p tcp --sport 2000 -m state --state ESTABLISHED -j A
 
 #Time
 iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
-iptables -A INPUT -p udp --dport 123 -j ACCEPT
+iptables -A INPUT -p udp --sport 123 -j ACCEPT
 
 #DNS
 iptables -A INPUT -p udp --sport 53 -j ACCEPT
@@ -38,5 +42,5 @@ iptables -A OUTPUT -p tcp -s $SERVER_IP -d 0/0 --sport 22 --dport 513:65535 -m s
 
 #iptables -A INPUT -p tcp --dport 3000 -j DROP
 
-iptables -P INPUT DROP
+#iptables -P INPUT DROP
 iptables -P FORWARD DROP
