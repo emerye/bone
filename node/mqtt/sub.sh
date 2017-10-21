@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mosquitto_sub -d -t hello/world
+mosquitto_sub -d -u mqtt -P Mosq -t hello/world
