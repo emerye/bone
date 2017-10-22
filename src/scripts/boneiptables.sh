@@ -24,6 +24,11 @@ iptables -A OUTPUT -o eth0 -p tcp --sport 2000 -m state --state ESTABLISHED -j A
 iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
 iptables -A INPUT -p udp --sport 123 -j ACCEPT
 
+#IP Forwarding
+echo 1 >| /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A PREROUTING -p tcp -d $SERVER_IP --dport 1883 -j DNAT --to 192.168.1.112:1883
+iptables -t nat -A POSTROUTING -j MASQUERADE 
+
 #DNS
 iptables -A INPUT -p udp --sport 53 -j ACCEPT
 iptables -A INPUT -p tcp --sport 53 -j ACCEPT
@@ -43,4 +48,4 @@ iptables -A OUTPUT -p tcp -s $SERVER_IP -d 0/0 --sport 22 --dport 513:65535 -m s
 #iptables -A INPUT -p tcp --dport 3000 -j DROP
 
 #iptables -P INPUT DROP
-iptables -P FORWARD DROP
+#iptables -P FORWARD DROP
