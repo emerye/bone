@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-
 'use strict';
+
+var sleep = require('sleep'); 
+
 var mqtt = require('mqtt')
 const MYIP = '192.168.1.102';
 
@@ -102,6 +104,17 @@ function processMessage(topic, message) {
             break;
         case 'device/socket3':
             pwrControl('3', message);
+            break;
+        case 'device/all':
+            pwrControl('1', message);
+            sleep.msleep(1000); 
+            pwrControl('2', message);
+            sleep.msleep(1000); 
+            pwrControl('3', message);
+            sleep.msleep(1000); 
+            break;
+        case 'device/socket4':
+            pwrControl('4', message);
             break;
     }
 }
