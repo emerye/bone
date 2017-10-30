@@ -73,8 +73,8 @@ main()
     WriteString(i2cfd, 1, 0, GetTime());
 
 //  DisplayClear ();
-    WriteString(i2cfd, 2, 0, "Lost at ");
-    WriteString(i2cfd, 3, 0, "Thunder Valley");
+    WriteString(i2cfd, 2, 0, "Going to");
+    WriteString(i2cfd, 3, 0, "Jackson");
 
     while (1) {
 	GetTime();
