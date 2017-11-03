@@ -136,8 +136,6 @@ int main(int argc, char *argv[]) {
 	sendSync();
 
 
-	return 0;
-
 	while (count < 20) {
 		//   printf("Polling\n");
 		digitalWrite(29, HIGH);

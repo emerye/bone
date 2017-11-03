@@ -44,7 +44,7 @@ void sendCommand(unsigned char dta) {
 int main(int argc, char *argv[]) {
 	int position = -1, i;
 	unsigned char buttons;
-	unsigned char dString[] = { 0xFF, 0x1, 0x2, 0x7 };
+	unsigned char dString[] = { 0xFF, 0x1, 0x2, 0x7, 0xFF, 0xf0 };
 
 	wiringPiSetup();
 	pinMode(DATAPIN, OUTPUT);
@@ -81,6 +81,12 @@ int main(int argc, char *argv[]) {
 	dispObj.setDisplayToHexNumber((unsigned long) 0xABCDEF, '1', true);
 	dispObj.setDisplay(dString, sizeof(dString));
 	dispObj.clearDisplayDigit(6,false);
+
+	while(1) {
+		buttons = dispObj.getButtons();
+		usleep(20000);
+		dispObj.setLEDs(buttons);
+	}
 
 	puts("Program Complete.\n");
 	return 0;

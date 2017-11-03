@@ -3,14 +3,23 @@
 device=$1
 operation=$2
 length=160
+protocol=1
 
 CODESEND='/home/andy/bone/433Utils/RPi_utils/codesend'; 
+
+function xmit {
+  echo $1 $protocol $length  
+  $CODESEND $1 $protocol $length
+  $CODESEND $1 $protocol $length
+} 
+
 
 case "$device" in 
 "1") 
   if [ $operation = "on" ]; then 
-    $CODESEND 1381683 1 $length 
-    $CODESEND 1381683 1 $length 
+    #317
+    xmit 1381683  
+#    $CODESEND 1381683 1 $length 
     echo "Channel One On" 
   else 
     $CODESEND 1381692 1 $length 
