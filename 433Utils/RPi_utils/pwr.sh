@@ -42,7 +42,6 @@ case "$device" in
     echo "Channel Three On" 
   else 
     xmit 1382156
-    $CODESEND 1382156 1 $length
     echo "Channel Three Off" 
   fi
 ;;
