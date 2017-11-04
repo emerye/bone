@@ -54,6 +54,15 @@ case "$device" in
     echo "Channel Four Off" 
   fi
 ;;
+"5") 
+  if [ $operation = "on" ]; then 
+    xmit 1389827 
+    echo "Channel All On" 
+  else 
+    xmit 1383863
+    echo "Channel All Off" 
+  fi
+;;
 esac    
 
 
