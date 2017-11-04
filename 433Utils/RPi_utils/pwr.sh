@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#set -x
+set -eu
+
 device=$1
 operation=$2
 length=160
@@ -68,48 +71,48 @@ case "$device" in
 "6") 
   if [ $operation = "on" ]; then 
     #317
-    xmit 1381683  
+    xmit 4216115  
 #    $CODESEND 1381683 1 $length 
-    echo "Channel 317 Socket One On" 
+    echo "Channel 314 Socket One On" 
   else 
-    xmit 1381692 
-    echo "Channel 317 Socket One Off" 
+    xmit 4216124 
+    echo "Channel 314 Socket One Off" 
   fi
 ;;
 "7") 
   if [ $operation = "on" ]; then 
-    xmit 1381827 
-    echo "Channel 317 Socket Two On" 
+    xmit 4216259 
+    echo "Channel 314 Socket Two On" 
   else 
-    xmit 1381836
-    echo "Channel 317 Socket Two Off" 
+    xmit 4216268 
+    echo "Channel 314 Socket Two Off" 
   fi
 ;;
 "8") 
   if [ $operation = "on" ]; then 
-    xmit 1382147 
-    echo "Channel 317 Socket Three On" 
+    xmit 4216579 
+    echo "Channel 314 Socket Three On" 
   else 
-    xmit 1382156
-    echo "Channel 317 Socket Three Off" 
+    xmit 4216588 
+    echo "Channel 314 Socket Three Off" 
   fi
 ;;
 "9") 
   if [ $operation = "on" ]; then 
-    xmit 1383683 
-    echo "Channel 317 Socket Four On" 
+    xmit 4218115 
+    echo "Channel 314 Socket Four On" 
   else 
-    xmit 1383692 
-    echo "Channel 317 Socket Four Off" 
+    xmit 4218124 
+    echo "Channel 314 Socket Four Off" 
   fi
 ;;
 "10") 
   if [ $operation = "on" ]; then 
-    xmit 1389827 
-    echo "Channel 317 Socket All On" 
+    xmit 4224259 
+    echo "Channel 314 Socket All On" 
   else 
-    xmit 1389836
-    echo "Channel 317 Socket All Off" 
+    xmit 4224268 
+    echo "Channel 314 Socket All Off" 
   fi
 ;;
 esac    
