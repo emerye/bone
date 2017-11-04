@@ -115,5 +115,53 @@ case "$device" in
     echo "Channel 314 Socket All Off" 
   fi
 ;;
-esac    
 
+#Channel 320
+"11") 
+  if [ $operation = "on" ]; then 
+    #317
+    xmit 5313843  
+#    $CODESEND 1381683 1 $length 
+    echo "Channel 320 Socket One On" 
+  else 
+    xmit 5313852 
+    echo "Channel 320 Socket One Off" 
+  fi
+;;
+"12") 
+  if [ $operation = "on" ]; then 
+    xmit 5313987 
+    echo "Channel 320 Socket Two On" 
+  else 
+    xmit 5313996 
+    echo "Channel 320 Socket Two Off" 
+  fi
+;;
+"13") 
+  if [ $operation = "on" ]; then 
+    xmit 5314307 
+    echo "Channel 320 Socket Three On" 
+  else 
+    xmit 5314316 
+    echo "Channel 320 Socket Three Off" 
+  fi
+;;
+"14") 
+  if [ $operation = "on" ]; then 
+    xmit 5315843 
+    echo "Channel 320 Socket Four On" 
+  else 
+    xmit 5315852 
+    echo "Channel 320 Socket Four Off" 
+  fi
+;;
+"15") 
+  if [ $operation = "on" ]; then 
+    xmit 5321987 
+    echo "Channel 320 Socket All On" 
+  else 
+    xmit 5321996 
+    echo "Channel 320 Socket All Off" 
+  fi
+;;
+esac    
