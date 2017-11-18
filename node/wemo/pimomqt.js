@@ -84,6 +84,36 @@ let fauxMo = new FauxMo({
             port: portNumber++,
             handler: (action) => writeSocket('4', action)
         },
+        {
+            name: 'Group One',
+            port: portNumber++,
+            handler: (action) => writeSocket('5', action)
+        },
+        {
+            name: 'Christmas One',
+            port: portNumber++,
+            handler: (action) => writeSocket('6', action)
+        },
+        {
+            name: 'Christmas Two',
+            port: portNumber++,
+            handler: (action) => writeSocket('7', action)
+        },
+        {
+            name: 'Christmas Three',
+            port: portNumber++,
+            handler: (action) => writeSocket('8', action)
+        },
+        {
+            name: 'Christmas Four',
+            port: portNumber++,
+            handler: (action) => writeSocket('9', action)
+        },
+        {
+            name: 'Group Two',
+            port: portNumber++,
+            handler: (action) => writeSocket('10', action)
+        },
     ]
 });
 

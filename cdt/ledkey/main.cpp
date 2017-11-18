@@ -79,10 +79,10 @@ int main(int argc, char *argv[]) {
 	dispObj.clearDisplay();
 	dispObj.setupDisplay(true, 2);
 	dispObj.setDisplayToHexNumber((unsigned long) 0xABCDEF, '1', true);
-	dispObj.setDisplay(dString, sizeof(dString));
-	dispObj.clearDisplayDigit(6,false);
+//	dispObj.setDisplay(dString, sizeof(dString));
+//	dispObj.clearDisplayDigit(6,false);
 
-	while(1) {
+	for(i=0; i<200; i++) {
 		buttons = dispObj.getButtons();
 		usleep(20000);
 		dispObj.setLEDs(buttons);
