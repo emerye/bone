@@ -47,20 +47,9 @@ if (process.argv[2]) {
 
 let fauxMo = new FauxMo({
     ipAddress: tgtIpAddress,
-    devices: [{
-            name: 'office light',
-            port: portNumber++,
-            handler: (action) => {
-                console.log('office light action:', action);
-            }
-        },
+    devices: [
         {
             name: 'pie light',
-            port: portNumber++,
-            handler: (action) => write(action)
-        },
-        {
-            name: 'Andy light',
             port: portNumber++,
             handler: (action) => write(action)
         },
@@ -78,11 +67,6 @@ let fauxMo = new FauxMo({
             name: 'Socket Three',
             port: portNumber++,
             handler: (action) => writeSocket('3', action)
-        },
-        {
-            name: 'Socket Four',
-            port: portNumber++,
-            handler: (action) => writeSocket('4', action)
         },
         {
             name: 'Group One',
@@ -103,11 +87,6 @@ let fauxMo = new FauxMo({
             name: 'Christmas Three',
             port: portNumber++,
             handler: (action) => writeSocket('8', action)
-        },
-        {
-            name: 'Christmas Four',
-            port: portNumber++,
-            handler: (action) => writeSocket('9', action)
         },
         {
             name: 'Group Two',
