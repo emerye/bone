@@ -158,7 +158,7 @@ function writeSocket(deviceNumber, action) {
             return;
         }
     });
-        sleep(500); 
+        sleep.msleep(500); 
     childProcess.exec(`/home/andy/bone/433Utils/RPi_utils/pwr.sh  ${deviceNumber} ${action} `, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
