@@ -2,7 +2,6 @@
 'use strict';
 
 var sleep = require('sleep'); 
-
 var mqtt = require('mqtt')
 const MYIP = '192.168.1.102';
 
@@ -115,12 +114,14 @@ function processMessage(topic, message) {
             pwrControl('3', message);
             break;
         case 'device/all':
+            sleep.msleep(1000); 
             pwrControl('1', message);
             sleep.msleep(1000); 
             pwrControl('2', message);
             sleep.msleep(1000); 
             pwrControl('3', message);
             sleep.msleep(1000); 
+	    pwrControl('5', message); 
             break;
         case 'device/socket4':
             pwrControl('4', message);
@@ -151,6 +152,13 @@ function write(action) {
 
 
 function writeSocket(deviceNumber, action) {
+    childProcess.exec(`/home/andy/bone/433Utils/RPi_utils/pwr.sh  ${deviceNumber} ${action} `, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return;
+        }
+    });
+        sleep(500); 
     childProcess.exec(`/home/andy/bone/433Utils/RPi_utils/pwr.sh  ${deviceNumber} ${action} `, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
