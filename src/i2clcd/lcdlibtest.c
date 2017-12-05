@@ -44,7 +44,7 @@ main()
 {
   int r;
   int i2cfd; 
-  char *dev = "/dev/i2c-1";
+  char *dev = "/dev/i2c-2";
 
   i2cfd = open (dev, O_RDWR);
   if (i2cfd < 0)
@@ -73,8 +73,8 @@ main()
     WriteString(i2cfd, 1, 0, GetTime());
 
 //  DisplayClear ();
-    WriteString(i2cfd, 2, 0, "Going to");
-    WriteString(i2cfd, 3, 0, "Jackson");
+    WriteString(i2cfd, 2, 0, "December 18");
+    WriteString(i2cfd, 3, 0, "One week off.");
 
     while (1) {
 	GetTime();
