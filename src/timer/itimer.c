@@ -17,8 +17,8 @@ void timer_handler(int signum)
     unsigned char buf[100];
     FILE *fp;
 
-    if ((fp = fopen("./cumcount", "r+")) == NULL) {
-	puts("Error opening file\n");
+    if ((fp = fopen("./cumcount.txt", "w+")) == NULL) {
+	puts("Error opening file cumcount.txt\n");
 	return;
     }
 

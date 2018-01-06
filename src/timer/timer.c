@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Usage: %s <sleep-secs> <freq-nanosecs>\n",
 		argv[0]);
 	exit(EXIT_FAILURE);
+	printf("Exiting\n"); 
     }
 
     /* Establish handler for timer signal */

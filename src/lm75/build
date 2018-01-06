@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gcc i2ctimer.c -lrt -O -o i2ctimer
