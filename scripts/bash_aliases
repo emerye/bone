@@ -1,6 +1,7 @@
 #!/bin/bash
 
 alias vncs='vncserver -geometry 1920x1080'
+alias vncl='vncserver -geometry 1600x900'
 
 #Sound
 alias volu='sudo amixer set PCM -- $[$(amixer get PCM|grep -o [0-9]*%|sed 's/%//')+5]%'

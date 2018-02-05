@@ -1,25 +1,37 @@
 
 #include <stdio.h>
 #include <wiringPiI2C.h>
+#include <unistd.h>
 
 #include "sensors.h"
 
 
-#define LM75ADDRESS 0x48
+#define LM75ADDRESS 0x4C
+
+double lastTemp[3];
 
 float getTemperature(int fd)
  {
-	float degC;
+	double degC;
+	int read[3];
+	long int average, raw;
 
- 	int raw = wiringPiI2CReadReg16(fd, 0x00);
- 	raw = ((raw << 8) & 0xFF00) + (raw >> 8);
- 	degC = (float)((raw / 32.0) / 8.0);
+	for (int i=0; i<1000; i++)
+	{
+ 	raw = wiringPiI2CReadReg16(fd, 0x00);
+ 	read[i]= ((raw << 8) & 0xFF00) + (raw >> 8);
+ 	sleep(0.1);
+	}
+	average = (read[0] + read[1] + read[2]+ read[3]+read[4])/5;
+
+
+ 	degC = (float)((average/ 32.0) / 8.0);
  	return (float)(degC * 9.0/5.0 + 32);
  }
 
 
 int main() {
-	int i2cHandle, fd = 0;
+	int i2cHandle, fd = 0, i;
 	float temperature;
 
 	i2cHandle = wiringPiI2CSetup(LM75ADDRESS);
@@ -28,9 +40,13 @@ int main() {
 	}
 	Sensors lm75(fd, LM75ADDRESS);
 
-
-	temperature = getTemperature(i2cHandle);
-	printf("Temperature = : %g", temperature);
+	for (i = 0; i < 20; i++) {
+		temperature = getTemperature(i2cHandle);
+		printf("Temperature = : %.1f\n", temperature);
+		fflush (stdout);
+		sleep(1);
+	}
+	puts("Done\n");
 	return 0;
 }
 
