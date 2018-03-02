@@ -22,10 +22,11 @@ if (mode == GPIO.BOARD):
     
 GPIO.setup(ledPin, GPIO.OUT)
 time.sleep(1)
-for cnt in range(5):
+for cnt in range(3):
     GPIO.output(ledPin,GPIO.HIGH)
-    time.sleep(5)
+    time.sleep(2)
     GPIO.output(ledPin,GPIO.LOW)
-    time.sleep(5)
+    time.sleep(2)
 #GPIO.cleanup()
 
+print ('Complete')
