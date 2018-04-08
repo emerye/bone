@@ -37,7 +37,7 @@ void blink_task(void *pvParameter)
         gpio_set_level(BLINK_GPIO, 1);
 	printf("Output High\n");
 	fflush(stdout); 
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
