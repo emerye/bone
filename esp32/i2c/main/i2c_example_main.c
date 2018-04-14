@@ -166,6 +166,7 @@ static esp_err_t i2c_example_master_sensor_test(i2c_port_t i2c_num, uint8_t* dat
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
+
     printf("*******************\n");
     printf("data_h: %02x\n", (int)*data_h);
     printf("data_l: %02x\n", (int)*data_l);
@@ -176,7 +177,6 @@ static esp_err_t i2c_example_master_sensor_test(i2c_port_t i2c_num, uint8_t* dat
     printf("Temperature Reading DegC %.3f\n", tempC); 
     printf("Temperature Reading DegF %.3f\n", tempC * 1.8 + 32); 
 
-//    printf("sensor val: %f\n", (sensor_data << 8 | sensor_data_l) / 1.2);
     return ret;
 }
 
@@ -329,8 +329,16 @@ void app_main()
 //  i2c_example_slave_init();
     i2c_example_master_init();
     
+    for (int i=0; i<8; i++) {
     status = i2c_example_master_sensor_test(I2C_EXAMPLE_MASTER_NUM, &highByte, &lowByte); 
-//   xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void* ) 0, 10, NULL);
+    if (status) {
+      printf("Return status %d\n", status); 
+    }    
+    vTaskDelay(2000 / portTICK_PERIOD_MS); 
+    printf("Port Period MS is %d\n", portTICK_PERIOD_MS); 
+}
+
+    xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void* ) 0, 10, NULL);
 //   xTaskCreate(i2c_test_task, "i2c_test_task_1", 1024 * 2, (void* ) 1, 10, NULL);
 
 }
