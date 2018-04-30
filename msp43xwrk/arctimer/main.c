@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *******************************************************************************
- * 
+ *
  *                       MSP430 CODE EXAMPLE DISCLAIMER
  *
  * MSP430 code examples are self-contained low-level programs that typically
@@ -43,23 +43,21 @@
  *
  * --/COPYRIGHT--*/
 //******************************************************************************
-//  MSP430G2xx3 Demo - Basic Clock, LPM3 Using WDT ISR, 32kHz ACLK
+//  MSP430G2xx3 Demo - P1 Interrupt from LPM4 with Internal Pull-up
 //
-//  Description: This program operates MSP430 normally in LPM3, pulsing P1.0
-//  at 4 second intervals. WDT ISR used to wake-up system. All I/O configured
-//  as low outputs to eliminate floating inputs. Current consumption does
-//  increase when LED is powered on P1.0. Demo for measuring LPM3 current.
-//  ACLK = LFXT1/4 = 32768/4, MCLK = SMCLK = default DCO ~ 800kHz
-//  //* External watch crystal installed on XIN XOUT is required for ACLK *//	
+//  Description: A hi/low transition on P1.4 will trigger P1_ISR which,
+//  toggles P1.0. Normal mode is LPM4 ~ 0.1uA.
+//  Internal pullup enabled on P1.4.
+//  ACLK = n/a, MCLK = SMCLK = default DCO
 //
-//
-//           MSP430G2xx3
-//         ---------------
-//     /|\|            XIN|-
-//      | |               | 32kHz
-//      --|RST        XOUT|-
-//        |               |
-//        |           P1.0|-->LED
+//               MSP430G2xx3
+//            -----------------
+//        /|\|              XIN|-
+//         | |                 |
+//         --|RST          XOUT|-
+//     /|\   |      R          |
+//      --o--| P1.4-o      P1.0|-->LED
+//     \|/
 //
 //  D. Dang
 //  Texas Instruments Inc.
@@ -67,39 +65,67 @@
 //   Built with CCS Version 4.2.0 and IAR Embedded Workbench Version: 5.10
 //******************************************************************************
 
-
 #include <msp430.h>
 
-volatile int clocktick = 0;
+volatile unsigned int tickCount = 0;
+volatile unsigned int startEvent = 0;
+volatile unsigned int delayStart = 0;
+
 
 int main(void)
 {
-//  BCSCTL1 |= DIVA_2;                        // ACLK/4
-//  WDTCTL = WDT_ADLY_1000;                   // WDT 1s/4 interval timer
   WDTCTL = WDT_ADLY_1_9;								// WDT 1.9 msec interval timer
   IE1 |= WDTIE;                             // Enable WDT interrupt
+ // WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
+  P1DIR = 0x01;                             // P1.0 output  Red LED
+  P1DIR |= 0x40; 							// P1.6 output  Green LED
+  P1OUT |= 0x41;							// Green LED on
 
-  P1DIR = 0xFF;                             // All P1.x outputs
-  P1OUT = 0;                                // All P1.x reset
-  P2DIR = 0xFF;                             // All P2.x outputs
-  P2OUT = 0;                                // All P2.x reset
+  P2DIR |= 0x08;							//P2.3 Control Output
+  P2OUT &= 0xF7;							//P2.3 Output High
 
-  while(1)
-  {
- //   P1OUT |= 0x01;                          // Set P1.0 LED on
- //   for (i = 5000; i>0; i--);               // Delay 4 seconds
- //   for (i = 5000; i>0; i--);               // Delay
-  //  P1OUT &= ~0x01;                         // Reset P1.0 LED off
-//    _BIS_SR(LPM3_bits + GIE);               // Enter LPM3
-    _BIS_SR(GIE);               // Enter LPM3
+
+  P1OUT =  0x10;                            // P1.4 set, else reset
+  P1REN |= 0x10;                            // P1.4 pullup
+  P1IE |= 0x10;                             // P1.4 interrupt enabled
+  P1IES |= 0x10;                            // P1.4 Hi/lo edge
+  P1IFG &= ~0x10;                           // P1.4 IFG cleared
+
+  _BIS_SR(GIE);
+  while(1) {
+	  if (startEvent == 1)
+	  {
+		  P1IE &= 0xEF;                             // P1.4 disable interrupt
+		  delayStart = tickCount;
+		  P2OUT &= 0xF7; 			//Set control line low  (ON)
+		  while (tickCount != delayStart + 15);   //25 id too high
+		  P2OUT |= 0x08;			//Set control line high (OFF)
+		  P1OUT &= 0xFE;				//Red LED Off
+		  startEvent = 0;
+		  while (tickCount != delayStart + 500);
+		  P1IFG &= ~0x10;                           // P1.4 IFG cleared
+		  P1IE |= 0x10;                             // P1.4 interrupt enabled
+	  }
+
   }
 }
+
+// Port 1 interrupt service routine
+#pragma vector=PORT1_VECTOR
+__interrupt void Port_1(void)
+{
+  P1OUT |= 0x01;                            // P1.0 = toggle
+  startEvent = 1;
+  P1IE &= 0xEF;                             // P1.4 disable interrupt
+  P1IFG &= ~0x10;                           // P1.4 IFG cleared
+}
+
 
 #pragma vector=WDT_VECTOR
 __interrupt void watchdog_timer (void)
 {
     _BIC_SR_IRQ(LPM3_bits);                 // Clear LPM3 bits from 0(SR)
-    clocktick += 1;
-    P1OUT ^= 0x01;
+    tickCount += 1;
+    P1OUT ^= 0x40;
 
 }
