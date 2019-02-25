@@ -29,6 +29,4 @@ for i in range(200):
     verString = commObj.read_i2c_block_data(tgtAddress, 0x44, 13)
     print('Result ', verString)
 
-
-
 commObj.close()
