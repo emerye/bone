@@ -25,7 +25,6 @@ def ctofBytes(msb, lsb):
   return (degC * 1.8 + 32)
 
 
-
 tgtAddress = 0x4C
 devobj = SMBus(1)
 devobj.write_byte(tgtAddress, 0)
@@ -37,7 +36,7 @@ if debug:
       if debug: print('11 Bit MSB %2x LSB %2x' % (msb, lsb))
       val = ctofBytes(msb, lsb)
      
-for i in range(20):
+for i in range(10):
     devobj.write_byte(tgtAddress, 0)
     with SMBusWrapper(1) as bus:
         block = bus.read_i2c_block_data(tgtAddress, 0, 2)
@@ -46,5 +45,5 @@ for i in range(20):
         lsb = data[1] & 0xE0
         if debug: print('Bytes read from hardware: MSB %2x LSB %2x' % (msb, data[1]))
         tempF = ctofBytes(msb,lsb)
-        print('Temperature is %.0f\n' % (tempF))
+        print('Temperature is %.1f\n' % (tempF))
         time.sleep(1)
