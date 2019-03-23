@@ -88,7 +88,7 @@ int main(void)
   P1OUT =  0x10;                            // P1.4 set, else reset
   P1REN |= 0x10;                            // P1.4 pullup
   P1IE |= 0x10;                             // P1.4 interrupt enabled
-  P1IES |= 0x10;                            // P1.4 Hi/lo edge
+  P1IES |= 0x10;                            // P1.4 Hi to low edge triggered
   P1IFG &= ~0x10;                           // P1.4 IFG cleared
 
   _BIS_SR(GIE);
@@ -98,11 +98,12 @@ int main(void)
 		  P1IE &= 0xEF;                             // P1.4 disable interrupt
 		  delayStart = tickCount;
 		  P2OUT &= 0xF7; 			//Set control line low  (ON)
-		  while (tickCount != delayStart + 15);   //25 id too high
-		  P2OUT |= 0x08;			//Set control line high (OFF)
-		  P1OUT &= 0xFE;				//Red LED Off
+		//  while (tickCount != delayStart + 10);   //25 id too high
+		  while (tickCount != delayStart + 15);   //15 is too high on 3-21-2019
+		    P2OUT |= 0x08;			//Set control line high (OFF)
+		    P1OUT &= 0xFE;			//Red LED Off
 		  startEvent = 0;
-		  while (tickCount != delayStart + 500);
+		  while (tickCount != delayStart + 1000);
 		  P1IFG &= ~0x10;                           // P1.4 IFG cleared
 		  P1IE |= 0x10;                             // P1.4 interrupt enabled
 	  }
