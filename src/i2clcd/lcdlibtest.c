@@ -44,8 +44,8 @@ main()
 {
   int r;
   int i2cfd; 
-  // char *dev = "/dev/i2c-2";
-  char *dev = "/dev/i2c-1";
+  char *dev = "/dev/i2c-2";
+  //char *dev = "/dev/i2c-1";
 
   i2cfd = open (dev, O_RDWR);
   if (i2cfd < 0)
@@ -74,20 +74,9 @@ main()
     WriteString(i2cfd, 1, 0, GetTime());
 
 //  DisplayClear ();
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     WriteString(i2cfd, 2, 0, "September 20");
     WriteString(i2cfd, 3, 0, "It is fall.");
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-    WriteString(i2cfd, 2, 0, "April 2");
     WriteString(i2cfd, 3, 0, "One week off.");
->>>>>>> Stashed changes
-
     while (1) {
 	GetTime();
 	WriteString(i2cfd, 0, 0, dateBuff);
