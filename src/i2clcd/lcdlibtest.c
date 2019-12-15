@@ -44,8 +44,8 @@ main()
 {
   int r;
   int i2cfd; 
-  char *dev = "/dev/i2c-2";
-  //char *dev = "/dev/i2c-1";
+  //  char *dev = "/dev/i2c-2"; Bone
+  char *dev = "/dev/i2c-1";
 
   i2cfd = open (dev, O_RDWR);
   if (i2cfd < 0)
