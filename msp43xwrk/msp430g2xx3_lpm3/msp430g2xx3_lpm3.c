@@ -77,7 +77,7 @@ int main(void)
 //  BCSCTL1 |= DIVA_2;                        // ACLK/4
 //  WDTCTL = WDT_ADLY_1000;                   // WDT 1s/4 interval timer
   WDTCTL = WDT_ADLY_1_9;								// WDT 1.9 msec interval timer
-  IE1 |= WDTIE;                             // Enable WDT interrupt
+ // IE1 |= WDTIE;                             // Enable WDT interrupt
 
   P1DIR = 0xFF;                             // All P1.x outputs
   P1OUT = 0;                                // All P1.x reset
