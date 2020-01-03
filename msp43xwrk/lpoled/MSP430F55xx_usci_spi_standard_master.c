@@ -11,7 +11,7 @@
 //
 //                   MSP430F5529
 //                 -----------------
-//            /|\ |             P2.0|-> Slave Chip Select (GPIO)
+//            /|\ |             P2.0|-> SPI Enable(GPIO) Low
 //             |  |                 |
 //             ---|RST          P1.5|-> Slave Reset (GPIO)
 //                |                 |
@@ -21,13 +21,12 @@
 //                |                 |
 //                |             P2.7|-> Serial Clock Out (UCA0CLK)
 //
-//   Nima Eskandari
-//   Texas Instruments Inc.
-//   April 2017
-//   Built with CCS V7.0
+//				P1.5  OLED Reset
+//				P1.4  Command/Data
+//
 //******************************************************************************
 
-#include <msp430.h> 
+#include <msp430F5529.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -49,33 +48,9 @@
  * The slave will initialize itself to receive MasterTypeX example buffers.
  * */
 
-#define CMD_TYPE_0_SLAVE              0
-#define CMD_TYPE_1_SLAVE              1
-#define CMD_TYPE_2_SLAVE              2
-
-#define CMD_TYPE_0_MASTER              3
-#define CMD_TYPE_1_MASTER              4
-#define CMD_TYPE_2_MASTER              5
-
-#define TYPE_0_LENGTH              1
-#define TYPE_1_LENGTH              2
-#define TYPE_2_LENGTH              6
-
 #define MAX_BUFFER_SIZE     20
 
-/* MasterTypeX are example buffers initialized in the master, they will be
- * sent by the master to the slave.
- * SlaveTypeX are example buffers initialized in the slave, they will be
- * sent by the slave to the master.
- * */
-
-uint8_t MasterType0[TYPE_0_LENGTH] = {0x11};
-uint8_t MasterType1[TYPE_1_LENGTH]= {8, 9};
-uint8_t MasterType2[TYPE_2_LENGTH] = {'F', '4' , '1' , '9', '2', 'B'};
-
-uint8_t SlaveType0[TYPE_0_LENGTH] = {0};
-uint8_t SlaveType1[TYPE_1_LENGTH] = {0};
-uint8_t SlaveType2[TYPE_2_LENGTH] = {0};
+uint8_t MasterType2[] = {'F', '4' , '1' , '9', '2', 'B'};
 
 
 //******************************************************************************
@@ -420,7 +395,7 @@ void initGPIO()
 {
   //LEDs
   P1OUT = 0x00;                             // P1 setup for LED & reset output
-  P1DIR |= BIT0 + BIT5;
+  P1DIR |= BIT0 + BIT4 + BIT5;				//Bit 5 OLED Reset Bit4 Command/Data
 
   P4DIR |= BIT7;
   P4OUT &= ~(BIT7);
@@ -429,13 +404,15 @@ void initGPIO()
   P3SEL |= BIT3 + BIT4;                     // P3.3,4 option select
   P2SEL |= BIT7;                            // P2.7 option select
 
-  //Button to initiate transfer
+  //Button to initiate transfer. Not used
   P1DIR &= ~BIT1;                           // Set P1.1 to inpput direction
   P1REN |= BIT1;                            // Enable P1.1 internal resistance
   P1OUT |= BIT1;                            // Set P1.1 as pull-Up resistance
   P1IES |= BIT1;                            // P1.1 Hi/Lo edge
   P1IFG &= ~BIT1;                           // P1.1 IFG cleared
   P1IE |= BIT1;                             // P1.1 interrupt enabled
+
+
 }
 
 void initSPI()
@@ -463,8 +440,8 @@ void initSPI()
 
 
 int main(void) {
-    int i;
-    char outData[MAX_BUFFER_SIZE] = { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A' };
+
+    uint8_t outData[MAX_BUFFER_SIZE] = { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A' };
 
     WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
 
@@ -493,19 +470,15 @@ int main(void) {
 
 	*/
 
-	while (1) {
-//	SPI_Master_WriteReg(CMD_TYPE_2_MASTER, MasterType2, TYPE_2_LENGTH);
-	SPI_Master_Write(&outData, 9);
-//	SPI_Master_WriteReg(3, MasterType2, TYPE_2_LENGTH);
-	  __delay_cycles(1000);
-	}
 
-//	SPI_Master_WriteReg(CMD_TYPE_1_MASTER, MasterType1, TYPE_1_LENGTH);
-//	SPI_Master_WriteReg(CMD_TYPE_0_MASTER, MasterType0, TYPE_0_LENGTH);
+	SPI_Master_Write(&outData[0], 9);
+	__delay_cycles(1000);
+
+	SPI_Master_Write(&outData[0], 9);
+	__delay_cycles(1000);
 
 	__bis_SR_register(LPM0_bits + GIE);
     __no_operation();
-
 
 	return 0;
 }

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <msp430F5529.h>
 #include "oled1309.h"
 #include "SSD1309.h"
 #include "glcdfont.h"
@@ -19,6 +20,7 @@
 #include "FreeMono12pt7b.h"
 #include "Fonts/FreeSerif12pt7b.h"
 #include "Fonts/FreeSans12pt7b.h"
+#include "lpoled.h"
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -556,23 +558,22 @@ void oled1309::invertDisplay(uint8_t i) {
 
 int oled1309::SendSPIBlock(enum cmd cmdType, unsigned char *spiData,
 		int numBytes) {
-	int error;
+
 	unsigned char spiBuffer[20];
+	SPI_Mode spi_mode;
 
 	memcpy(spiBuffer, spiData, numBytes);
 
-	if (cmdType == COMMAND) {
-//		digitalWrite(DCLINE, LOW);
+	if (cmdType == COMMAND) {  //P1 Bit 4 Command/Data
+		P1OUT &= ~BIT4;
 	} else {
-//		digitalWrite(DCLINE, HIGH);
+		P1OUT |= BIT4;
 	}
 
-//	error = wiringPiSPIDataRW(0, spiBuffer, numBytes);
-	if (error == -1) {
-		printf("Error writing SPI %d\n", error);
-		perror("SPI Write");
-	}
-	return error;
+	//wiringPiSPIDataRW(0, spiBuffer, numBytes);
+	spi_mode = SPI_Master_Write(spiBuffer, numBytes);
+
+	return 0;
 }
 
 
@@ -624,11 +625,13 @@ void oled1309::drawFastHLineInternal(int16_t x, int16_t y, int16_t w,
 
 void oled1309::initDisplay() {
 //	digitalWrite(RESETLINE, HIGH);
+	P1OUT |= BIT5;
 //	digitalWrite(RESETLINE, LOW);
-//	usleep(15000);
+	P1OUT &= ~BIT5;
+	__delay_cycles((240,000));
 //	digitalWrite(RESETLINE, HIGH);
-
-//	usleep(1000);
+	P1OUT |= BIT5;
+	__delay_cycles((16,000));
 
 	sendByte(COMMAND, 0xFD);	// Set Command Lock
 	sendByte(COMMAND, 0x12);	//   Default => 0x12
@@ -736,11 +739,7 @@ void oled1309::displayPicture(void) {
 void oled1309::init_Hardware(void) {
 	int status;
 
-/****	pinMode(RESETLINE, OUTPUT);  *////
-//	pinMode(DCLINE, OUTPUT);
-	if (status < 1) {
-		perror("Error opening SPI");
-	}
+	//GPIO Already initialized
 }
 
 void oled1309::setContrast(unsigned char level) {
