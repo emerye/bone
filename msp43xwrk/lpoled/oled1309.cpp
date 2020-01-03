@@ -35,8 +35,6 @@
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
 
-//unsigned char spiBuffer[20];	//Buffer to hold SPI data
-
 int spiFD;
 int rotation = 0;
 
@@ -628,10 +626,10 @@ void oled1309::initDisplay() {
 	P1OUT |= BIT5;
 //	digitalWrite(RESETLINE, LOW);
 	P1OUT &= ~BIT5;
-	__delay_cycles((240,000));
+	__delay_cycles(64000);
 //	digitalWrite(RESETLINE, HIGH);
 	P1OUT |= BIT5;
-	__delay_cycles((16,000));
+	__delay_cycles(16000);
 
 	sendByte(COMMAND, 0xFD);	// Set Command Lock
 	sendByte(COMMAND, 0x12);	//   Default => 0x12

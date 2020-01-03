@@ -29,6 +29,16 @@
 #include <msp430F5529.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "oled1309.h"
+#include "gfxfont.h"
+#include "glcdfont.h"
+#include "FreeMono24pt7b.h"
+#include "FreeMono12pt7b.h"
+#include "Fonts/FreeSerif12pt7b.h"
+#include "Fonts/FreeSans12pt7b.h"
+#include "Fonts/FreeMono9pt7b.h"
+#include "Fonts/FreeSansBold12pt7b.h"
+#include "Fonts/TomThumb.h"
 
 
 //******************************************************************************
@@ -433,6 +443,63 @@ void initSPI()
 }
 
 
+
+//void test(oled1309 dummy) {
+void test() {
+
+	oled1309 display;
+	int xstart = 0;
+	int ystart = 18;
+	int width = 40;
+	int height = 22;
+	int i, j;
+
+
+	display.drawFastHLine(0, 63, 128, WHITE);
+	//   drawFastVLine(15, 8, 30, WHITE);
+	//  drawCircle(32,32,16,WHITE);
+	//   drawLine(0, 0, 60, 100,
+	//    WHITE);
+	//  drawRect(10,10,50,50,WHITE);
+	//  drawPixel(100,50,WHITE);
+	//  fillRect(40,10, 50,20,WHITE);
+//	drawChar(80, 40, 'C', WHITE, BLACK, 1);
+//	drawChar(87, 40, 'D', WHITE, BLACK, 1);
+//	drawCharCustom(70, 30, 'H',
+//	WHITE, BLACK, 1);
+//	drawCharCustom(90, 30, 'G',
+//	WHITE, BLACK, 1);
+	// writeString(stText);
+	for (i = 0; i < 3; i++) {
+		for (int i=0; i<1024; i++) {
+				display.buffer[i]=0;
+			}
+		display.displayPicture();
+		display.setFont(TomThumb);
+		display.fillRect(xstart, 37, 130, height, BLACK);
+		display.writeString(xstart, 18, 1, "ABCDEFGHI");
+		display.setFont(FreeMono9pt7b);
+		display.writeString(xstart, 36, 1, "123456789");
+		display.setFont(FreeSerif12pt7b);
+		display.writeString(xstart, 54, 1, "abcdefgh");
+		display.displayPicture();
+		__delay_cycles(64000);
+		for (int i=0; i<1024; i++) {
+			display.buffer[i]=0;
+		}
+//		memset(display.buffer, 0, 1024);
+		display.displayPicture();
+		display.setFont(FreeMono9pt7b);
+		display.writeString(0, 18, 1, "ABCDEFGHI");
+		display.writeString(0, 36, 1, "123456789");
+		display.fillRect(xstart, 37, 130, height, BLACK);
+		display.writeString(0, 54, 1, "2/5/2017");
+
+		display.displayPicture();
+		__delay_cycles(16000);
+	}
+}
+
 //******************************************************************************
 // Main ************************************************************************
 // Send and receive three messages containing the example commands *************
@@ -441,6 +508,7 @@ void initSPI()
 
 int main(void) {
 
+//	oled1309 display;
     uint8_t outData[MAX_BUFFER_SIZE] = { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A' };
 
     WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
@@ -457,6 +525,7 @@ int main(void) {
 
 	P1OUT |= BIT0;
 
+
 	/*
 	__bis_SR_register(LPM0_bits + GIE);       // CPU off, enable interrupts
 	SPI_Master_ReadReg(CMD_TYPE_2_SLAVE, TYPE_2_LENGTH);
@@ -467,18 +536,21 @@ int main(void) {
 
 	SPI_Master_ReadReg(CMD_TYPE_0_SLAVE, TYPE_0_LENGTH);
 	CopyArray(ReceiveBuffer, SlaveType0, TYPE_0_LENGTH);
-
 	*/
 
-
+//while(1) {
 	SPI_Master_Write(&outData[0], 9);
 	__delay_cycles(1000);
 
 	SPI_Master_Write(&outData[0], 9);
 	__delay_cycles(1000);
+//}
 
-	__bis_SR_register(LPM0_bits + GIE);
-    __no_operation();
+//	__bis_SR_register(LPM0_bits + GIE);
+//    __no_operation();
+
+	test();
+
 
 	return 0;
 }

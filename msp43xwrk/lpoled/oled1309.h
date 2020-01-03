@@ -29,7 +29,7 @@
 class oled1309 {
 public:
 	GFXfont gfxFont;
-	unsigned char buffer[1024];
+	unsigned char buffer[1024] = { 0 };
 
 	oled1309();
 	virtual ~oled1309();

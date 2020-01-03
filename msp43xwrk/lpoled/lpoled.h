@@ -17,6 +17,4 @@ void __delay_cycles(unsigned long);
 SPI_Mode SPI_Master_Write(uint8_t *reg_data, uint8_t count);
 
 
-
-
 #endif
