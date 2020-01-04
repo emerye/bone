@@ -735,10 +735,9 @@ void oled1309::displayPicture(void) {
 }
 
 void oled1309::init_Hardware(void) {
-	int status;
-
 	//GPIO Already initialized
 }
+
 
 void oled1309::setContrast(unsigned char level) {
 	unsigned char buffer[3];
@@ -746,6 +745,7 @@ void oled1309::setContrast(unsigned char level) {
 	buffer[1] = level;
 	SendSPIBlock(COMMAND, buffer, 2);
 }
+
 
 // Draw a custom Font Character
 void oled1309::drawCharCustom(int16_t x, int16_t y, unsigned char c,
@@ -766,7 +766,6 @@ void oled1309::drawCharCustom(int16_t x, int16_t y, unsigned char c,
 	uint16_t bo = glyph.bitmapOffset;
 	uint8_t w = glyph.width;
 	uint8_t h = glyph.height;
-//	int8_t xa = glyph.xAdvance;
 	int8_t xo = glyph.xOffset;
 	int8_t yo = glyph.yOffset;
 	uint8_t xx, yy, bits, bit = 0;
