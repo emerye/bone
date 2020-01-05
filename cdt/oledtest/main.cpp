@@ -133,6 +133,7 @@ void test(oled1309 display) {
 		display.fillRect(xstart, 37, 130, height, BLACK);
 		display.writeString(0, 54, 1, "1/5/2020");
 
+
 		display.displayPicture();
 		sleep(1);
 	}
