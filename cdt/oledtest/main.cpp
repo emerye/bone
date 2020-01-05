@@ -96,7 +96,8 @@ void test(oled1309 display) {
 	int i;
 
 
-	display.drawFastHLine(0, 63, 128, WHITE);
+//	display.drawFastHLine(0, 63, 127, WHITE);
+	sleep(2);
 	//   drawFastVLine(15, 8, 30, WHITE);
 	//  drawCircle(32,32,16,WHITE);
 	//   drawLine(0, 0, 60, 100,
@@ -114,6 +115,7 @@ void test(oled1309 display) {
 	for (i = 0; i < 3; i++) {
 		memset(display.buffer, 0, 1024);
 		display.displayPicture();
+		sleep(1);
 		display.setFont(TomThumb);
 		display.fillRect(xstart, 37, 130, height, BLACK);
 		display.writeString(xstart, 18, 1, "ABCDEFGHI");
@@ -126,10 +128,10 @@ void test(oled1309 display) {
 		memset(display.buffer, 0, 1024);
 		display.displayPicture();
 		display.setFont(FreeMono9pt7b);
-		display.writeString(0, 18, 1, "ABCDEFGHI");
-		display.writeString(0, 36, 1, "123456789");
+	//	display.writeString(0, 18, 1, "ABCDEFGHI");
+	//	display.writeString(0, 36, 1, "123456789");
 		display.fillRect(xstart, 37, 130, height, BLACK);
-		display.writeString(0, 54, 1, "2/5/2017");
+		display.writeString(0, 54, 1, "1/5/2020");
 
 		display.displayPicture();
 		sleep(1);
@@ -144,6 +146,8 @@ int main(int argc, char **argv) {
 	fflush(stdout);
 	oled1309 display;
 
+	display.fillRect(0,0, 127,63,WHITE);
+	display.displayPicture();
 	display.setFont(FreeSansBold12pt7b);
 	test(display);
 
