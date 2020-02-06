@@ -28,7 +28,7 @@ def getvolts():
 		position = 0; 
 
 while 1:
-	print(volts)
+#	print(volts)
 	getvolts()
-	time.sleep(1)
+	time.sleep(0.1)
 

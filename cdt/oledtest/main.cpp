@@ -113,6 +113,7 @@ void test(oled1309 display) {
 //	WHITE, BLACK, 1);
 	// writeString(stText);
 	for (i = 0; i < 3; i++) {
+
 		memset(display.buffer, 0, 1024);
 		display.displayPicture();
 		sleep(1);
@@ -127,11 +128,12 @@ void test(oled1309 display) {
 		sleep(1);
 		memset(display.buffer, 0, 1024);
 		display.displayPicture();
+		sleep(2);
 		display.setFont(FreeMono9pt7b);
 	//	display.writeString(0, 18, 1, "ABCDEFGHI");
 	//	display.writeString(0, 36, 1, "123456789");
-		display.fillRect(xstart, 37, 130, height, BLACK);
-		display.writeString(0, 54, 1, "1/5/2020");
+	//	display.fillRect(xstart, 37, 130, height, BLACK);
+		display.writeString(0, 44, 1, "1/30/2020");
 
 
 		display.displayPicture();
