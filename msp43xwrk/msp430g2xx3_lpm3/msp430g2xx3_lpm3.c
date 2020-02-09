@@ -43,63 +43,63 @@
  *
  * --/COPYRIGHT--*/
 //******************************************************************************
-//  MSP430G2xx3 Demo - Basic Clock, LPM3 Using WDT ISR, 32kHz ACLK
+//   MSP430x552x Demo - Enters LPM3 with ACLK = LFXT1, REF0 disabled,
+//                      VUSB LDO and SLDO disabled, SVS disabled
 //
-//  Description: This program operates MSP430 normally in LPM3, pulsing P1.0
-//  at 4 second intervals. WDT ISR used to wake-up system. All I/O configured
-//  as low outputs to eliminate floating inputs. Current consumption does
-//  increase when LED is powered on P1.0. Demo for measuring LPM3 current.
-//  ACLK = LFXT1/4 = 32768/4, MCLK = SMCLK = default DCO ~ 800kHz
-//  //* External watch crystal installed on XIN XOUT is required for ACLK *//	
+//   Description: Configure ACLK = LFXT1 and enters LPM3. Measure current.
+//   ACLK = LFXT1 = 32kHz, MCLK = SMCLK = default DCO
 //
+//                MSP430F552x
+//             -----------------
+//        /|\ |              XIN|-
+//         |  |                 | 32kHz
+//         ---|RST          XOUT|-
+//            |                 |
 //
-//           MSP430G2xx3
-//         ---------------
-//     /|\|            XIN|-
-//      | |               | 32kHz
-//      --|RST        XOUT|-
-//        |               |
-//        |           P1.0|-->LED
-//
-//  D. Dang
-//  Texas Instruments Inc.
-//  December 2010
-//   Built with CCS Version 4.2.0 and IAR Embedded Workbench Version: 5.10
+//   Bhargavi Nisarga
+//   Texas Instruments Inc.
+//   April 2009
+//   Built with CCSv4 and IAR Embedded Workbench Version: 4.21
 //******************************************************************************
-
-
 #include <msp430.h>
-
-volatile int clocktick = 0;
 
 int main(void)
 {
-//  BCSCTL1 |= DIVA_2;                        // ACLK/4
-//  WDTCTL = WDT_ADLY_1000;                   // WDT 1s/4 interval timer
-  WDTCTL = WDT_ADLY_1_9;								// WDT 1.9 msec interval timer
- // IE1 |= WDTIE;                             // Enable WDT interrupt
+  WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
 
-  P1DIR = 0xFF;                             // All P1.x outputs
-  P1OUT = 0;                                // All P1.x reset
-  P2DIR = 0xFF;                             // All P2.x outputs
-  P2OUT = 0;                                // All P2.x reset
+  // Enable XT1
+  P5SEL |= BIT4+BIT5;                       // Port select XT1
+  UCSCTL6 &= ~(XT1OFF);                     // XT1 On
+  UCSCTL6 |= XCAP_3;                        // Internal load cap
 
-  while(1)
+  // Loop until XT1 & DCO stabilizes
+  do
   {
- //   P1OUT |= 0x01;                          // Set P1.0 LED on
- //   for (i = 5000; i>0; i--);               // Delay 4 seconds
- //   for (i = 5000; i>0; i--);               // Delay
-  //  P1OUT &= ~0x01;                         // Reset P1.0 LED off
-//    _BIS_SR(LPM3_bits + GIE);               // Enter LPM3
-    _BIS_SR(GIE);               // Enter LPM3
-  }
+    UCSCTL7 &= ~(XT2OFFG + XT1LFOFFG + DCOFFG);
+                                            // Clear XT2,XT1,DCO fault flags
+    SFRIFG1 &= ~OFIFG;                      // Clear fault flags
+  }while (SFRIFG1&OFIFG);                   // Test oscillator fault flag
+
+  UCSCTL6 &= ~(XT1DRIVE_3);                 // Xtal is now stable, reduce drive
+                                            // strength
+  // Port Configuration
+  P1OUT = 0x00;P2OUT = 0x00;P3OUT = 0x00;P4OUT = 0x00;P5OUT = 0x00;P6OUT = 0x00;
+  P7OUT = 0x00;P8OUT = 0x00;PJOUT = 0x00;
+  P1DIR = 0xFF;P2DIR = 0xFF;P3DIR = 0xFF;P4DIR = 0xFF;P5DIR = 0xFF;P6DIR = 0xFF;
+  P7DIR = 0xFF;P8DIR = 0xFF;PJDIR = 0xFF;
+
+  // Disable VUSB LDO and SLDO
+  USBKEYPID   =     0x9628;           // set USB KEYandPID to 0x9628
+                                      // access to USB config registers enabled
+  USBPWRCTL &= ~(SLDOEN+VUSBEN);      // Disable the VUSB LDO and the SLDO
+  USBKEYPID   =    0x9600;            // access to USB config registers disabled
+
+  // Disable SVS
+  PMMCTL0_H = PMMPW_H;                // PMM Password
+  SVSMHCTL &= ~(SVMHE+SVSHE);         // Disable High side SVS
+  SVSMLCTL &= ~(SVMLE+SVSLE);         // Disable Low side SVS
+
+  __bis_SR_register(LPM3_bits);       // Enter LPM3
+  __no_operation();                   // For debugger
 }
 
-#pragma vector=WDT_VECTOR
-__interrupt void watchdog_timer (void)
-{
-    _BIC_SR_IRQ(LPM3_bits);                 // Clear LPM3 bits from 0(SR)
-    clocktick += 1;
-    P1OUT ^= 0x01;
-
-}
