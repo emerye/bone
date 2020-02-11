@@ -29,6 +29,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --/COPYRIGHT--*/
+#include <stdio.h>
+#include <string.h>
 #include "driverlib.h"
 //*****************************************************************************
 //! This example shows how to configure the I2C module as a master for
@@ -84,8 +86,64 @@ unsigned char receiveBuffer[64] = { 0x01, 0x01, 0x01, 0x01, 0x01,
 unsigned char *receiveBufferPointer;
 unsigned char receiveCount = 2;
 
+int16_t tempF;
+char tempBuffer[10];
+
+
+void cvtDegF(unsigned char msb, unsigned char lsb) {
+
+	int16_t msbByte;
+	int16_t packed8Bit;
+
+	memset(tempBuffer, 0, sizeof(tempBuffer));
+
+	if( (msb & 0x80) == 0x80) {
+		packed8Bit = 0xFF00 + msb;
+		sprintf(tempBuffer, "%d", packed8Bit);
+	} else {
+		msbByte = msb;
+		sprintf(tempBuffer, "%d", msbByte);
+		if ((lsb & 0x80) == 0x80) {
+			strcat(tempBuffer, ".5");
+		} else {
+			strcat(tempBuffer, ".0");
+		}
+	}
+}
+
+
 int readI2CBlock(unsigned char numBytestoReceive)
 {
+
+	receiveCount = numBytestoReceive;
+    //Set receive mode
+    USCI_B_I2C_setMode(USCI_B0_BASE,
+        USCI_B_I2C_RECEIVE_MODE
+        );
+
+    //Enable I2C Module to start operations
+    USCI_B_I2C_enable(USCI_B0_BASE);
+
+    //Enable master Receive interrupt
+    USCI_B_I2C_enableInterrupt(USCI_B0_BASE,
+    		USCI_B_I2C_RECEIVE_INTERRUPT
+        );
+
+    //wait for bus to be free
+    while (USCI_B_I2C_isBusBusy(USCI_B0_BASE )) ;
+
+    while (receiveCount > 0)
+    {
+        receiveBufferPointer = (unsigned char *)receiveBuffer;
+        receiveCount = numBytestoReceive;
+        //Initialize multi reception
+        USCI_B_I2C_masterReceiveMultiByteStart(USCI_B0_BASE);
+
+        //Enter low power mode 0 with interrupts enabled.
+        __bis_SR_register(LPM0_bits + GIE);
+        __no_operation();
+    }
+    return 0;
 }
 
 int writeI2CBlock(unsigned char bytestoWrite[], unsigned char numBytestoWrite)
@@ -144,7 +202,7 @@ void init_i2c()
 	    USCI_B_I2C_initMasterParam param = {0};
 	    param.selectClockSource = USCI_B_I2C_CLOCKSOURCE_SMCLK;
 	    param.i2cClk = UCS_getSMCLK();
-	    param.dataRate = USCI_B_I2C_SET_DATA_RATE_400KBPS;
+	    param.dataRate = USCI_B_I2C_SET_DATA_RATE_100KBPS;
 	    USCI_B_I2C_initMaster(USCI_B0_BASE, &param);
 }
 
@@ -171,48 +229,17 @@ void main ()
     writeI2CBlock(bytestoWrite, 2);
     bytestoWrite[1]=0;
     writeI2CBlock(bytestoWrite, 2);
+    readI2CBlock(2);
+    readI2CBlock(2);
+    readI2CBlock(2);
+    cvtDegF(0x7d,0); //125.0
+    cvtDegF(0x19,0); //25.0
+    cvtDegF(0,1); //0.5
+    cvtDegF(0xFF, 0x80); //-0.5
+    cvtDegF(0xE7, 0);  //-25.0
     }
-
-    /*
-
-    //Set Transmit mode
-    USCI_B_I2C_setMode(USCI_B0_BASE,
-        USCI_B_I2C_TRANSMIT_MODE
-        );
-
-    //Enable I2C Module to start operations
-    USCI_B_I2C_enable(USCI_B0_BASE);
-
-
-    while (1)
-    {
-        //Enable transmit Interrupt
-		USCI_B_I2C_clearInterrupt(USCI_B0_BASE,
-			USCI_B_I2C_TRANSMIT_INTERRUPT
-			);
-        USCI_B_I2C_enableInterrupt(USCI_B0_BASE,
-            USCI_B_I2C_TRANSMIT_INTERRUPT
-            );
-
-        //Delay between each transaction
-        __delay_cycles(50);
-
-        //Load TX byte counter
-        transmitCounter = 1;
-
-        //Initiate start and send first character
-        USCI_B_I2C_masterSendMultiByteStart(USCI_B0_BASE,
-            transmitData[transmitCounter-1]);
-
-        //Enter LPM0 with interrupts enabled
-        __bis_SR_register(LPM0_bits + GIE);
-        __no_operation();
-
-        //Delay until transmission completes
-        while (USCI_B_I2C_isBusBusy(USCI_B0_BASE)) ;
-    }
-    */
 }
+
 
 //******************************************************************************
 //
@@ -278,7 +305,7 @@ void USCI_B0_ISR (void)
                        *receiveBufferPointer = USCI_B_I2C_masterReceiveMultiByteNext(
                        		USCI_B0_BASE
                            );
-                       receiveCount = 2;
+
                        __bic_SR_register_on_exit(LPM0_bits);
                    }
                    break;
