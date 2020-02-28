@@ -70,7 +70,7 @@
 //#define TXLENGTH 0x03
 
 uint8_t txLength = 2;
-uint8_t transmitData[64] = {  0x00,
+uint8_t transmitData[32] = {  0x00,
                                     0x00,
                                     0x63,
                                     0x64,
@@ -81,7 +81,7 @@ uint8_t transmitData[64] = {  0x00,
 
 uint8_t transmitCounter = 0;
 
-unsigned char receiveBuffer[64] = { 0x01, 0x01, 0x01, 0x01, 0x01,
+unsigned char receiveBuffer[32] = { 0x01, 0x01, 0x01, 0x01, 0x01,
                                     0x01, 0x01, 0x01, 0x01, 0x01};
 unsigned char *receiveBufferPointer;
 unsigned char receiveCount = 2;
@@ -93,20 +93,32 @@ char tempBuffer[10];
 void cvtDegF(unsigned char msb, unsigned char lsb) {
 
 	int16_t msbByte;
-	int16_t packed8Bit;
+	int16_t packed8Bit, negTemp;
 
 	memset(tempBuffer, 0, sizeof(tempBuffer));
 
-	if( (msb & 0x80) == 0x80) {
+	if ((msb & 0x80) == 0x80) {
+		//Negative
 		packed8Bit = 0xFF00 + msb;
-		sprintf(tempBuffer, "%d", packed8Bit);
+		if ((lsb & 0x80) == 0x80) {
+			negTemp = packed8Bit + 1;
+			if (negTemp == 0) {
+				sprintf(tempBuffer, "-%f", ((negTemp - 0.5)*1.8 + 32));
+			} else {
+				sprintf(tempBuffer, "%f", ((negTemp - 0.5)*1.8 + 32));
+			//	strcat(tempBuffer, ".5");
+			}
+		} else {
+			sprintf(tempBuffer, "%f", packed8Bit*1.8+32);
+		//	strcat(tempBuffer, ".0");
+		}
 	} else {
 		msbByte = msb;
-		sprintf(tempBuffer, "%d", msbByte);
+
 		if ((lsb & 0x80) == 0x80) {
-			strcat(tempBuffer, ".5");
+			sprintf(tempBuffer, "%f", ((msbByte + 0.5)*1.8 + 32));
 		} else {
-			strcat(tempBuffer, ".0");
+			sprintf(tempBuffer, "%f", ((msbByte)*1.8 + 32));
 		}
 	}
 }
@@ -230,13 +242,19 @@ void main ()
     bytestoWrite[1]=0;
     writeI2CBlock(bytestoWrite, 2);
     readI2CBlock(2);
+    cvtDegF(receiveBuffer[0], receiveBuffer[1]);
     readI2CBlock(2);
+    cvtDegF(receiveBuffer[0], receiveBuffer[1]);
     readI2CBlock(2);
+    cvtDegF(receiveBuffer[0], receiveBuffer[1]);
     cvtDegF(0x7d,0); //125.0
     cvtDegF(0x19,0); //25.0
-    cvtDegF(0,1); //0.5
+    cvtDegF(0,0x80); //0.5
     cvtDegF(0xFF, 0x80); //-0.5
     cvtDegF(0xE7, 0);  //-25.0
+    cvtDegF(0xC9, 0);  //-55.0
+    cvtDegF(0xC9, 0);  //-55.0
+    cvtDegF(0xC9, 0);  //-55.0
     }
 }
 
