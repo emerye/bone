@@ -16,7 +16,8 @@
 #include "wiringPiI2C.h"
 
 #define MAC 0x3e
-#define CALBASE = 0x9180;
+#define MAXCELLS 14
+#define CALBASE 0x9180;
 
 int cellV[16];
 /* Cell Gain Correction A1 Board BMS029A
@@ -45,7 +46,7 @@ int maxCellV(void) {
 	int maxCellV = 0;
 	int maxCellNum = 0;
 
-	for (i = 0; i < 14; i++) {
+	for (i = 0; i < 16; i++) {
 		if (cellV[i] > maxCellV) {
 			maxCellV = cellV[i];
 			maxCellNum = i;
@@ -59,7 +60,7 @@ int minCellV(void) {
 	int minCellV = 5000;
 	int minCellNum = 0;
 
-	for (i = 0; i < 14; i++) {
+	for (i = 0; i < MAXCELLS; i++) {
 		if (cellV[i] < minCellV) {
 			minCellV = cellV[i];
 			minCellNum = i;
@@ -202,17 +203,17 @@ int main(void) {
 		puts("Error returned from initDM");
 	}
 
-	for (i = 0; i < 14; i++) {
+	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		cellV[i] = data;
-		printf("Cell %d = %04x = %d\n", i + 1, cellV[i], cellV[i]);
+		printf("Cell %d = 0x%04x = %d\n", i + 1, cellV[i], cellV[i]);
 	}
 
 //	testFunctions(handle);
 	maxCell = maxCellV();
 	minCell = minCellV();
-	printf("Max Cell:%d Voltage: %d\n", maxCell, cellV[maxCell]);
-	printf("Min Cell:%d Voltage: %d\n", minCell, cellV[minCell]);
+	printf("Max Cell:%d Voltage: %d\n", maxCell+1, cellV[maxCell]);
+	printf("Min Cell:%d Voltage: %d\n", minCell+1, cellV[minCell]);
 
 	return EXIT_SUCCESS;
 }
