@@ -214,20 +214,24 @@ void readCells(int handle) {
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		cellV[i] = data;
-		printf("Cell%d = %d\n", i + 1, cellV[i]);
 	}
+	for (i = 0; i < MAXCELLS; i += 2) {
+		printf("Cell%d=%d Cell%d=%d\n", i + 1, cellV[i], i + 2, cellV[i + 1]);
+	}
+
 	stackVolts = (wiringPiI2CReadReg16(handle, STACKVOLTCMD)) * 10;
-	printf("Stack Voltage %d\n", stackVolts);
+
 	maxCell = maxCellV();
 	minCell = minCellV();
-	printf("Max Cell:%d Voltage: %d\n", maxCell + 1, cellV[maxCell]);
 	printf("Min Cell:%d Voltage: %d\n", minCell + 1, cellV[minCell]);
+	printf("Max Cell:%d Voltage: %d\n", maxCell + 1, cellV[maxCell]);
 	printf("Voltage Delta: %d mV\n", cellV[maxCell] - cellV[minCell]);
+	printf("Stack Voltage %d\n", stackVolts);
 	puts("");
-	fprintf(logFile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+	fprintf(logFile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
 			logTime++, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
 			cellV[5], cellV[6], cellV[7], cellV[8], cellV[9], cellV[10],
-			cellV[11], cellV[12], cellV[13], stackVolts);
+			cellV[11], cellV[12], cellV[13], minCell+1, maxCell+1, cellV[maxCell] - cellV[minCell], stackVolts);
 	fflush(logFile);
 	fflush(stdout);
 }
@@ -291,6 +295,7 @@ int main(int argc, char *argv[]) {
 		return -2;
 	}
 	fprintf(logFile, "#Delay is %d seconds.\n", gloopDelay);
+	fprintf(logFile,"#Time Cell1 Cell2 Cell3 Cell4 Cell5 Cell6 Cell7 Cell8 Cell9 Cell10 Cell11 Cell12 Cell13 Cell14 MinCell MaxCell DeltaV StackV\n");
 
 	//Main loop
 	while (1) {
