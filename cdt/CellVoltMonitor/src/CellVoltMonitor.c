@@ -15,6 +15,7 @@
 #include <getopt.h>
 #include <ctype.h>
 #include <termios.h>
+#include <time.h>
 #include "wiringPi.h"
 #include "wiringPiI2C.h"
 
@@ -229,12 +230,29 @@ void readCells(int handle) {
 	printf("Stack Voltage %d\n", stackVolts);
 	puts("");
 	fprintf(logFile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-			logTime++, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
+			logTime+=gloopDelay, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
 			cellV[5], cellV[6], cellV[7], cellV[8], cellV[9], cellV[10],
 			cellV[11], cellV[12], cellV[13], minCell+1, maxCell+1, cellV[maxCell] - cellV[minCell], stackVolts);
 	fflush(logFile);
 	fflush(stdout);
 }
+
+/******************************************************************************/
+
+void timeStamp (char *curTime) {
+
+  static char time_buffer[64];
+  const struct tm *tm;
+  time_t now;
+
+  now = time ( NULL );
+  tm = localtime ( &now );
+
+  strftime ( time_buffer, 64, "%d %B %Y %I:%M:%S %p", tm );
+  sprintf ( curTime, "%s\n", time_buffer );
+  return;
+}
+
 
 int main(int argc, char *argv[]) {
 	int handle, status;
@@ -243,6 +261,7 @@ int main(int argc, char *argv[]) {
 	int index;
 	int c;
 	opterr = 0;
+	char currentTime[64];
 
 	while ((c = getopt(argc, argv, "hd:")) != -1)
 		switch (c) {
@@ -294,8 +313,10 @@ int main(int argc, char *argv[]) {
 		printf("Unable to open cell logfile %s\n", logFileName);
 		return -2;
 	}
-	fprintf(logFile, "#Delay is %d seconds.\n", gloopDelay);
-	fprintf(logFile,"#Time Cell1 Cell2 Cell3 Cell4 Cell5 Cell6 Cell7 Cell8 Cell9 Cell10 Cell11 Cell12 Cell13 Cell14 MinCell MaxCell DeltaV StackV\n");
+	timeStamp(currentTime);
+	fprintf(logFile, "# Created on %s", currentTime);
+	fprintf(logFile, "# Delay is %d seconds.\n", gloopDelay);
+	fprintf(logFile,"# Time Cell1 Cell2 Cell3 Cell4 Cell5 Cell6 Cell7 Cell8 Cell9 Cell10 Cell11 Cell12 Cell13 Cell14 MinCell MaxCell DeltaV StackV\n");
 
 	//Main loop
 	while (1) {
