@@ -35,7 +35,7 @@ unsigned char cellGain[] = { 0x80, 0x91, 0xC2, 0x2F, 0xBD, 0x2F, 0xBF, 0x2F,
 		0xB8, 0x2F, 0x79, 0x2F };
 FILE *logFile;
 char *logFileName = "/home/andy/bone/plot/celllog.txt";
-int logTime;
+int logTime=0;
 int stackVolts;
 int gloopDelay = 1;      //Time in seconds
 
@@ -55,7 +55,7 @@ int maxCellV(void) {
 	int maxCellV = 0;
 	int maxCellNum = 0;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < MAXCELLS; i++) {
 		if (cellV[i] > maxCellV) {
 			maxCellV = cellV[i];
 			maxCellNum = i;
@@ -211,11 +211,14 @@ int initDM(int handle) {
 void readCells(int handle) {
 	int data, address = 0x14;
 	int i, minCell, maxCell;
+	char buffer[30];
+	double logPrintTime;
 
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		cellV[i] = data;
 	}
+//	cellV[13] = 3672;   Cell 14 is not connected on Schwinn
 	for (i = 0; i < MAXCELLS; i += 2) {
 		printf("Cell%d=%d Cell%d=%d\n", i + 1, cellV[i], i + 2, cellV[i + 1]);
 	}
@@ -229,10 +232,14 @@ void readCells(int handle) {
 	printf("Voltage Delta: %d mV\n", cellV[maxCell] - cellV[minCell]);
 	printf("Stack Voltage %d\n", stackVolts);
 	puts("");
-	fprintf(logFile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-			logTime+=gloopDelay, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
+	fprintf(logFile,
+			"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+			logTime, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
 			cellV[5], cellV[6], cellV[7], cellV[8], cellV[9], cellV[10],
-			cellV[11], cellV[12], cellV[13], minCell+1, maxCell+1, cellV[maxCell] - cellV[minCell], stackVolts);
+			cellV[11], cellV[12], cellV[13], minCell + 1, maxCell + 1,
+			cellV[maxCell] - cellV[minCell], stackVolts);
+
+	logTime = logTime + gloopDelay;
 	fflush(logFile);
 	fflush(stdout);
 }

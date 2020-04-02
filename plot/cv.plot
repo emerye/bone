@@ -1,5 +1,5 @@
 set title "Cell Voltage"
-set xlabel "Time (s)"
+set xlabel "Time (sec)"
 set ylabel "Voltage"
 plot 'celllog.txt' using 1:2 with lines title 'Cell1',\
 'celllog.txt' using 1:3 with lines title 'Cell2',\
