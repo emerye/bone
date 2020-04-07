@@ -89,7 +89,8 @@ Adafruit_ADS1015::Adafruit_ADS1015(int i2cHandle)
 {
    m_i2cAddress = ADS1015_ADDRESS;
    m_conversionDelay = ADS1015_CONVERSIONDELAY;
-   m_bitShift = 4;
+ //  m_bitShift = 4;
+   m_bitShift = 0;
    m_gain = GAIN_TWOTHIRDS; /* +/- 6.144V range (limited to VDD +0.3V max!) */
    this->i2cHandle = i2cHandle;
 }
@@ -186,7 +187,7 @@ int16_t Adafruit_ADS1015::readADC_Differential_0_1() {
                     ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
                     ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
                     ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
-                    ADS1015_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
+                    ADS1015_REG_CONFIG_MODE_SINGLE;   // //Continuous  Single-shot mode is default)
 
   // Set PGA/voltage range
   config |= m_gain;
@@ -364,14 +365,17 @@ int main(int argc, char **argv) {
 	}
 
 	Adafruit_ADS1015 adcObj = Adafruit_ADS1015(i2cfd);
-	adcObj.setGain(GAIN_ONE);
+//	adcObj.setGain(GAIN_ONE);
+	adcObj.setGain(GAIN_EIGHT); //.512
+	adcObj.setGain(GAIN_SIXTEEN); //.256
 	adcValue = adcObj.readADC_SingleEnded(0);
 
-	for (int i = 0; i < 10000; i++) {
+	for (int i = 0; i < 3; i++) {
 		adcValue = adcObj.readADC_SingleEnded(0);
+		adcValue = adcObj.readADC_Differential_0_1();
 		printf("ADC value 0x%04x  Decimal %d\n", adcValue, adcValue);
 		fflush(stdout);
-		usleep(100);
+		usleep(1000);
 	}
 
 	close(i2cfd);

@@ -9,6 +9,6 @@ while true; do
     done
 
 	y=$((volts))
-	printf "%03d\n" $y	
+	printf "%04d\n" $y	
 	sleep .1
 done

@@ -100,7 +100,7 @@ int writeI2CBlock(int handle, int startAddress, int numBytestoWrite,
 	return 0;
 }
 
-int ReadI2CBlock(int handle, int startAddress, int numBytestoRead,
+int readI2CBlock(int handle, int startAddress, int numBytestoRead,
 		unsigned char *result) {
 
 	int i;
@@ -130,7 +130,7 @@ void testFunctions(int handle) {
 	}
 
 	memset(buffer, 0, sizeof(buffer));
-	status = ReadI2CBlock(handle, 0x66, sizeof(data), buffer);
+	status = readI2CBlock(handle, 0x66, sizeof(data), buffer);
 	printf("Test Buffer:");
 	printBuffer(buffer, sizeof(data));
 
@@ -142,7 +142,7 @@ void testFunctions(int handle) {
 		if (status == -1) {
 			printf("Error %d\n", status);
 		}
-		status = ReadI2CBlock(handle, 0x40, 11, buffer);
+		status = readI2CBlock(handle, 0x40, 11, buffer);
 		printBuffer(buffer, 11);
 	}
 }
