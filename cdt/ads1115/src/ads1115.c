@@ -70,13 +70,12 @@ int main(int argc, char *args[]) {
 	}
 	status = configADS1115();
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 100; i++) {
 		vMeasure = readADS1115();
 		printf("Voltage %.6f\n", vMeasure);
 		fflush(stdout);
 		usleep(50000);
 	}
-
 	puts("Done");
 	return EXIT_SUCCESS;
 }
