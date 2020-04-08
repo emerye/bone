@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/i2c-dev.h>
+#include <i2c/smbus.h>
 #include "lcdchar.h"
 
 // Constants from the data sheet Command Table Instruction codes and timings
@@ -38,16 +39,16 @@ WriteI2CNibble (int i2cfd, unsigned char msbtoWrite, int cmd)
     puts ("Type is greater than 1 in function WriteI2CByte\n");
 
   bytetoWrite = bytetoWrite | (msbtoWrite & 0xF0) | ENABLE | cmd;
-  ret = i2c_smbus_write_byte (i2cfd, bytetoWrite);
+  ret = i2c_smbus_write_byte(i2cfd, bytetoWrite);
   if (ret < 0)
     puts ("Failed to write byte 1 in WriteNibble.\n");
   bytetoWrite &= ~ENABLE;
-  ret = i2c_smbus_write_byte (i2cfd, bytetoWrite);
+  ret = i2c_smbus_write_byte(i2cfd, bytetoWrite);
   if (ret < 0)
     puts ("Failed to write byte 2 in WriteNibble\n");
 
   bytetoWrite |= ENABLE;
-  ret = i2c_smbus_write_byte (i2cfd, bytetoWrite);
+  ret = i2c_smbus_write_byte(i2cfd, bytetoWrite);
   if (ret < 0)
     puts ("Failed to write byte 3 in WriteNIbble.\n");
 }

@@ -27,14 +27,14 @@ double readADS1115() {
 
 	int adcReading;
 	unsigned char buffer[10];
-	long double voltage;
+	double voltage;
 
 	wiringPiI2CWrite(handle, ADS1015_REG_POINTER_CONVERT);
 	usleep(2000);
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
 //	voltage = (long double)adcReading * ((long double)(0.256 / (long double)32768.0));
-	voltage = (long double)adcReading * 0.000007812;
+	voltage = (double)adcReading * 0.000007812;
 	usleep(1000);
 	return voltage;
 }
@@ -69,6 +69,10 @@ int main(int argc, char *args[]) {
 		return -1;
 	}
 	status = configADS1115();
+	if (status == -1) {
+		printf("Error configuring device.\n");
+		return -1;
+	}
 
 	for (i = 0; i < 100; i++) {
 		vMeasure = readADS1115();
@@ -77,6 +81,7 @@ int main(int argc, char *args[]) {
 		usleep(50000);
 	}
 	puts("Done");
+	close(handle);
 	return EXIT_SUCCESS;
 }
 

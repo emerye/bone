@@ -7,10 +7,10 @@ DEPS = libtest.h
 all: libtest 
 
 libtest:  lcdlibtest.c  
-	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -llcdchar -o libtest  
+	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -li2c -llcdchar -o libtest  
 
 libtest.o:
-	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -llcdchar -o libtest
+	$(CC) $(CFLAGS) -L/usr/local/lib lcdlibtest.c -li2c -llcdchar -o libtest
 
 clean:
 	 rm -f i2clcd i2clcd.o lcdchar.o liblcdchar.so 
