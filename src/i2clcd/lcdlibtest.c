@@ -7,7 +7,7 @@
 #include <time.h>
 #include "lcdchar.h"
 
-//install packages i2c-tools, libi2c-dev
+//install packages libi2c-dev
 
 int i2caddr = 0x27;
 unsigned char i2creg = 0;
