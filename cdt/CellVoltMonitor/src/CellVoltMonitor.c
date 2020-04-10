@@ -265,7 +265,7 @@ void readCells() {
 	stackVolts = (wiringPiI2CReadReg16(handle, STACKVOLTCMD)) * 10;
 
 	curVoltage = readADS1115();
-	current = curVoltage * 39.0625;
+	current = curVoltage * 200;  //DH-670 Current Meter is 50 mv full scale.
 	printf("Current %f Amps\n", current);
 
 	maxCell = maxCellV();
