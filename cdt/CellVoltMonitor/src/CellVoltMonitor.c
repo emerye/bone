@@ -52,8 +52,8 @@ double readADS1115() {
 	wiringPiI2CWrite(adcHandle, ADS1015_REG_POINTER_CONVERT);
 	usleep(2000);
 	read(adcHandle, buffer, 2);
-	adcReading = ((buffer[0] << 8) | buffer[1]);
-	//printf("ADC reading 0x%04x\n",adcReading);
+	adcReading = (short)(((buffer[0] << 8) | buffer[1]));
+	printf("ADC reading 0x%04x\n",adcReading);
 	voltage = (double)adcReading * 0.000007812;
 	usleep(1000);
 	return voltage;
@@ -147,7 +147,6 @@ int readI2CBlock(int startAddress, int numBytestoRead,
 	int data;
 
 	for (i = 0; i < numBytestoRead; i++) {
-
 		data = wiringPiI2CReadReg8(handle, startAddress + i);
 		if (data == -1) {
 			return data;
