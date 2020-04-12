@@ -53,7 +53,7 @@ double readADS1115() {
 	usleep(2000);
 	read(adcHandle, buffer, 2);
 	adcReading = (short)(((buffer[0] << 8) | buffer[1]));
-	printf("ADC reading 0x%04x  Lsb 0x%x\n",(short)adcReading, buffer[1]);
+	//printf("ADC reading 0x%04x  Lsb 0x%x\n",(short)adcReading, buffer[1]);
 	voltage = (double)adcReading * 0.000007812;
 	usleep(1000);
 	return voltage;
@@ -251,11 +251,15 @@ void readCells() {
 	int data, address = 0x14;
 	int i, minCell, maxCell;
 	double curVoltage, current;
+	int loopcnt;
 
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
-		if (data<3000) {
+		loopcnt = 3;
+		while ((data < 3000) || (data > 4600) || (loopcnt == 0)) {
+			sleep(1);
 			data = wiringPiI2CReadReg16(handle, address + (i * 2));
+			loopcnt -= 1;
 		}
 		cellV[i] = data;
 	}
