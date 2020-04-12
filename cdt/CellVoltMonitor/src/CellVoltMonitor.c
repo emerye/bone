@@ -40,7 +40,7 @@ FILE *logFile;
 char *logFileName = "/home/andy/bone/plot/celllog.txt";
 int logTime=0;
 int stackVolts;
-int gloopDelay = 1;      //Time in seconds
+int gloopDelay = 5;      //Time in seconds
 
 
 double readADS1115() {
@@ -256,11 +256,12 @@ void readCells() {
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		loopcnt = 3;
-		while ((data < 3000) || (data > 4600) || (loopcnt == 0)) {
-			sleep(1);
+		while ( ((data < 3300) || (data > 4250)) && (loopcnt > 0)) {
+			usleep(10000);
 			data = wiringPiI2CReadReg16(handle, address + (i * 2));
 			loopcnt -= 1;
 		}
+		usleep(10000);
 		cellV[i] = data;
 	}
 //	cellV[13] = 3672;   Cell 14 is not connected on Schwinn
