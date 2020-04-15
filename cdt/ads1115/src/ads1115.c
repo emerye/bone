@@ -8,6 +8,8 @@
  ============================================================================
  */
 
+#include "ads1115.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,7 +21,6 @@
 #include <time.h>
 #include "wiringPi.h"
 #include "wiringPiI2C.h"
-#include "ads1015.h"
 
 int handle;
 
@@ -33,7 +34,6 @@ double readADS1115() {
 	usleep(2000);
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
-//	voltage = (long double)adcReading * ((long double)(0.256 / (long double)32768.0));
 	voltage = (double)adcReading * 0.000007812;
 	usleep(1000);
 	return voltage;
@@ -55,9 +55,9 @@ int configADS1115() {
 		printf("Error writing block during initialization.\n");
 		return status;
 	}
-
 	return 0;
 }
+
 
 int main(int argc, char *args[]) {
 	int i, status;
