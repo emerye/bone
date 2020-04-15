@@ -63,6 +63,7 @@ int main(int argc, char *args[]) {
 	int i, status;
 	double vMeasure;
 
+
 	handle = wiringPiI2CSetup(ADS1015_ADDRESS);
 	if (handle < 0) {
 		printf("Error number %d opening device.\n", handle);
@@ -74,11 +75,11 @@ int main(int argc, char *args[]) {
 		return -1;
 	}
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 1000; i++) {
 		vMeasure = readADS1115();
 		printf("Voltage %.6f\n", vMeasure);
 		fflush(stdout);
-		usleep(50000);
+		usleep(100000);
 	}
 	puts("Done");
 	close(handle);

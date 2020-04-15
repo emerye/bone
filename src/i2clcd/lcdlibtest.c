@@ -75,7 +75,7 @@ main()
     WriteString(i2cfd, 1, 0, GetTime());
 
 //  DisplayClear ();
-    WriteString(i2cfd, 2, 0, "April 7, 2020 corona");
+    WriteString(i2cfd, 2, 0, "April 7, 2020 Corona");
     WriteString(i2cfd, 3, 0, "Retired");
     while (1) {
 	GetTime();

@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <wiringPiI2C.h>
 #include <unistd.h>
+#include <math.h>
 
-#include "sensors.h"
-
+//#include "sensors.h"
 
 #define LM75ADDRESS 0x4C
 
@@ -29,10 +29,31 @@ float getTemperature(int fd)
  	return (float)(degC * 9.0/5.0 + 32);
  }
 
+double calcSteinHart(double resth) {
+
+	double a = 1.327532184E-3;
+	double b = 2.312481108E-4;
+	double c = 1.177982663E-7;
+	double tKelvin, oneOverK;
+
+	// NTCLP100E3472H Metal pipe thermistor
+
+	oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
+
+	tKelvin = 1.0 / oneOverK;
+
+	printf("Rth: %f deg K: %f deg C: %f  deg F: %f\n", resth, tKelvin, tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
+
+	return (1.0/oneOverK);
+
+
+}
 
 int main() {
 	int i2cHandle, fd = 0, i;
 	float temperature;
+
+	/*
 
 	i2cHandle = wiringPiI2CSetup(LM75ADDRESS);
 	if (i2cHandle < 0) {
@@ -46,7 +67,13 @@ int main() {
 		fflush (stdout);
 		sleep(1);
 	}
+	*/
+
+	calcSteinHart(4700);
+	calcSteinHart(1694);
+	calcSteinHart(15300);
 	puts("Done\n");
+	sleep(1);
 	return 0;
 }
 
