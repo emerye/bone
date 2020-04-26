@@ -13,4 +13,6 @@
 	<templateProperties value="id=wdt_a_ex2_intervalACLK.projectspec.wdt_a_ex2_intervalACLK"/>
 	<origin value="C:\ti\msp430ware_3_80_07_00\driverlib\examples\MSP430F5xx_6xx\wdt_a\CCS\wdt_a_ex2_intervalACLK.projectspec"/>
 	<filesToOpen value=""/>
+	<connection value="common/targetdb/connections/TIMSP430-USB.xml"/>
+	<isTargetManual value="false"/>
 </projectOptions>

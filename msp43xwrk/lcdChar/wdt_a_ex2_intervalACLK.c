@@ -60,15 +60,108 @@
 //******************************************************************************
 #include "driverlib.h"
 
+#define COMMAND 0
+#define DATA 1
+
+
+void ToggleEnable() {
+	 GPIO_setOutputHighOnPin(GPIO_PORT_P7, GPIO_PIN0);
+	 __delay_cycles(1000);
+	 GPIO_setOutputLowOnPin(GPIO_PORT_P7, GPIO_PIN0);
+	 __delay_cycles(500);
+}
+
+void WriteByte(int cmdType, uint8_t data) {
+	uint8_t highNibble = (data & 0xF0) >> 4;
+	uint8_t lowNibble = data & 0x0F;
+
+	if (cmdType) {
+		GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
+	} else {
+		GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);  //Command
+	}
+
+	P6OUT = highNibble;
+	ToggleEnable();
+	P6OUT = lowNibble;
+	ToggleEnable();
+}
+
+
+void InitDisplay(void) {
+
+	__delay_cycles(32 * 1000);
+	__delay_cycles(32 * 1000);
+	__delay_cycles(32 * 1000);
+
+	GPIO_setOutputHighOnPin(GPIO_PORT_P6, GPIO_PIN0 | GPIO_PIN1);
+	GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN2 | GPIO_PIN3);
+	GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);  //Command
+	ToggleEnable();
+	__delay_cycles (15 * 1000);
+	ToggleEnable();
+	__delay_cycles (5 * 1000);
+	ToggleEnable();
+	__delay_cycles (5 * 1000);
+	P6OUT = 0x02;
+	ToggleEnable();
+	__delay_cycles (5 * 1000);
+
+	WriteByte(COMMAND, 0x20 | 0x08);  // Number of lines and font
+
+	WriteByte(COMMAND, 0x08);   	// Display Off  Cursor OFF  Blink OFF
+
+	WriteByte(COMMAND, 0x01);   // Clear Screen Cursor Home
+
+	__delay_cycles(5000);
+
+	WriteByte(COMMAND, 0x06);   //Inc cursor to right. Don't shift screen
+
+	WriteByte(COMMAND, 0x0F);   //Display on
+
+	WriteByte(DATA, 'A');
+
+	WriteByte(DATA, 'B');
+
+	WriteByte(DATA, 'C');
+
+	WriteByte(DATA, 0x45);
+
+	WriteByte(DATA, 0x45);
+
+	WriteByte(DATA, 0x45);
+
+	WriteByte(DATA, 'D');
+
+	WriteByte(DATA, 'E');
+
+	WriteByte(DATA, 'F');
+	WriteByte(DATA, 'G');
+	WriteByte(DATA, 'H');
+	WriteByte(DATA, 'I');
+	WriteByte(DATA, 'J');
+
+	WriteByte(COMMAND, 0xC0);
+
+	WriteByte(DATA, 'K');
+	WriteByte(DATA, 'L');
+	WriteByte(DATA, 'M');
+	WriteByte(DATA, 'N');
+	WriteByte(DATA, 'O');
+	WriteByte(DATA, 'P');
+	WriteByte(DATA, 'Q');
+
+}
+
 void main (void)
 {
     //Initialize WDT module in timer interval mode,
     //with ACLK as source at an interval of 250 ms.
     WDT_A_initIntervalTimer(WDT_A_BASE,
         WDT_A_CLOCKSOURCE_ACLK,
-        WDT_A_CLOCKDIVIDER_32K);
+        WDT_A_CLOCKDIVIDER_32K);   //1 second
 
-   // WDT_A_CLOCKDIVIDER_512K                                       (WDTIS_3)
+   // WDT_A_CLOCKDIVIDER_512K);
   //  #define WDT_A_CLOCKDIVIDER_32K
 
 	WDT_A_start(WDT_A_BASE);
@@ -82,6 +175,27 @@ void main (void)
         GPIO_PORT_P1,
         GPIO_PIN0
         );
+
+    GPIO_setAsOutputPin(GPIO_PORT_P7, GPIO_PIN0);   //LCD Enable  Pin 6
+    GPIO_setOutputLowOnPin(GPIO_PORT_P7, GPIO_PIN0);
+
+    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);   //R/S Register Select  Pin 4
+    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
+
+    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN0);	//D4  Pin 11
+    GPIO_setOutputHighOnPin(GPIO_PORT_P6, GPIO_PIN0);
+
+    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN1);	//D5  Pin 12
+    GPIO_setOutputHighOnPin(GPIO_PORT_P6, GPIO_PIN1);
+
+    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN2);	//D6  Pin 13
+    GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN2);
+
+    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN3);	//D7  Pin 14
+    GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN3);
+
+    InitDisplay();
+
 
     //Enter LPM3, enable interrupts
     __bis_SR_register(LPM3_bits + GIE);
