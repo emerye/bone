@@ -247,12 +247,12 @@ void main ()
     cvtDegF(receiveBuffer[0], receiveBuffer[1]);
     readI2CBlock(2);
     cvtDegF(receiveBuffer[0], receiveBuffer[1]);
-    cvtDegF(0x7d,0); //125.0
-    cvtDegF(0x19,0); //25.0
-    cvtDegF(0,0x80); //0.5
-    cvtDegF(0xFF, 0x80); //-0.5
-    cvtDegF(0xE7, 0);  //-25.0
-    cvtDegF(0xC9, 0);  //-55.0
+    cvtDegF(0x7d,0); //125.0   257f
+    cvtDegF(0x19,0); //25.0    77f
+    cvtDegF(0,0x80); //0.5     32.9
+    cvtDegF(0xFF, 0x80); //-0.5   31.1f
+    cvtDegF(0xE7, 0);  //-25.0   -13f
+    cvtDegF(0xC9, 0);  //-55.0	 -67
     cvtDegF(0xC9, 0);  //-55.0
     cvtDegF(0xC9, 0);  //-55.0
     }

@@ -26,6 +26,8 @@
 //
 //******************************************************************************
 
+#include <stdio.h>
+#include <string.h>
 #include <msp430F5529.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -444,7 +446,7 @@ void test(oled1309 display) {
 		for (int i = 0; i < 1024; i++) {
 			display.buffer[i] = 0;
 		}
-//		memset(display.buffer, 0, 1024);
+		memset(display.buffer, 0, 1024);
 		display.displayPicture();
 		display.setFont(FreeMono9pt7b);
 		display.writeString(0, 18, 1, "ABCDEFGHI");
@@ -458,10 +460,9 @@ void test(oled1309 display) {
 	}
 }
 
+
 //******************************************************************************
-// Main ************************************************************************
-// Send and receive three messages containing the example commands *************
-//******************************************************************************
+
 
 int main(void) {
 
