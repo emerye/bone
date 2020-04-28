@@ -156,7 +156,7 @@ void InitDisplay(void) {
 void main (void)
 {
     //Initialize WDT module in timer interval mode,
-    //with ACLK as source at an interval of 250 ms.
+    //with ACLK as source at an interval of 1 second.
     WDT_A_initIntervalTimer(WDT_A_BASE,
         WDT_A_CLOCKSOURCE_ACLK,
         WDT_A_CLOCKDIVIDER_32K);   //1 second

@@ -41,6 +41,7 @@
 #include "Fonts/FreeSans12pt7b.h"
 #include "Fonts/FreeMono9pt7b.h"
 #include "Fonts/FreeSansBold12pt7b.h"
+#include "Fonts/FreeSans18pt7b.h"
 #include "Fonts/TomThumb.h"
 #include "lpoled.h"
 
@@ -188,8 +189,6 @@ void SendUCA0Data(uint8_t val) {
 }
 
 /* Setup watchdog timer as a counter with interrupt
- *
- *
  */
 void initWatchDog(void) {
 //Initialize WDT module in timer interval mode,
@@ -214,6 +213,105 @@ void initWatchDog(void) {
         );
 }
 
+
+unsigned int readADC(void) {
+	int i;
+	unsigned int adcCount;
+	unsigned int adcReadings[16];
+
+	 for (i=0; i<16; i++)
+		    {
+		        //Enable/Start first sampling and conversion cycle
+		        /*
+		         * Base address of ADC12_A Module
+		         * Start the conversion into memory buffer 0
+		         * Use the single-channel, single-conversion mode
+		         */
+		        ADC12_A_startConversion(ADC12_A_BASE,
+		            ADC12_A_MEMORY_0,
+		            ADC12_A_SINGLECHANNEL);
+
+		        //Poll for interrupt on memory buffer 0
+		        while (!ADC12_A_getInterruptStatus(ADC12_A_BASE,
+		                   ADC12IFG0)) ;
+
+		        //SET BREAKPOINT HERE
+		        adcReadings[i] = ADC12MEM0;
+		        __no_operation();
+		    }
+		 for (i=0; i<16; i++) {
+
+			 adcCount += adcReadings[i];
+		 }
+		 adcCount = adcCount/16;
+
+		 return adcCount;
+}
+
+/* Configure ADC A0 on Port P6.0
+ *
+ */
+void initADC(void) {
+
+//Enable A/D channel A0
+   GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6,
+       GPIO_PIN0
+       );
+
+   //Initialize the ADC12_A Module
+   /*
+    * Base address of ADC12_A Module
+    * Use internal ADC12_A bit as sample/hold signal to start conversion
+    * USE MODOSC 5MHZ Digital Oscillator as clock source
+    * Use default clock divider of 1
+    */
+   ADC12_A_init(ADC12_A_BASE,
+       ADC12_A_SAMPLEHOLDSOURCE_SC,
+       ADC12_A_CLOCKSOURCE_ADC12OSC,
+       ADC12_A_CLOCKDIVIDER_1);
+
+   ADC12_A_enable(ADC12_A_BASE);
+
+   /*
+    * Base address of ADC12_A Module
+    * For memory buffers 0-7 sample/hold for 64 clock cycles
+    * For memory buffers 8-15 sample/hold for 4 clock cycles (default)
+    * Disable Multiple Sampling
+    */
+   ADC12_A_setupSamplingTimer(ADC12_A_BASE,
+       ADC12_A_CYCLEHOLD_64_CYCLES,
+       ADC12_A_CYCLEHOLD_4_CYCLES,
+       ADC12_A_MULTIPLESAMPLESDISABLE);
+
+   //Configure Memory Buffer
+   /*
+    * Base address of the ADC12_A Module
+    * Configure memory buffer 0
+    * Map input A0 to memory buffer 0
+    * Vr+ = Vref+ (int)
+    * Vr- = AVss
+    * Memory buffer 0 is not the end of a sequence
+    */
+   ADC12_A_configureMemoryParam param = {0};
+	param.memoryBufferControlIndex = ADC12_A_MEMORY_0;
+	param.inputSourceSelect = ADC12_A_INPUT_A0;
+	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_INT;
+	param.negativeRefVoltageSourceSelect = ADC12_A_VREFNEG_AVSS;
+	param.endOfSequence = ADC12_A_NOTENDOFSEQUENCE;
+	ADC12_A_configureMemory(ADC12_A_BASE ,&param);
+
+   //Configure internal reference
+   //If ref generator busy, WAIT
+   while ( REF_ACTIVE == Ref_isRefGenBusy(REF_BASE) ) ;
+   //Select internal ref = 1.5V
+   Ref_setReferenceVoltage(REF_BASE,
+       REF_VREF1_5V);
+   //Internal Reference ON
+   Ref_enableReferenceVoltage(REF_BASE);
+
+   //Delay (~75us) for Ref to settle
+   __delay_cycles(75);
+}
 
 //******************************************************************************
 // Device Initialization *******************************************************
@@ -435,6 +533,22 @@ void initSPI() {
 	SLAVE_CS_OUT |= SLAVE_CS_PIN;
 }
 
+void initDisplay(oled1309 display) {
+
+	int i;
+	int xstart = 0;
+/*
+	for (int i = 0; i < 1024; i++) {
+		display.buffer[i] = 0;
+	}
+	*/
+
+	memset(display.buffer, 0, 1024);
+	display.setFont(FreeSerif12pt7b);
+	display.writeString(xstart, 54, 1, "abcdefgh");
+	display.displayPicture();
+}
+
 //void test(oled1309 dummy) {
 void test(oled1309 display) {
 
@@ -496,15 +610,17 @@ void test(oled1309 display) {
 
 
 int main(void) {
-
-	uint8_t outData[MAX_BUFFER_SIZE] = { '1', '2', '3', '4', '5', '6', '7', '8',
-			'9', 'A' };
+	int i;
+	volatile unsigned int adcValue;
+	volatile float vRead;
+	char dBuffer[128];
 
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
 
 	increaseVCoreToLevel2();
 	initClockTo16MHz();
 	initGPIO();
+	initADC();
 	initWatchDog();
 	initSPI();
 
@@ -540,8 +656,21 @@ int main(void) {
 	 */
 
 	oled1309 display;
-	for (;;) {
-		test(display);
+	initDisplay(display);
+
+	for (i = 0; i < 60; i++) {
+
+		adcValue = readADC();
+		vRead = (float) adcValue / (float) 0xFFF * 1.50;
+		sprintf(dBuffer, "%.3f", vRead);
+		memset(display.buffer, 0, 1024);
+		display.setFont(FreeSans18pt7b);
+		int xstart = 0;
+		display.writeString(xstart, 40, 1, dBuffer);
+		display.displayPicture();
+		__delay_cycles(16000000);
+
+		__no_operation();
 	}
 
 	return 0;
