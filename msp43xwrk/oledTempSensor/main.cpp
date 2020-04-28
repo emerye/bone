@@ -535,13 +535,7 @@ void initSPI() {
 
 void initDisplay(oled1309 display) {
 
-	int i;
 	int xstart = 0;
-/*
-	for (int i = 0; i < 1024; i++) {
-		display.buffer[i] = 0;
-	}
-	*/
 
 	memset(display.buffer, 0, 1024);
 	display.setFont(FreeSerif12pt7b);
@@ -552,10 +546,7 @@ void initDisplay(oled1309 display) {
 //void test(oled1309 dummy) {
 void test(oled1309 display) {
 
-//	oled1309 display;
 	int xstart = 0;
-	int ystart = 18;
-	int width = 40;
 	int height = 22;
 	int i;
 
@@ -605,18 +596,57 @@ void test(oled1309 display) {
 	}
 }
 
+void spiTest(void) {
+	/*
+		 __bis_SR_register(LPM0_bits + GIE);       // CPU off, enable interrupts
+		 SPI_Master_ReadReg(CMD_TYPE_2_SLAVE, TYPE_2_LENGTH);
+		 CopyArray(ReceiveBuffer, SlaveType2, TYPE_2_LENGTH);
+
+		 SPI_Master_ReadReg(CMD_TYPE_1_SLAVE, TYPE_1_LENGTH);
+		 CopyArray(ReceiveBuffer, SlaveType1, TYPE_1_LENGTH);
+
+		 SPI_Master_ReadReg(CMD_TYPE_0_SLAVE, TYPE_0_LENGTH);
+		 CopyArray(ReceiveBuffer, SlaveType0, TYPE_0_LENGTH);
+
+		 //while(1) {
+		 SPI_Master_Write(&outData[0], 9);
+		 __delay_cycles(1000);
+
+		 SPI_Master_Write(&outData[0], 9);
+		 __delay_cycles(1000);
+		 //}
+
+
+		 //	__bis_SR_register(LPM0_bits + GIE);
+		 //    __no_operation();
+		 */
+}
+
+void readUpdateDisplay(oled1309 display) {
+	unsigned int adcValue;
+	float vRead;
+	char dBuffer[128];
+
+	adcValue = readADC();
+	vRead = (float) adcValue / (float) 0xFFF * 1.50;
+	sprintf(dBuffer, "%.3f", vRead);
+	memset(display.buffer, 0, 1024);
+	display.setFont(FreeSans18pt7b);
+	int xstart = 0;
+	display.writeString(xstart, 40, 1, dBuffer);
+	display.displayPicture();
+
+}
+
 
 //******************************************************************************
 
 
 int main(void) {
-	int i;
 	volatile unsigned int adcValue;
 	volatile float vRead;
-	char dBuffer[128];
 
 	WDTCTL = WDTPW | WDTHOLD;	// Stop watchdog timer
-
 	increaseVCoreToLevel2();
 	initClockTo16MHz();
 	initGPIO();
@@ -631,49 +661,13 @@ int main(void) {
 
 	P1OUT |= BIT0;
 
-	/*
-	 __bis_SR_register(LPM0_bits + GIE);       // CPU off, enable interrupts
-	 SPI_Master_ReadReg(CMD_TYPE_2_SLAVE, TYPE_2_LENGTH);
-	 CopyArray(ReceiveBuffer, SlaveType2, TYPE_2_LENGTH);
-
-	 SPI_Master_ReadReg(CMD_TYPE_1_SLAVE, TYPE_1_LENGTH);
-	 CopyArray(ReceiveBuffer, SlaveType1, TYPE_1_LENGTH);
-
-	 SPI_Master_ReadReg(CMD_TYPE_0_SLAVE, TYPE_0_LENGTH);
-	 CopyArray(ReceiveBuffer, SlaveType0, TYPE_0_LENGTH);
-
-	 //while(1) {
-	 SPI_Master_Write(&outData[0], 9);
-	 __delay_cycles(1000);
-
-	 SPI_Master_Write(&outData[0], 9);
-	 __delay_cycles(1000);
-	 //}
-
-
-	 //	__bis_SR_register(LPM0_bits + GIE);
-	 //    __no_operation();
-	 */
-
 	oled1309 display;
 	initDisplay(display);
 
-	for (i = 0; i < 60; i++) {
-
-		adcValue = readADC();
-		vRead = (float) adcValue / (float) 0xFFF * 1.50;
-		sprintf(dBuffer, "%.3f", vRead);
-		memset(display.buffer, 0, 1024);
-		display.setFont(FreeSans18pt7b);
-		int xstart = 0;
-		display.writeString(xstart, 40, 1, dBuffer);
-		display.displayPicture();
-		__delay_cycles(16000000);
-
-		__no_operation();
+	while(1) {
+		readUpdateDisplay(display);
+		__bis_SR_register(LPM3);
 	}
-
-	return 0;
 }
 
 //******************************************************************************
@@ -700,7 +694,7 @@ __interrupt void USCI_A0_ISR(void)
 			if (RXByteCtr) {
 				MasterMode = RX_DATA_MODE;   // Need to start receiving now
 				//Send Dummy To Start
-				__delay_cycles(2000000);
+			//	__delay_cycles(2000000);
 				SendUCA0Data(DUMMY);
 			} else {
 				MasterMode = TX_DATA_MODE; // Continue to transmision with the data in Transmit Buffer
@@ -748,6 +742,7 @@ __interrupt void USCI_A0_ISR(void)
 	}
 }
 
+//Not used.
 //******************************************************************************
 // PORT1 Interrupt *************************************************************
 // Interrupt occurs on button press and initiates the SPI data transfer ********
@@ -781,4 +776,5 @@ void WDT_A_ISR (void)
     GPIO_toggleOutputOnPin(
         GPIO_PORT_P1,
         GPIO_PIN0);
+    __bic_SR_register_on_exit(LPM3_bits);
 }
