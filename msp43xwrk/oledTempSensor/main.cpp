@@ -26,11 +26,14 @@
 //
 //******************************************************************************
 
+/* ADC input pin is A1.  P6.1.   P6.0 was damaged.
+
 #include <stdio.h>
 #include <string.h>
 #include <msp430F5529.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include "driverlib.h"
 #include "oled1309.h"
 #include "gfxfont.h"
@@ -218,35 +221,63 @@ unsigned int readADC(void) {
 	int i;
 	unsigned int adcCount;
 	unsigned int adcReadings[16];
+	unsigned int cumAdcReadings[16];
+	int outerLoop = 16;
 
-	 for (i=0; i<16; i++)
-		    {
-		        //Enable/Start first sampling and conversion cycle
-		        /*
-		         * Base address of ADC12_A Module
-		         * Start the conversion into memory buffer 0
-		         * Use the single-channel, single-conversion mode
-		         */
-		        ADC12_A_startConversion(ADC12_A_BASE,
-		            ADC12_A_MEMORY_0,
-		            ADC12_A_SINGLECHANNEL);
+	for (int j = 0; j < outerLoop; j++) {
+		adcCount = 0;
+		for (i = 0; i < 16; i++) {
+			//Enable/Start first sampling and conversion cycle
+			/*
+			 * Base address of ADC12_A Module
+			 * Start the conversion into memory buffer 0
+			 * Use the single-channel, single-conversion mode
+			 */
+			ADC12_A_startConversion(ADC12_A_BASE,
+			ADC12_A_MEMORY_0,
+			ADC12_A_SINGLECHANNEL);
 
-		        //Poll for interrupt on memory buffer 0
-		        while (!ADC12_A_getInterruptStatus(ADC12_A_BASE,
-		                   ADC12IFG0)) ;
-
-		        //SET BREAKPOINT HERE
-		        adcReadings[i] = ADC12MEM0;
-		        __no_operation();
-		    }
-		 for (i=0; i<16; i++) {
-
-			 adcCount += adcReadings[i];
-		 }
-		 adcCount = adcCount/16;
-
-		 return adcCount;
+			//Poll for interrupt on memory buffer 0
+			while (!ADC12_A_getInterruptStatus(ADC12_A_BASE,
+			ADC12IFG0))
+				;
+			adcReadings[i] = ADC12MEM0;
+		}
+		for (i = 0; i < 16; i++) {
+			adcCount += adcReadings[i];
+		}
+		cumAdcReadings[j] = adcCount / 16;
+	}
+	adcCount = 0;
+	for (i = 0; i < outerLoop; i++) {
+		adcCount += cumAdcReadings[i];
+	}
+	return adcCount / outerLoop;
 }
+
+/* NTCLP100E3472H Metal pipe thermistor
+ * Calculate temperature in degF and return
+ * */
+double calcSteinHart(double resth) {
+
+	double a = 1.327532184E-3;
+	double b = 2.312481108E-4;
+	double c = 1.177982663E-7;
+	double tKelvin, oneOverK;
+
+	// NTCLP100E3472H Metal pipe thermistor
+
+	oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
+
+	tKelvin = 1.0 / oneOverK;
+
+	//printf("Rth: %f deg K: %f deg C: %.1f  deg F: %.1f\n", resth, tKelvin,
+	//		tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
+
+	return ((((tKelvin - 273.15) * 1.8)) + 32);
+
+}
+
 
 /* Configure ADC A0 on Port P6.0
  *
@@ -255,7 +286,7 @@ void initADC(void) {
 
 //Enable A/D channel A0
    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6,
-       GPIO_PIN0
+       GPIO_PIN1
        );
 
    //Initialize the ADC12_A Module
@@ -294,8 +325,9 @@ void initADC(void) {
     */
    ADC12_A_configureMemoryParam param = {0};
 	param.memoryBufferControlIndex = ADC12_A_MEMORY_0;
-	param.inputSourceSelect = ADC12_A_INPUT_A0;
-	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_INT;
+	param.inputSourceSelect = ADC12_A_INPUT_A1;
+//	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_INT;
+	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_AVCC;
 	param.negativeRefVoltageSourceSelect = ADC12_A_VREFNEG_AVSS;
 	param.endOfSequence = ADC12_A_NOTENDOFSEQUENCE;
 	ADC12_A_configureMemory(ADC12_A_BASE ,&param);
@@ -626,9 +658,13 @@ void readUpdateDisplay(oled1309 display) {
 	unsigned int adcValue;
 	float vRead;
 	char dBuffer[128];
+	float resTh, tempDegF;
 
 	adcValue = readADC();
-	vRead = (float) adcValue / (float) 0xFFF * 1.50;
+	vRead = (float) adcValue / (float) 0x0FFF * 3.26;
+	//Rt = R0 * ((adcMax / adcVal) - 1)
+	resTh = 4750.0 * ((1500.00 / vRead) - 1);
+
 	sprintf(dBuffer, "%.3f", vRead);
 	memset(display.buffer, 0, 1024);
 	display.setFont(FreeSans18pt7b);
@@ -638,9 +674,7 @@ void readUpdateDisplay(oled1309 display) {
 
 }
 
-
 //******************************************************************************
-
 
 int main(void) {
 	volatile unsigned int adcValue;
