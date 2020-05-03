@@ -26,7 +26,7 @@
 //
 //******************************************************************************
 
-/* ADC input pin is A1.  P6.1.   P6.0 was damaged.
+/* ADC input pin is A1.  P6.1.   P6.0 was damaged. */
 
 #include <stdio.h>
 #include <string.h>
@@ -48,7 +48,7 @@
 #include "Fonts/TomThumb.h"
 #include "lpoled.h"
 
-//******************************************************************************
+
 // Example Commands ************************************************************
 //******************************************************************************
 
@@ -255,6 +255,7 @@ unsigned int readADC(void) {
 	return adcCount / outerLoop;
 }
 
+
 /* NTCLP100E3472H Metal pipe thermistor
  * Calculate temperature in degF and return
  * */
@@ -326,8 +327,8 @@ void initADC(void) {
    ADC12_A_configureMemoryParam param = {0};
 	param.memoryBufferControlIndex = ADC12_A_MEMORY_0;
 	param.inputSourceSelect = ADC12_A_INPUT_A1;
-//	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_INT;
-	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_AVCC;
+	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_INT;
+//	param.positiveRefVoltageSourceSelect = ADC12_A_VREFPOS_AVCC;
 	param.negativeRefVoltageSourceSelect = ADC12_A_VREFNEG_AVSS;
 	param.endOfSequence = ADC12_A_NOTENDOFSEQUENCE;
 	ADC12_A_configureMemory(ADC12_A_BASE ,&param);
@@ -661,11 +662,11 @@ void readUpdateDisplay(oled1309 display) {
 	float resTh, tempDegF;
 
 	adcValue = readADC();
-	vRead = (float) adcValue / (float) 0x0FFF * 3.26;
+	vRead = (float) adcValue / (float) 0x0FFF * 1.50;
 	//Rt = R0 * ((adcMax / adcVal) - 1)
 	resTh = 4750.0 * ((1500.00 / vRead) - 1);
 
-	sprintf(dBuffer, "%.3f", vRead);
+	sprintf(dBuffer, "%.4f", vRead);
 	memset(display.buffer, 0, 1024);
 	display.setFont(FreeSans18pt7b);
 	int xstart = 0;
