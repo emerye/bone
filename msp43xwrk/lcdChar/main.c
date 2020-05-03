@@ -72,8 +72,9 @@ void ToggleEnable() {
 }
 
 void WriteByte(int cmdType, uint8_t data) {
-	uint8_t highNibble = (data & 0xF0) >> 4;
+	uint8_t highNibble = (data >> 4) & 0x0F;
 	uint8_t lowNibble = data & 0x0F;
+	uint8_t p1State, outBits;
 
 	if (cmdType) {
 		GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
@@ -81,9 +82,15 @@ void WriteByte(int cmdType, uint8_t data) {
 		GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);  //Command
 	}
 
-	P6OUT = highNibble;
+	//High nibble
+	p1State = P1IN;
+	outBits = (p1State & 0xC3) | (highNibble << 2);
+    P1OUT = outBits;
 	ToggleEnable();
-	P6OUT = lowNibble;
+    //Low nibble
+    p1State = outBits;
+    outBits = (p1State & 0xC3) | (lowNibble << 2);
+    P1OUT = outBits;
 	ToggleEnable();
 }
 
@@ -94,8 +101,8 @@ void InitDisplay(void) {
 	__delay_cycles(32 * 1000);
 	__delay_cycles(32 * 1000);
 
-	GPIO_setOutputHighOnPin(GPIO_PORT_P6, GPIO_PIN0 | GPIO_PIN1);
-	GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN2 | GPIO_PIN3);
+	GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN2 | GPIO_PIN3);
+	GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4 | GPIO_PIN5);
 	GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);  //Command
 	ToggleEnable();
 	__delay_cycles (15 * 1000);
@@ -103,7 +110,7 @@ void InitDisplay(void) {
 	__delay_cycles (5 * 1000);
 	ToggleEnable();
 	__delay_cycles (5 * 1000);
-	P6OUT = 0x02;
+	P1OUT = 0x08;
 	ToggleEnable();
 	__delay_cycles (5 * 1000);
 
@@ -150,8 +157,8 @@ void InitDisplay(void) {
 	WriteByte(DATA, 'O');
 	WriteByte(DATA, 'P');
 	WriteByte(DATA, 'Q');
-
 }
+
 
 void main (void)
 {
@@ -182,17 +189,9 @@ void main (void)
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);   //R/S Register Select  Pin 4
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
 
-    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN0);	//D4  Pin 11
-    GPIO_setOutputHighOnPin(GPIO_PORT_P6, GPIO_PIN0);
-
-    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN1);	//D5  Pin 12
-    GPIO_setOutputHighOnPin(GPIO_PORT_P6, GPIO_PIN1);
-
-    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN2);	//D6  Pin 13
-    GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN2);
-
-    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN3);	//D7  Pin 14
-    GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN3);
+    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN2 | GPIO_PIN3 | GPIO_PIN4 | GPIO_PIN5);	//D4  LCD Pin 11
+    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN2 | GPIO_PIN3);  //D4 and D5 High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4 | GPIO_PIN5);   //D6 and D7 Low
 
     InitDisplay();
 
