@@ -274,13 +274,11 @@ double calcSteinHart(double resth) {
 
 	//printf("Rth: %f deg K: %f deg C: %.1f  deg F: %.1f\n", resth, tKelvin,
 	//		tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
-
 	return ((((tKelvin - 273.15) * 1.8)) + 32);
-
 }
 
 
-/* Configure ADC A0 on Port P6.0
+/* Configure ADC A0 on Port P6.1
  *
  */
 void initADC(void) {
