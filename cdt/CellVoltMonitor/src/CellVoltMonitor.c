@@ -23,6 +23,21 @@
 #define MAC 0x3e
 #define MAXCELLS 14
 #define STACKVOLTCMD 0x34
+#define CELL1 0
+#define CELL2 1
+#define CELL3 2
+#define CELL4 3
+#define CELL5 4
+#define CELL6 5
+#define CELL7 6
+#define CELL8 7
+#define CELL9 8
+#define CELL10 9
+#define CELL11 10
+#define CELL12 11
+#define CELL13 12
+#define CELL14 13
+#define CELL15 14
 
 int handle;
 int adcHandle;
@@ -37,7 +52,7 @@ int cellV[16];
 unsigned char cellGain[] = { 0x80, 0x91, 0xC2, 0x2F, 0xBD, 0x2F, 0xBF, 0x2F,
 		0xB8, 0x2F, 0x79, 0x2F };
 FILE *logFile;
-char *logFileName = "/home/andy/bone/plot/celllog.txt";
+static const char *logFileName = "/home/andy/bone/plot/celllog.txt";
 int logTime=0;
 int stackVolts;
 int gloopDelay = 5;      //Time in seconds
@@ -99,6 +114,22 @@ int maxCellV(void) {
 		if (cellV[i] > maxCellV) {
 			maxCellV = cellV[i];
 			maxCellNum = i;
+		}
+	}
+	return maxCellNum;
+}
+
+int maxCellV(int excludeCell) {
+	int i;
+	int maxCellV = 0;
+	int maxCellNum = 0;
+
+	for (i = 0; i < MAXCELLS; i++) {
+		if (i != excludeCell) {
+			if (cellV[i] > maxCellV) {
+				maxCellV = cellV[i];
+				maxCellNum = i;
+			}
 		}
 	}
 	return maxCellNum;
@@ -191,6 +222,16 @@ int initDM() {
 	unsigned char chkSum = 0;
 	int status;
 	unsigned char buffer[256];
+
+	buffer[0] = 0x12;
+	buffer[1] = 0;
+	status = writeI2CBlock(MAC, 2, buffer);
+	if (status == -1) {
+		printf(
+				"Error writing block sending reset during initialization.\n");
+	}
+
+	sleep(2);
 
 	//Disable sleep
 	buffer[0] = 0x18;
@@ -364,7 +405,7 @@ int main(int argc, char *argv[]) {
 			return -1;
 		}
 
-	status = initDM(handle);
+	status = initDM();
 	if (status == -1) {
 		puts("Error returned from initDM");
 	}
@@ -380,8 +421,10 @@ int main(int argc, char *argv[]) {
 
 	//Main loop
 	while (1) {
-		readCells(handle);
+		readCells();
 		sleep(gloopDelay);
+		//int maxV = maxCellV(CELL6);
+		//printf("Exclude 6 %d  V %d\n", maxV + 1, cellV[maxV]);
 	}
 	fclose(logFile);
 	close(handle);
