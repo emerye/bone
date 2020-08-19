@@ -32,9 +32,33 @@ double readADS1115() {
 	usleep(2000);
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
-	voltage = (double)adcReading * (double)0.000125;
+	//voltage = (double)adcReading * (double)0.000125;  //4.096
+	//voltage = (double)adcReading * (double)0.0001875; //6.144V
+	voltage = (double)adcReading * (double)0.000015625; //6.144V
 	usleep(1000);
 	return voltage;
+}
+
+int configADS1115(uint16_t adcCfg) {
+
+	unsigned char buffer[4];
+	int status;
+
+	buffer[0] = ADS1015_REG_POINTER_CONFIG;
+
+//    printf("ADC Cfg %04x\n", adcCfg);
+	buffer[1] = adcCfg >> 8;
+	buffer[2] = adcCfg & 0x00FF;
+
+	//Write to conversion register. This is a block write
+	status = write(handle, buffer, 3);
+	if (status == -1) {
+		printf("Error writing block during initialization.\n");
+		return status;
+	}
+	wiringPiI2CWrite(handle, ADS1015_REG_POINTER_CONVERT);
+	usleep(20000);
+	return 0;
 }
 
 int configADS1115() {
@@ -59,7 +83,7 @@ int configADS1115() {
 		return status;
 	}
 	wiringPiI2CWrite(handle, ADS1015_REG_POINTER_CONVERT);
-	usleep(2000);
+	usleep(20000);
 	return 0;
 }
 
@@ -67,6 +91,7 @@ int configADS1115() {
 int main(int argc, char *args[]) {
 	int i, status;
 	double vMeasure;
+	double vMeasure1;
 
 
 	handle = wiringPiI2CSetup(ADS1015_ADDRESS);
@@ -81,10 +106,15 @@ int main(int argc, char *args[]) {
 	}
 
 	for (i = 0; i < 50; i++) {
+		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_0_512V |
+				ADS1115_REG_CONFIG_DR_16SPS);
 		vMeasure = readADS1115();
-		printf("Voltage %.3f\n", vMeasure);
+		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_0_512V |
+						ADS1115_REG_CONFIG_DR_16SPS);
+		vMeasure1 = readADS1115();
+		printf("M1=%.6f  M2=%.6f\n", vMeasure, vMeasure1);
 		fflush(stdout);
-		usleep(100000);
+		usleep(10000);
 	}
 	puts("Done");
 	close(handle);
