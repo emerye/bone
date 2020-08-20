@@ -75,7 +75,7 @@ int main(int argc, char *args[]) {
 		return -1;
 	}
 
-	for (i = 0; i < 1000; i++) {
+	for (i = 0; i < 50; i++) {
 		vMeasure = readADS1115();
 		printf("Voltage %.6f\n", vMeasure);
 		fflush(stdout);
