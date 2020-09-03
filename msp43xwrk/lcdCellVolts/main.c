@@ -225,8 +225,6 @@ void InitDisplay(void) {
 	writeByte(COMMAND, 0x08);   	// Display Off  Cursor OFF  Blink OFF
 	__delay_cycles(100);
 
-	//writeByte(COMMAND, 0x01);   // Clear Screen Cursor Home
-
 	__delay_cycles(5000);
 
 	writeByte(COMMAND, 0x06);   //Inc cursor to right. Don't shift screen
@@ -447,6 +445,7 @@ void ADC12ISR(void) {
 			(index = 0);
 			adcReadingReady = true;
 		}
+		break;
 	case 14:
 		break;   //Vector 14:  ADC12IFG4
 	case 16:

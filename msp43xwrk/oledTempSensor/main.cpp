@@ -334,9 +334,9 @@ void initADC(void) {
    //Configure internal reference
    //If ref generator busy, WAIT
    while ( REF_ACTIVE == Ref_isRefGenBusy(REF_BASE) ) ;
-   //Select internal ref = 1.5V
+   //Select internal ref = 2.5V
    Ref_setReferenceVoltage(REF_BASE,
-       REF_VREF1_5V);
+       REF_VREF2_5V);
    //Internal Reference ON
    Ref_enableReferenceVoltage(REF_BASE);
 
@@ -660,9 +660,7 @@ void readUpdateDisplay(oled1309 display) {
 	float resTh, tempDegF;
 
 	adcValue = readADC();
-	vRead = (float) adcValue / (float) 0x0FFF * 1.50;
-	//Rt = R0 * ((adcMax / adcVal) - 1)
-	resTh = 4750.0 * ((1500.00 / vRead) - 1);
+	vRead = (float) adcValue / (float) 0x0FFF * 2.50;
 
 	sprintf(dBuffer, "%.4f", vRead);
 	memset(display.buffer, 0, 1024);
