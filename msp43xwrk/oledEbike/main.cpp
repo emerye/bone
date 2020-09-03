@@ -657,7 +657,6 @@ void readUpdateDisplay(oled1309 display) {
 	unsigned int adcValue;
 	float vRead;
 	char dBuffer[128];
-	float resTh, tempDegF;
 
 	adcValue = readADC();
 	vRead = (float) adcValue / (float) 0x0FFF * 2.50;
