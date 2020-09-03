@@ -33,8 +33,8 @@ double readADS1115() {
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
 	//voltage = (double)adcReading * (double)0.000125;  //4.096
-	//voltage = (double)adcReading * (double)0.0001875; //6.144V
-	voltage = (double)adcReading * (double)0.000015625; //6.144V
+	voltage = (double)adcReading * (double)0.0001875; //6.144V
+	//voltage = (double)adcReading * (double)0.000015625; //256mvV
 	usleep(1000);
 	return voltage;
 }
@@ -106,13 +106,13 @@ int main(int argc, char *args[]) {
 	}
 
 	for (i = 0; i < 50; i++) {
-		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_0_512V |
+		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
 				ADS1115_REG_CONFIG_DR_16SPS);
 		vMeasure = readADS1115();
-		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_0_512V |
+		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
 						ADS1115_REG_CONFIG_DR_16SPS);
 		vMeasure1 = readADS1115();
-		printf("M1=%.6f  M2=%.6f\n", vMeasure, vMeasure1);
+		printf("M1=%.4f  M2=%.4f\n", vMeasure, vMeasure1);
 		fflush(stdout);
 		usleep(10000);
 	}
