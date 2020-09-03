@@ -661,7 +661,7 @@ void readUpdateDisplay(oled1309 display) {
 	adcValue = readADC();
 	vRead = (float) adcValue / (float) 0x0FFF * 2.50;
 
-	sprintf(dBuffer, "%.4f", vRead);
+	sprintf(dBuffer, "%.3f", vRead);
 	memset(display.buffer, 0, 1024);
 	display.setFont(FreeSans18pt7b);
 	int xstart = 0;
