@@ -3,9 +3,6 @@
  Name        : adc1115.c
  Author      : 
  Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
- ============================================================================
  */
 
 #include <stdio.h>
@@ -106,11 +103,8 @@ int main(int argc, char *args[]) {
 	}
 
 	for (i = 0; i < 50; i++) {
-<<<<<<< HEAD
-=======
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_0_512V |
 				ADS1115_REG_CONFIG_DR_16SPS);
->>>>>>> a66e7c569eecdf5f24dd7018a6d3a414042e6ec3
 		vMeasure = readADS1115();
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_0_512V |
 						ADS1115_REG_CONFIG_DR_16SPS);

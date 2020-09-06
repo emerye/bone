@@ -16,4 +16,6 @@ plot 'celllog.txt' using 1:2 with lines title 'Cell1',\
 'celllog.txt' using 1:14 with lines title 'Cell13',\
 'celllog.txt' using 1:15 with lines title 'Cell14'
  
-pause -1
+#pause -1
+pause 10 
+reread 

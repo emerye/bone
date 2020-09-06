@@ -296,16 +296,16 @@ void readCells() {
 
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
+		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		loopcnt = 3;
-		while ( ((data < 3300) || (data > 4250)) && (loopcnt > 0)) {
+		while ( ((data < 3300) || (data > 4300)) && (loopcnt > 0)) {
 			usleep(10000);
 			data = wiringPiI2CReadReg16(handle, address + (i * 2));
 			loopcnt -= 1;
 		}
-		usleep(10000);
 		cellV[i] = data;
 	}
-//	cellV[13] = 3672;   Cell 14 is not connected on Schwinn
+
 	for (i = 0; i < MAXCELLS; i += 2) {
 		printf("Cell%d=%d Cell%d=%d\n", i + 1, cellV[i], i + 2, cellV[i + 1]);
 	}
