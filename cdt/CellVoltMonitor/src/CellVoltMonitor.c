@@ -288,7 +288,7 @@ int initDM() {
 	return status;
 }
 
-void readCells() {
+int readCells() {
 	int data, address = 0x14;
 	int i, minCell, maxCell;
 	double curVoltage, current;
@@ -303,7 +303,11 @@ void readCells() {
 			data = wiringPiI2CReadReg16(handle, address + (i * 2));
 			loopcnt -= 1;
 		}
-		cellV[i] = data;
+		if (loopcnt < 1) {
+			return -1;
+		} else {
+			cellV[i] = data;
+		}
 	}
 
 	for (i = 0; i < MAXCELLS; i += 2) {
@@ -333,6 +337,7 @@ void readCells() {
 	logTime = logTime + gloopDelay;
 	fflush(logFile);
 	fflush(stdout);
+	return 0;
 }
 
 /******************************************************************************/
@@ -421,6 +426,7 @@ int main(int argc, char *argv[]) {
 
 	//Main loop
 	while (1) {
+		timeStamp(currentTime);
 		readCells();
 		sleep(gloopDelay);
 		//int maxV = maxCellV(CELL6);
