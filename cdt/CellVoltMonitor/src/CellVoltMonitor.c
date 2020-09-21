@@ -56,6 +56,31 @@ static const char *logFileName = "/home/andy/bone/plot/celllog.txt";
 int logTime=0;
 int stackVolts;
 int gloopDelay = 5;      //Time in seconds
+int sortedCellV[MAXCELLS][2];   //Array to hold sorted cells and voltages.
+
+//Sort cell voltages in ascending order
+void sort() {
+	int n = MAXCELLS;  //Number of elements
+	int i, j, a;
+	int cellNumber;
+
+	for (i = 0; i < MAXCELLS; i++) {
+		sortedCellV[i][0] = cellV[i];
+		sortedCellV[i][1] = i;
+	}
+	for (i = 0; i < n; ++i) {
+		for (j = i + 1; j < n; ++j) {
+			if (sortedCellV[i][0] > sortedCellV[j][0]) {
+				a = sortedCellV[i][0];
+				cellNumber = sortedCellV[i][1];
+				sortedCellV[i][0] = sortedCellV[j][0];
+				sortedCellV[i][1] = sortedCellV[j][1];
+				sortedCellV[j][0] = a;
+				sortedCellV[j][1] = cellNumber;
+			}
+		}
+	}
+}
 
 
 double readADS1115() {
@@ -67,9 +92,9 @@ double readADS1115() {
 	wiringPiI2CWrite(adcHandle, ADS1015_REG_POINTER_CONVERT);
 	usleep(2000);
 	read(adcHandle, buffer, 2);
-	adcReading = (short)(((buffer[0] << 8) | buffer[1]));
+	adcReading = (short) (((buffer[0] << 8) | buffer[1]));
 	//printf("ADC reading 0x%04x  Lsb 0x%x\n",(short)adcReading, buffer[1]);
-	voltage = (double)adcReading * 0.000007812;
+	voltage = (double) adcReading * 0.000007812;
 	usleep(1000);
 	return voltage;
 }
@@ -310,9 +335,20 @@ int readCells() {
 		}
 	}
 
+	// By cell order.
+	/*
 	for (i = 0; i < MAXCELLS; i += 2) {
 		printf("Cell%d=%d Cell%d=%d\n", i + 1, cellV[i], i + 2, cellV[i + 1]);
 	}
+	*/
+
+	// By voltage order.
+	sort();
+	for (i = 0; i < MAXCELLS; i += 2) {
+			printf("Cell%d=%d   ", sortedCellV[i][1] + 1, sortedCellV[i][0]);
+			printf("Cell%d=%d\n", sortedCellV[i + 1][1] + 1, sortedCellV[i + 1][0]);
+		}
+
 
 	stackVolts = (wiringPiI2CReadReg16(handle, STACKVOLTCMD)) * 10;
 
@@ -428,6 +464,7 @@ int main(int argc, char *argv[]) {
 	while (1) {
 		timeStamp(currentTime);
 		readCells();
+	//	sort();
 		sleep(gloopDelay);
 		//int maxV = maxCellV(CELL6);
 		//printf("Exclude 6 %d  V %d\n", maxV + 1, cellV[maxV]);
