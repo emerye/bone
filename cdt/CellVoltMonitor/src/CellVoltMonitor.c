@@ -7,7 +7,6 @@
  Description : CellVoltMonitor with bq76952
  ============================================================================
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +56,8 @@ int logTime=0;
 int stackVolts;
 int gloopDelay = 5;      //Time in seconds
 int sortedCellV[MAXCELLS][2];   //Array to hold sorted cells and voltages.
+long int pStartTime;	//Start time since epoch
+struct timespec ts;     //Time structure
 
 //Sort cell voltages in ascending order
 void sort() {
@@ -318,6 +319,7 @@ int readCells() {
 	int i, minCell, maxCell;
 	double curVoltage, current;
 	int loopcnt;
+	long int currentTime;
 
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
@@ -342,6 +344,9 @@ int readCells() {
 	}
 	*/
 
+	currentTime = time(NULL);
+	printf("Elapsed seconds %ld\n", currentTime-pStartTime);
+
 	// By voltage order.
 	sort();
 	for (i = 0; i < MAXCELLS; i += 2) {
@@ -349,13 +354,12 @@ int readCells() {
 			printf("Cell%d=%d\n", sortedCellV[i + 1][1] + 1, sortedCellV[i + 1][0]);
 		}
 
-
+	currentTime = time(NULL);
 	stackVolts = (wiringPiI2CReadReg16(handle, STACKVOLTCMD)) * 10;
 
 	curVoltage = readADS1115();
 	current = curVoltage * 200;  //DH-670 Current Meter is 50 mv full scale.
 	printf("Current %f Amps\n", current);
-
 	maxCell = maxCellV();
 	minCell = minCellV();
 	printf("Min Cell:%d Voltage: %d\n", minCell + 1, cellV[minCell]);
@@ -363,9 +367,10 @@ int readCells() {
 	printf("Voltage Delta: %d mV\n", cellV[maxCell] - cellV[minCell]);
 	printf("Stack Voltage %d\n", stackVolts);
 	puts("");
+	currentTime = time(NULL);
 	fprintf(logFile,
-			"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %f\n",
-			logTime, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
+			"%ld %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %f\n",
+			currentTime - pStartTime, cellV[0], cellV[1], cellV[2], cellV[3], cellV[4],
 			cellV[5], cellV[6], cellV[7], cellV[8], cellV[9], cellV[10],
 			cellV[11], cellV[12], cellV[13], minCell + 1, maxCell + 1,
 			cellV[maxCell] - cellV[minCell], stackVolts, current);
@@ -429,7 +434,6 @@ int main(int argc, char *argv[]) {
 		printf("Non-option argument %s\n", argv[index]);
 
 	printf("Log file name %s\n", logFileName);
-
 	handle = wiringPiI2CSetup(0x8);
 	if (handle < 0) {
 		printf("Error number %d opening device.\n", handle);
@@ -459,7 +463,7 @@ int main(int argc, char *argv[]) {
 	fprintf(logFile, "# Created on %s", currentTime);
 	fprintf(logFile, "# Delay is %d seconds.\n", gloopDelay);
 	fprintf(logFile,"# Time Cell1 Cell2 Cell3 Cell4 Cell5 Cell6 Cell7 Cell8 Cell9 Cell10 Cell11 Cell12 Cell13 Cell14 MinCell MaxCell DeltaV StackV Current\n");
-
+	pStartTime = time(NULL);
 	//Main loop
 	while (1) {
 		timeStamp(currentTime);
