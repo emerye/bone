@@ -1,4 +1,5 @@
-#include <msp430.h>				
+#include <msp430.h>
+#include <stdio.h>
 
 
 //******************************************************************************
@@ -19,50 +20,81 @@
 //            |                 |
 //            |             P1.0|-->LED
 //
-//  D. Dang
-//  Texas Instruments Inc.
-//  December 2010
-//  Built with CCS Version 4.2.0 and IAR Embedded Workbench Version: 5.10
+//
 //******************************************************************************
+/*
+ * Left turn signal input P2 Bit 3
+ * Right turn signal input P2 Bit 4
+ *
+ * P2.2 Running
+ * P2.1 Left Turn
+ * P2.0 Right Turn
+ */
 
 #include <msp430g2553.h>
-unsigned char runCount = 0;
+
+#define LEFTTURNIN (0x0008)
+#define RIGHTTURNIN (0x0010)
+
+enum states {
+	RUNNING,
+	LEFTTURN,
+	RIGHTTURN,
+	BRAKE
+};
+enum states state;
+
+unsigned char clkCount = 0;
 
 void main(void)
 {
 
-  WDTCTL = WDT_ADLY_250;                    // WDT 250ms, ACLK, interval timer
+  WDTCTL = WDT_ADLY_16;                    // WDT 250ms, ACLK, interval timer
   IE1 |= WDTIE;                             // Enable WDT interrupt
   P1DIR |= 0x01;                            // Set P1.0 to output direction
 
   P2DIR = (BIT0 | BIT1 | BIT2) & 0x07;		// Port Direction
 
+  P2OUT = BIT2 | BIT3 | BIT4 | BIT5;     	//Inputs pullup enabled.
+  P2REN = BIT3 | BIT4 | BIT5;				//Enable pullups
 
-  P2OUT = BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5;
-  P2REN = 0x38;
-  __delay_cycles(1);
   _BIS_SR(LPM3_bits + GIE);                 // Enter LPM3 w/interrupt
 }
 
 
 // Watchdog Timer interrupt service routine
 #pragma vector=WDT_VECTOR
-__interrupt void watchdog_timer(void)
-{
-  P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-O
+__interrupt void watchdog_timer(void) {
+	P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-O
 
-  /*
-  if (runCount < 3) {
-	  P2OUT |= BIT2;
-	  runCount += 1;
-  } else {
-	  P2OUT &= ~BIT2;
-	  if(runCount > 5) {
-		  runCount = 0;
-	  }
-	  runCount =+1 ;
-  }
-  */
-  P2OUT ^= 0x07;
+	if ((P2IN & LEFTTURNIN) == 0) {
+		state = LEFTTURN;
+		clkCount += 1;
+	} else if ((P2IN & RIGHTTURNIN) == 0) {
+		state = RIGHTTURN;
+		clkCount += 1;
+	} else {
+		state = RUNNING;
+		clkCount += 3;
+	}
+
+	if (clkCount > 16) {
+		clkCount = 0;
+		switch (state) {
+		case RUNNING:
+			P2OUT &= ~P2OUT | ~(BIT0 | BIT1);
+			P2OUT ^= BIT2;
+			break;
+		case LEFTTURN:
+			P2OUT &= ~P2OUT | ~BIT2;
+			P2OUT ^= BIT0;
+			break;
+		case RIGHTTURN:
+			P2OUT &= ~P2OUT | ~(BIT2 | BIT0);
+			P2OUT ^= BIT1;
+			break;
+		}
+	}
+  //P2OUT ^= 0x07;
 }
 
