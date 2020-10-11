@@ -65,8 +65,6 @@ void main(void)
 // Watchdog Timer interrupt service routine
 #pragma vector=WDT_VECTOR
 __interrupt void watchdog_timer(void) {
-	P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-O
-
 	if ((P2IN & LEFTTURNIN) == 0) {
 		state = LEFTTURN;
 		clkCount += 1;
@@ -80,6 +78,7 @@ __interrupt void watchdog_timer(void) {
 
 	if (clkCount > 16) {
 		clkCount = 0;
+		P1OUT ^= 0x01;                            // Toggle P1.0 using exclusive-O
 		switch (state) {
 		case RUNNING:
 			P2OUT &= ~P2OUT | ~(BIT0 | BIT1);
