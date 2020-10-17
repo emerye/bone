@@ -55,7 +55,7 @@ void main(void)
 
   P2DIR = (BIT0 | BIT1 | BIT2) & 0x07;		// Port Direction
 
-  P2OUT = BIT2 | BIT3 | BIT4 | BIT5;     	//Inputs pullup enabled.
+  P2OUT = BIT2 | BIT3 | BIT4 | BIT5;     	//Input pullups enabled.
   P2REN = BIT3 | BIT4 | BIT5;				//Enable pullups
 
   _BIS_SR(LPM3_bits + GIE);                 // Enter LPM3 w/interrupt
