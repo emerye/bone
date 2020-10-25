@@ -29,7 +29,6 @@ int dispfd;
 /// Take ADC reading, scale to gain and return value.
 double readADS1115()
 {
-
 	int adcReading;
 	unsigned char buffer[10];
 	double voltage;
@@ -93,18 +92,14 @@ int main(int argc, char *args[])
 	char strBuffer[256];
 
 	handle = wiringPiI2CSetup(ADS1015_ADDRESS);
-	if (handle < 0)
-	{
-		printf("Error number %d opening device.\n", handle);
-		return -1;
-	}
 	intI2CcharDisplay();
+
 	status = configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
 						   ADS1115_REG_CONFIG_DR_16SPS);
 	if (status == -1)
 	{
-		printf("Error configuring device.\n");
-		return -1;
+		strcpy(strBuffer, "Error: I2C write\n");
+		WriteString(dispfd, 4, 0, strBuffer);
 	}
 
 	for (i = 0; i < 50; i++)
@@ -113,13 +108,13 @@ int main(int argc, char *args[])
 					  ADS1115_REG_CONFIG_DR_16SPS);
 		vMeasure = readADS1115();
 		sprintf(strBuffer, "Ch1: %.3f       ", vMeasure);
-		WriteString(dispfd, 1, 0, strBuffer);
+		WriteString(dispfd, 0, 0, strBuffer);
 
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
 					  ADS1115_REG_CONFIG_DR_16SPS);
 		vMeasure1 = readADS1115();
 		sprintf(strBuffer, "Ch2: %.3f       ", vMeasure1);
-		WriteString(dispfd, 2, 0, strBuffer);
+		WriteString(dispfd, 1, 0, strBuffer);
 		usleep(1000);
 	}
 	close(handle);

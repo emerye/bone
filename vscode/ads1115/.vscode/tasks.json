@@ -4,14 +4,20 @@
 		{
 			"type": "cppbuild",
 			"label": "C/C++: gcc build active file",
-			"command": "/usr/bin/g++",
+			"command": "/usr/bin/gcc",
 			"args": [
 				"-g",
 				"${file}",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}",
 				"-l",
-				"wiringPi"
+				"wiringPi",
+				"-L",
+				"/usr/local/lib/",
+				"-l",
+				"lcdchar",
+				"-l",
+				"i2c"
 			],
 			"options": {
 				"cwd": "/usr/bin"
@@ -23,7 +29,7 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "compiler: /usr/bin/g++"
+			"detail": "compiler: /usr/bin/gcc"
 		}
 	]
 }
