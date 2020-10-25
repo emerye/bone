@@ -9,6 +9,7 @@
 
 //install packages libi2c-dev
 //install i2c-tools
+//Link library i2c
 
 int i2caddr = 0x27;
 unsigned char i2creg = 0;
@@ -41,8 +42,9 @@ void Display(int i2cfd, unsigned char tgtAddress)
     WriteString(i2cfd, 0, 0, dateBuff);
     WriteString(i2cfd, 1, 0, GetTime());
 }
-int
-main()
+
+
+int main()
 {
   int r;
   int i2cfd; 
