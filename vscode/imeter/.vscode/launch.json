@@ -9,7 +9,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/ads1115",
+            "program": "${workspaceFolder}/imeter",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
