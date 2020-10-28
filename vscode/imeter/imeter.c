@@ -1,13 +1,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <fcntl.h>
-#include <time.h>
 #include <sys/ioctl.h>
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
@@ -23,13 +20,14 @@ int dispfd;
 /// Take ADC reading, scale to gain and return value.
 double readADS1115()
 {
-	int adcReading;
-	unsigned char buffer[10];
+	int adcReading, ch;
+	unsigned char buffer[30];
 	double voltage;
 
 	usleep(2000);
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
+	//printf("ADC %d\n", adcReading);
 	//voltage = (double)adcReading * (double)0.000125;  //4.096
 	voltage = (double)adcReading * (double)0.0001875; //6.144V
 	//voltage = (double)adcReading * (double)0.000015625; //256mvV
@@ -78,6 +76,7 @@ int intI2CcharDisplay()
 	DisplayClear(dispfd);
 }
 
+
 int main(int argc, char *args[])
 {
 	int i, status;
@@ -89,25 +88,28 @@ int main(int argc, char *args[])
 	intI2CcharDisplay();
 
 	status = configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
-						   ADS1115_REG_CONFIG_DR_16SPS);
+						   ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
 	if (status == -1)
 	{
 		strcpy(strBuffer, "Error: I2C write\n");
 		WriteString(dispfd, 4, 0, strBuffer);
 	}
 
-	for (i = 0; i < 50; i++)
+	//for (i = 0; i < 10; i++)
+	while(1)
 	{
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
-					  ADS1115_REG_CONFIG_DR_16SPS);
+					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
 		vMeasure = readADS1115();
-		sprintf(strBuffer, "Ch1: %.3f       ", vMeasure);
+	
+		sprintf(strBuffer, "Ch1: %.3f       \n", vMeasure);
 		WriteString(dispfd, 0, 0, strBuffer);
 
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
-					  ADS1115_REG_CONFIG_DR_16SPS);
+					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
 		vMeasure1 = readADS1115();
-		sprintf(strBuffer, "Ch2: %.3f       ", vMeasure1);
+		sprintf(strBuffer, "Ch2: %.3f      \n", vMeasure1);
+		//printf("Ch2: %f\n", vMeasure1);
 		WriteString(dispfd, 1, 0, strBuffer);
 		usleep(1000);
 	}
