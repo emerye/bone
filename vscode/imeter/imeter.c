@@ -107,12 +107,34 @@ void stop_timer(void)
 
 void timer_callback(int sig)
 {
-
     double power = 203.7;
+	double vMeasure, vMeasure1;
+	char strBuffer[256];
+	double current;
+	double offsetCal = 2.571; 
+	
     count += 1;
     //printf("Catch timer: %d  Count: %d\n", sig, count);
     wattHours = wattHours + power / 3600; //Watt minute
-    printf("Seconds: %d  WattHr: %f\n", count, wattHours);
+    //printf("Seconds: %d  WattHr: %f\n", count, wattHours);
+		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
+					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
+		vMeasure = readADS1115();
+	
+		sprintf(strBuffer, "Ch1: %.3f       \n", vMeasure);
+		WriteString(dispfd, 0, 0, strBuffer);
+
+		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
+					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
+		vMeasure1 = readADS1115();
+		current = (vMeasure1 - offsetCal) / 0.066;
+		printf("Volts: %f  Current %f\n", vMeasure1, current);
+		sprintf(strBuffer, "Ch2: %.3f      \n", vMeasure1);
+		WriteString(dispfd, 1, 0, strBuffer);
+		sprintf(strBuffer, "Ch2: %.3f A     \n", current);
+		WriteString(dispfd, 2, 0, strBuffer);
+		//usleep(1000);
+		fflush(stdout);
 }
 
 
@@ -134,12 +156,14 @@ int main(int argc, char *args[])
 		WriteString(dispfd, 4, 0, strBuffer);
 	}
 
+	//Start timer
 	(void)signal(SIGALRM, timer_callback);
     start_timer();
 
 	//for (i = 0; i < 10; i++)
 	while(1)
 	{
+		/*
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
 					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
 		vMeasure = readADS1115();
@@ -154,6 +178,7 @@ int main(int argc, char *args[])
 		//printf("Ch2: %f\n", vMeasure1);
 		WriteString(dispfd, 1, 0, strBuffer);
 		usleep(1000);
+		*/
 	}
 	close(handle);
 

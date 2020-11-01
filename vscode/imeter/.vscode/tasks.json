@@ -17,7 +17,8 @@
 				"-l",
 				"lcdchar",
 				"-l",
-				"i2c"
+				"i2c",
+				"-lrt"
 			],
 			"options": {
 				"cwd": "/usr/bin"
