@@ -35,9 +35,6 @@
 #define Brightness      0x8F
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
-
-//unsigned char spiBuffer[20];	//Buffer to hold SPI data
-
 int spiFD;
 int rotation = 0;
 
