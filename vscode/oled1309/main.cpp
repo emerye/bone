@@ -111,8 +111,15 @@ void test(oled1309 display) {
 //	drawCharCustom(90, 30, 'G',
 //	WHITE, BLACK, 1);
 	// writeString(stText);
-	for (i = 0; i < 3; i++) {
 
+	memset(display.buffer, 0, sizeof(display.buffer));
+	for (i=0; i<sizeof(display.buffer); i++) {
+		display.buffer[i] = pic[i];
+	}
+	display.displayPicture();
+	sleep(4);
+
+	for (i = 0; i < 3; i++) {
 		memset(display.buffer, 0, 1024);
 		display.displayPicture();
 		sleep(1);
@@ -129,17 +136,14 @@ void test(oled1309 display) {
 		display.displayPicture();
 		sleep(2);
 		display.setFont(FreeMono9pt7b);
-	//	display.writeString(0, 18, 1, "ABCDEFGHI");
-	//	display.writeString(0, 36, 1, "123456789");
-	//	display.fillRect(xstart, 37, 130, height, BLACK);
-		display.writeString(0, 44, 1, "1/30/2020");
-
-
+		display.writeString(0, 18, 1, "ABCDEFGHI");
+		//display.writeString(0, 36, 1, "123456789");
+		display.fillRect(xstart, 37, 130, height, BLACK);
+		display.writeString(0, 44, 1, "11/05/2020");
 		display.displayPicture();
 		sleep(1);
 	}
 }
-
 
 
 int main(int argc, char **argv) {
@@ -152,7 +156,6 @@ int main(int argc, char **argv) {
 	display.displayPicture();
 	display.setFont(FreeSans12pt7b);
 	test(display);
-
 	puts("End");
 	return 0;
 
