@@ -1,4 +1,4 @@
-ompiled Object files
+compiled Object files
 *.slo
 *.lo
 *.o
@@ -62,3 +62,4 @@ Debug/
 !.vscode/extensions.json
 **/.history
 
+src/i2clcd/libtest
