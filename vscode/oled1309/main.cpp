@@ -21,7 +21,7 @@ const unsigned char pic[] =
 		/*--ER-OLED015-2.bmp  --*/
 		/*--  128x64  --*/
 		0xFF,
-		0xFF,
+		0x01,
 		0x01,
 		0x01,
 		0x01,
@@ -1075,7 +1075,7 @@ void test(oled1309 display)
 	
 	int j;
 	//Start of display loop
-	for (i = 0; i < 600; i++)
+	for (i = 0; i < 3; i++)
 	{
 		memset(display.buffer, 0, sizeof(display.buffer));
 		display.displayPicture();

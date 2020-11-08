@@ -34,6 +34,11 @@
 #define Max_Row         64
 #define Brightness      0x8F
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
+//Some 1306 and 1309 use a different controller, SH1106 instead of SSD1306. Contoller has
+//different mapping. Set to 0 for SSD1309 or 2 for SH11x contoller. The 2.42 inch
+//OLED without the bezel needs this offset.
+#define HORZOFFSET      2
+
 
 int spiFD;
 int rotation = 0;
@@ -138,6 +143,9 @@ const unsigned char pic[]=
 
 //Constructor
 oled1309::oled1309() {
+//Some 1306 and 1309 use a different controller, SH1106. Contoller has
+//different mapping. Set to 0 for SSD1309 or 2 for SH11x contoller
+#define HORZOFFSET      2
 	setFont(FreeMono24pt7b);
 	wiringPiSetup();
 	init_Hardware();
@@ -649,6 +657,8 @@ void oled1309::initDisplay() {
 	sendByte(COMMAND, SSD1309_SETDISPLAYOFFSET);	//Set Display Offset
 	sendByte(COMMAND, 0x00);
 
+    // SS1106 controller shifted by 2 bytes. This does not help.
+	//sendByte(COMMAND, 0x40);	// Set Display Start Line
 	sendByte(COMMAND, 0x40);	// Set Display Start Line
 
 	sendByte(COMMAND, SSD1309_MEMORYMODE);	// Set Memory Addressing Mode
@@ -726,7 +736,10 @@ void oled1309::displayPicture(void) {
 	for (i = 0; i < 0x08; i++) {
 		//Set_Start_Page(i);
 		sendByte(COMMAND, 0xB0 | i);
-		Set_Start_Column(XLevel);
+
+		//Set_Start_Column(XLevel);
+		//Shift display 
+		Set_Start_Column(XLevel + HORZOFFSET);
 		for (j = 0; j < 0x80; j++) {
 			sendByte(DATA, *picture);
 			picture++;
