@@ -34,11 +34,17 @@
 #define Max_Row         64
 #define Brightness      0x8F
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
-//Some 1306 and 1309 use a different controller, SH1106 instead of SSD1306. Contoller has
-//different mapping. Set to 0 for SSD1309 or 2 for SH11x contoller. The 2.42 inch
-//OLED without the bezel needs this offset.
+
+/*Some OLED displays do not use SSD1306 or SSD1309 controller. SH1106 is used instead of SSD1306. This contoller has
+different RAM mapping. It is a 132x64 RAM and causes a 2 pixel horizontal shift. Set this define to 0 for SSD1309 or
+2 for SH11x contoller. The 2.42 inch OLED without the bezel needs this offset.
+*/
 #define HORZOFFSET      2
 
+/* define to use POR register defaults in OLED controller.  No low level registers will be changed. 
+Default mode works fine with my 2.42 inch displays for simple operations.
+*/
+#define NO_HARDWARE_INIT
 
 int spiFD;
 int rotation = 0;
@@ -639,6 +645,7 @@ void oled1309::initDisplay() {
 
 	usleep(1000);
 
+#ifdef OLED_HARWARE_INIT
 	sendByte(COMMAND, 0xFD);	// Set Command Lock
 	sendByte(COMMAND, 0x12);	//   Default => 0x12
 	//     0x12 => Driver IC interface is unlocked from entering command.
@@ -692,8 +699,8 @@ void oled1309::initDisplay() {
 	sendByte(COMMAND, 0x05);	//
 
 	sendByte(COMMAND, 0xa4);	//Disable Entire Display On
-
-	sendByte(COMMAND, 0xa6);	//--set normal display
+#endif
+	sendByte(COMMAND, 0xa6);	//--set normal display also can be set to inverse
 
 	sendByte(COMMAND, 0xaf);	//--turn on oled panel
 }
@@ -727,7 +734,10 @@ void oled1309::Set_Page_Address(unsigned char a, unsigned char b) {
 	sendByte(COMMAND, a);              //   Default => 0x00 (Page Start Address)
 	sendByte(COMMAND, b);                //   Default => 0x07 (Page End Address)
 }
-
+/* The data is store 8 bit per column. The (0,0) coordinate, upper left of display, 
+is MSB of byte 0.  The (0,1) coordinate is MSB of byte 1. The data for first row 
+is 8 bits down by 128 bytes across. 
+*/
 void oled1309::displayPicture(void) {
 	unsigned char *picture;
 	unsigned char i, j;
@@ -753,7 +763,7 @@ void oled1309::init_Hardware(void) {
 	pinMode(RESETLINE, OUTPUT);
 	pinMode(DCLINE, OUTPUT);
 	status = wiringPiSPISetup(0, 2000000);
-	if (status < 1) {
+	if (status < 0) {
 		perror("Error opening SPI");
 	}
 }

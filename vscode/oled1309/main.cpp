@@ -1072,22 +1072,23 @@ void test(oled1309 display)
 	// writeString(stText);
 
 	memset(display.buffer, 0, sizeof(display.buffer));
-	
-	int j;
-	//Start of display loop
-	for (i = 0; i < 3; i++)
-	{
-		memset(display.buffer, 0, sizeof(display.buffer));
-		display.displayPicture();
-		sleep(1);
-		memset(display.buffer, 0, sizeof(display.buffer));
 
-		for (j = 0; j < sizeof(display.buffer); j++)
+	int j;
+	unsigned char byte;
+
+	//Start of display loop
+	for (i = 0; i < 1; i++)
+	{
+		memset(display.buffer, 0x55, sizeof(display.buffer));
+		display.displayPicture();
+		sleep(2);
+
+		for (j = 0; j < sizeof(pic); j++)
 		{
 			display.buffer[j] = pic[j];
 		}
 		display.displayPicture();
-		sleep(4);
+		sleep(3);
 
 		memset(display.buffer, 0, sizeof(display.buffer));
 		display.displayPicture();
@@ -1101,9 +1102,8 @@ void test(oled1309 display)
 		display.writeString(xstart, 54, 1, "abcdefgh");
 		display.displayPicture();
 		sleep(1);
-		memset(display.buffer, 0, 1024);
+		memset(display.buffer, 0, sizeof(display.buffer));
 		display.displayPicture();
-		sleep(2);
 		display.setFont(FreeMono9pt7b);
 		display.writeString(0, 18, 1, "ABCDEFGHI");
 		//display.writeString(0, 36, 1, "123456789");
@@ -1116,13 +1116,20 @@ void test(oled1309 display)
 
 int main(int argc, char **argv)
 {
-
 	printf("Started\n");
 	fflush(stdout);
 	oled1309 display;
 
 	display.fillRect(0, 0, 127, 63, WHITE);
 	display.displayPicture();
+	sleep(2);
+	memset(display.buffer, 0, sizeof(display.buffer));
+	for (int i = 0; i < sizeof(display.buffer); i++)
+	{
+		display.buffer[i] = pic[i];
+	}
+	display.displayPicture();
+	sleep(4);
 	display.setFont(FreeSans12pt7b);
 	test(display);
 	puts("End");
