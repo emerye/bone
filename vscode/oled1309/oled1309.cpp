@@ -42,9 +42,15 @@ different RAM mapping. It is a 132x64 RAM and causes a 2 pixel horizontal shift.
 #define HORZOFFSET      2
 
 /* define to use POR register defaults in OLED controller.  No low level registers will be changed. 
-Default mode works fine with my 2.42 inch displays for simple operations.
+Default mode works fine with my 2.42 inch displays for simple operations. This 
+is for the SSD1309
 */
 #define NO_HARDWARE_INIT
+
+/*Define if controller is SSD1306.  The .96 inch display I have also needs 
+HORZOFFSET 2
+*/
+#define SSD1306
 
 int spiFD;
 int rotation = 0;
@@ -637,16 +643,63 @@ void oled1309::drawFastHLineInternal(int16_t x, int16_t y, int16_t w,
 	}
 }
 
+/* This is from East Rising examples for SSD1306 
+*/
+void oled1309::init1306Display() {
+
+ 	sendByte(COMMAND, 0xae);//--turn off oled panel
+	
+    sendByte(COMMAND, 0xd5);//--set display clock divide ratio/oscillator frequency
+    sendByte(COMMAND, 0x80);//--set divide ratio
+
+    sendByte(COMMAND, 0xa8);//--set multiplex ratio(1 to 64)
+    sendByte(COMMAND, 0x3f);//--1/64 duty
+
+    sendByte(COMMAND, 0xd3);//-set display offset
+    sendByte(COMMAND, 0x00);//-not offset
+
+    sendByte(COMMAND, 0x8d);//--set Charge Pump enable/disable
+    sendByte(COMMAND, 0x14);//--set(0x10) disable
+
+    sendByte(COMMAND, 0x40);//--set start line address
+
+    sendByte(COMMAND, 0xa6);//--set normal display
+
+    sendByte(COMMAND, 0xa4);//Disable Entire Display On
+
+   // This flips the display 180 degrees
+  // sendByte(COMMAND, 0xa1);//--set segment re-map 128 to 0
+ //  sendByte(COMMAND, 0xC8);//--Set COM Output Scan Direction 64 to 0
+
+    sendByte(COMMAND, 0xda);//--set com pins hardware configuration
+    sendByte(COMMAND, 0x12);
+
+    sendByte(COMMAND, 0x81);//--set contrast control register
+    sendByte(COMMAND, 0xcf);
+
+    sendByte(COMMAND, 0xd9);//--set pre-charge period
+    sendByte(COMMAND, 0xf1);
+
+    sendByte(COMMAND, 0xdb);//--set vcomh
+    sendByte(COMMAND, 0x40);
+
+    sendByte(COMMAND, 0xaf);//--turn on oled panel
+
+}
+
 void oled1309::initDisplay() {
 	digitalWrite(RESETLINE, HIGH);
+	usleep(1000);
 	digitalWrite(RESETLINE, LOW);
 	usleep(15000);
 	digitalWrite(RESETLINE, HIGH);
-
-	usleep(1000);
+#ifdef SSD1306
+	init1306Display();
+	return;
+#endif
 
 #ifdef OLED_HARWARE_INIT
-	sendByte(COMMAND, 0xFD);	// Set Command Lock
+	sendByte(COMMAND, 0xFD);	// Set COMMAND Lock
 	sendByte(COMMAND, 0x12);	//   Default => 0x12
 	//     0x12 => Driver IC interface is unlocked from entering command.
 	//     0x16 => All Commands are locked except 0xFD.

@@ -48,6 +48,7 @@ public:
 	virtual int SendSPIBlock(enum cmd cmdType, unsigned char *spiData, int numBytes);
 	virtual int sendByte(enum cmd cmdType, int data);
 	virtual void initDisplay();
+	virtual void init1306Display();
 	virtual void displayPicture();
 	virtual void init_Hardware(void);
 	virtual void setContrast(unsigned char level);
