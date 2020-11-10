@@ -39,7 +39,7 @@
 different RAM mapping. It is a 132x64 RAM and causes a 2 pixel horizontal shift. Set this define to 0 for SSD1309 or
 2 for SH11x contoller. The 2.42 inch OLED without the bezel needs this offset.
 */
-#define HORZOFFSET      2
+#define HORZOFFSET   0
 
 /* define to use POR register defaults in OLED controller.  No low level registers will be changed. 
 Default mode works fine with my 2.42 inch displays for simple operations. This 
@@ -47,8 +47,8 @@ is for the SSD1309
 */
 #define NO_HARDWARE_INIT
 
-/*Define if controller is SSD1306.  The .96 inch display I have also needs 
-HORZOFFSET 2
+/*Define if controller is SSD1306.  The .96 inch display I have needs 
+HORZOFFSET 0
 */
 #define SSD1306
 
@@ -595,7 +595,6 @@ int oled1309::SendSPIBlock(enum cmd cmdType, unsigned char *spiData,
 	}
 	return error;
 }
-
 
 int oled1309::sendByte(enum cmd cmdType, int data) {
 	unsigned char spiBuffer[20];
