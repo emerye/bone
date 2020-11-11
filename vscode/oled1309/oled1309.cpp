@@ -45,12 +45,12 @@ different RAM mapping. It is a 132x64 RAM and causes a 2 pixel horizontal shift.
 Default mode works fine with my 2.42 inch displays for simple operations. This 
 is for the SSD1309
 */
-#define NO_HARDWARE_INIT
+//#define OLED_HARDWARE_INIT
 
 /*Define if controller is SSD1306.  The .96 inch display I have needs 
 HORZOFFSET 0
 */
-#define SSD1306
+//#define SSD1306
 
 int spiFD;
 int rotation = 0;
@@ -157,7 +157,6 @@ const unsigned char pic[]=
 oled1309::oled1309() {
 //Some 1306 and 1309 use a different controller, SH1106. Contoller has
 //different mapping. Set to 0 for SSD1309 or 2 for SH11x contoller
-#define HORZOFFSET      2
 	setFont(FreeMono24pt7b);
 	wiringPiSetup();
 	init_Hardware();
@@ -697,7 +696,7 @@ void oled1309::initDisplay() {
 	return;
 #endif
 
-#ifdef OLED_HARWARE_INIT
+#ifdef OLED_HARDWARE_INIT
 	sendByte(COMMAND, 0xFD);	// Set COMMAND Lock
 	sendByte(COMMAND, 0x12);	//   Default => 0x12
 	//     0x12 => Driver IC interface is unlocked from entering command.
@@ -714,6 +713,7 @@ void oled1309::initDisplay() {
 	sendByte(COMMAND, 0x3f);	//--1/64 duty
 
 	sendByte(COMMAND, SSD1309_SETDISPLAYOFFSET);	//Set Display Offset
+	//sendByte(COMMAND, 0x00);
 	sendByte(COMMAND, 0x00);
 
     // SS1106 controller shifted by 2 bytes. This does not help.

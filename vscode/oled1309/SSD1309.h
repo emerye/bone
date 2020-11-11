@@ -5,10 +5,8 @@
 #define WHITE 1
 #define INVERSE 2
 
-
 #define SSD1309_LCDWIDTH                  128
 #define SSD1309_LCDHEIGHT                 64
-
 
 #define SSD1309_SETCONTRAST 0x81
 #define SSD1309_DISPLAYALLON_RESUME 0xA4
