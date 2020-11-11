@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "gcc - Build and debug active file",
+            "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${fileDirname}/oled1309",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -20,10 +20,10 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
-                }  
+                }
             ],
-            "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Timer Compile"
+            "preLaunchTask": "C/C++: g++ build oled",
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }

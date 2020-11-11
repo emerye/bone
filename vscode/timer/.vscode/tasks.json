@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: gcc build active file",
+            "label": "Timer Compile",
             "command": "/usr/bin/gcc",
             "args": [
                 "-g",
@@ -21,7 +21,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Generated task by Debugger"
+            "detail": "compiler: /use/bin/g++"
         }
     ],
     "version": "2.0.0"
