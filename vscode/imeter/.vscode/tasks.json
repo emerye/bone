@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "cppbuild",
-			"label": "C/C++: gcc build active file",
+			"label": "IMeter build",
 			"command": "/usr/bin/gcc",
 			"args": [
 				"-g",

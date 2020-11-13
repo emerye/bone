@@ -1,3 +1,8 @@
+/* This is both a voltmeter and a 30 Amp current meter. Hardware
+Hardware is a raspberryPi, ADS1015, and ACS712-30. The 
+screen is a character lcd display using an I2C backpack.
+This uses SIGALRM signal with a timer.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -121,7 +126,7 @@ void timer_callback(int sig)
 					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
 		vMeasure = readADS1115();
 	
-		sprintf(strBuffer, "Ch1: %.3f       \n", vMeasure);
+		sprintf(strBuffer, "Ch1: %.3f     \n", vMeasure);
 		WriteString(dispfd, 0, 0, strBuffer);
 
 		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
@@ -129,9 +134,9 @@ void timer_callback(int sig)
 		vMeasure1 = readADS1115();
 		current = (vMeasure1 - offsetCal) / 0.066;
 		printf("Volts: %f  Current %f\n", vMeasure1, current);
-		sprintf(strBuffer, "Ch2: %.3f      \n", vMeasure1);
+		sprintf(strBuffer, "Ch2: %.3f     \n", vMeasure1);
 		WriteString(dispfd, 1, 0, strBuffer);
-		sprintf(strBuffer, "Ch2: %.3f A     \n", current);
+		sprintf(strBuffer, "Ch2: %.3fV %.3fA  \n", vMeasure1, current);
 		WriteString(dispfd, 2, 0, strBuffer);
 		//usleep(1000);
 		fflush(stdout);
@@ -160,25 +165,9 @@ int main(int argc, char *args[])
 	(void)signal(SIGALRM, timer_callback);
     start_timer();
 
-	//for (i = 0; i < 10; i++)
 	while(1)
 	{
-		/*
-		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
-					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
-		vMeasure = readADS1115();
-	
-		sprintf(strBuffer, "Ch1: %.3f       \n", vMeasure);
-		WriteString(dispfd, 0, 0, strBuffer);
-
-		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
-					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
-		vMeasure1 = readADS1115();
-		sprintf(strBuffer, "Ch2: %.3f      \n", vMeasure1);
-		//printf("Ch2: %f\n", vMeasure1);
-		WriteString(dispfd, 1, 0, strBuffer);
-		usleep(1000);
-		*/
+		/* main function is in timer callback. */
 	}
 	close(handle);
 

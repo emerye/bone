@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/imeter",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
@@ -22,7 +22,9 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "preLaunchTask": "IMeter build",
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }
