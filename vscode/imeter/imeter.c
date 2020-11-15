@@ -27,7 +27,7 @@ timer_t gTimerid;
 int count = 0;
 double wattHours = 0;
 
-/// Take ADC reading, scale to gain and return value.
+/// Take ADC reading, scale to gain, and return value.
 double readADS1115()
 {
 	int adcReading, ch;
@@ -38,8 +38,8 @@ double readADS1115()
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
 	//printf("ADC %d\n", adcReading);
-	//voltage = (double)adcReading * (double)0.000125;  //4.096
-	voltage = (double)adcReading * (double)0.0001875; //6.144V
+	voltage = (double)adcReading * (double)0.000125; //4.096
+	//voltage = (double)adcReading * (double)0.0001875; //6.144V
 	//voltage = (double)adcReading * (double)0.000015625; //256mvV
 	usleep(1000);
 	return voltage;
@@ -86,62 +86,76 @@ int intI2CcharDisplay()
 	DisplayClear(dispfd);
 }
 
-
 void start_timer(void)
 {
-    struct itimerspec value;
+	struct itimerspec value;
 
-    value.it_value.tv_sec = 1; //waits for 1 seconds before sending timer signal
-    value.it_value.tv_nsec = 0;
-    value.it_interval.tv_sec = 1; //sends timer signal every 1 seconds
-    value.it_interval.tv_nsec = 0;
-    timer_create(CLOCK_REALTIME, NULL, &gTimerid);
-    timer_settime(gTimerid, 0, &value, NULL);
+	value.it_value.tv_sec = 0; //waits for 1 seconds before sending timer signal
+	value.it_value.tv_nsec = 500000000;
+
+	value.it_interval.tv_sec = 0; //sends timer signal every 1 seconds
+	value.it_interval.tv_nsec = 500000000;
+	timer_create(CLOCK_REALTIME, NULL, &gTimerid);
+	timer_settime(gTimerid, 0, &value, NULL);
 }
 
 void stop_timer(void)
 {
-    struct itimerspec value;
+	struct itimerspec value;
 
-    value.it_value.tv_sec = 0;
-    value.it_value.tv_nsec = 0;
-    value.it_interval.tv_sec = 0;
-    value.it_interval.tv_nsec = 0;
-    timer_settime(gTimerid, 0, &value, NULL);
+	value.it_value.tv_sec = 0;
+	value.it_value.tv_nsec = 0;
+	value.it_interval.tv_sec = 0;
+	value.it_interval.tv_nsec = 0;
+	timer_settime(gTimerid, 0, &value, NULL);
 }
 
 void timer_callback(int sig)
 {
-    double power = 203.7;
+	double power = 203.7;
 	double vMeasure, vMeasure1;
 	char strBuffer[256];
-	double current;
-	double offsetCal = 2.571; 
-	
-    count += 1;
-    //printf("Catch timer: %d  Count: %d\n", sig, count);
-    wattHours = wattHours + power / 3600; //Watt minute
-    //printf("Seconds: %d  WattHr: %f\n", count, wattHours);
-		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
-					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
-		vMeasure = readADS1115();
-	
-		sprintf(strBuffer, "Ch1: %.3f     \n", vMeasure);
-		WriteString(dispfd, 0, 0, strBuffer);
+	double current, vIn;
+	double offsetCal = 2.571;
+	double VOFFSET = 0.0;
+	double VSLOPE = 15.99;
+	FILE *vLog;
 
-		configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_6_144V |
-					  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
-		vMeasure1 = readADS1115();
-		current = (vMeasure1 - offsetCal) / 0.066;
-		printf("Volts: %f  Current %f\n", vMeasure1, current);
-		sprintf(strBuffer, "Ch2: %.3f     \n", vMeasure1);
-		WriteString(dispfd, 1, 0, strBuffer);
-		sprintf(strBuffer, "Ch2: %.3fV %.3fA  \n", vMeasure1, current);
-		WriteString(dispfd, 2, 0, strBuffer);
-		//usleep(1000);
-		fflush(stdout);
+	
+	//printf("Catch timer: %d  Count: %d\n", sig, count);
+	wattHours = wattHours + power / 3600; //Watt minute
+										  //printf("Seconds: %d  WattHr: %f\n", count, wattHours);
+	configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_4_096V |
+				  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
+	vMeasure = readADS1115();
+	vIn = vMeasure * VSLOPE + VOFFSET;
+	sprintf(strBuffer, "Ch1: %.3f     \n", vIn);
+	printf("%d  %.3fV\n", count, vIn);
+	WriteString(dispfd, 0, 0, strBuffer);
+	vLog = fopen("/home/andy/bone/plot/voltmeter.txt", "a");
+	if (vLog == NULL)
+	{
+		printf("Could not open voltage log file.");
+	}
+	else
+	{
+		fprintf(vLog, "%d  %.3f\n", count, vIn);
+		fclose(vLog);
+	}
+	count += 1;
+
+	configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_1 | ADS1015_REG_CONFIG_PGA_4_096V |
+				  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
+	vMeasure1 = readADS1115();
+	current = (vMeasure1 - offsetCal) / 0.066;
+	//	printf("Volts: %f  Current %f\n", vMeasure1, current);
+	sprintf(strBuffer, "Ch2: %.3f     \n", vMeasure1);
+	//	WriteString(dispfd, 1, 0, strBuffer);
+	sprintf(strBuffer, "Ch2: %.3fV %.3fA  \n", vMeasure1, current);
+	//	WriteString(dispfd, 2, 0, strBuffer);
+	//usleep(1000);
+	fflush(stdout);
 }
-
 
 int main(int argc, char *args[])
 {
@@ -149,6 +163,7 @@ int main(int argc, char *args[])
 	double vMeasure;
 	double vMeasure1;
 	char strBuffer[256];
+	FILE *vLog;
 
 	handle = wiringPiI2CSetup(ADS1015_ADDRESS);
 	intI2CcharDisplay();
@@ -161,11 +176,20 @@ int main(int argc, char *args[])
 		WriteString(dispfd, 4, 0, strBuffer);
 	}
 
+	vLog = fopen("/home/andy/bone/plot/voltmeter.txt", "w");
+	if (vLog == NULL) {
+		printf("Could not open voltage log file.");
+	}
+	else {
+	
+		fclose(vLog);
+	}
+
 	//Start timer
 	(void)signal(SIGALRM, timer_callback);
-    start_timer();
+	start_timer();
 
-	while(1)
+	while (1)
 	{
 		/* main function is in timer callback. */
 	}
