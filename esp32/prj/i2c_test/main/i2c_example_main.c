@@ -103,7 +103,7 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
 }
 
 /**
- * @brief test code to operate on BH1750 sensor
+ * @brief test code to operate on ADC1015 analog to digital converter.
  *
  * 1. set operation mode(e.g One time L-resolution mode)
  * _________________________________________________________________
@@ -115,9 +115,9 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
  * | start | slave_addr + rd_bit + ack | read 1 byte + ack  | read 1 byte + nack | stop |
  * --------|---------------------------|--------------------|--------------------|------|
  */
-static esp_err_t i2c_master_sensor_test(i2c_port_t i2c_num)
+static esp_err_t i2c_ads1015(i2c_port_t i2c_num)
 {
-    int ret;
+    int ret, status;
     uint8_t data_h = 0;
     uint8_t data_l = 0;
     uint8_t cmdBuffer[6];
@@ -151,7 +151,7 @@ static esp_err_t i2c_master_sensor_test(i2c_port_t i2c_num)
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(i2c_num, cmd, 20 / portTICK_RATE_MS);
     if(ret != ESP_OK) {
-        printf("Sending setup to convertion returned error %d\n", ret);
+        printf("Sending setup to ADC1015 returned error %d\n", ret);
     }
     i2c_cmd_link_delete(cmd);
 
@@ -177,6 +177,9 @@ static esp_err_t i2c_master_sensor_test(i2c_port_t i2c_num)
     i2c_master_read_byte(cmd, &data_l, NACK_VAL);
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(i2c_num, cmd, 10 / portTICK_RATE_MS);
+    if (ret != ESP_OK) {
+        printf("Error reading ADS1015. Error: %d\n", ret);
+    }
     printf("High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) data_h, (unsigned int) data_l, 
         (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
     i2c_cmd_link_delete(cmd);
@@ -247,9 +250,10 @@ static void i2c_test_task(void *arg)
     uint8_t *data_rd = (uint8_t *)malloc(DATA_LENGTH);
     uint8_t sensor_data_h, sensor_data_l;
     int cnt = 0;
+
     while (1) {
         ESP_LOGI(TAG, "TASK[%d] test cnt: %d", task_idx, cnt++);
-     //   ret = i2c_master_sensor_test(I2C_MASTER_NUM, &sensor_data_h, &sensor_data_l);
+     //   ret = i2c_ads1015(I2C_MASTER_NUM, &sensor_data_h, &sensor_data_l);
         xSemaphoreTake(print_mux, portMAX_DELAY);
         if (ret == ESP_ERR_TIMEOUT) {
             ESP_LOGE(TAG, "I2C Timeout");
@@ -333,6 +337,7 @@ void app_main(void)
     ESP_ERROR_CHECK(i2c_master_init());
     //xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
     //xTaskCreate(i2c_test_task, "i2c_test_task_1", 1024 * 2, (void *)1, 10, NULL);
-    //xTaskCreate(i2c_master_sensor_test, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
-    i2c_master_sensor_test(I2C_MASTER_NUM);
+
+    xTaskCreate(i2c_ads1015, "i2c_test_task_0", 1024 * 2, (void *)1, 10, NULL);
+    //i2c_ads1015(I2C_MASTER_NUM);
 }
