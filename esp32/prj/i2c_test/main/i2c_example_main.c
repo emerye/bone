@@ -102,6 +102,41 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
     return ret;
 }
 
+
+/** Read a block of data from a slave.
+ * esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress, 
+ * uint8_t *readData, uint8_t numBytestoRead)
+ * 
+ * i2c_num is either 0 or 1
+ * 
+ * Returns standard errors. ESP_OK for success
+ */
+esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress,
+ uint8_t *readData, uint8_t numBytestoRead) 
+ {
+    i2c_cmd_handle_t cmd;
+
+    cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_VAL);
+    i2c_master_write_byte(cmd, startAddress, true);
+
+    for(int i=0; i<numBytestoRead-1; i++) {
+        i2c_master_read_byte(cmd, readData++, ACK_VAL);
+    }
+    i2c_master_read_byte(cmd, readData, NACK_VAL);
+    i2c_master_stop(cmd);
+    esp_err_t status = i2c_master_cmd_begin(i2c_num, cmd, 10 / portTICK_RATE_MS);
+    if (status != ESP_OK) {
+        printf("Error reading slave. Error: %d\n", status);
+    }
+    i2c_cmd_link_delete(cmd);
+
+    return(status);
+ }
+ 
+
+
 /**
  * @brief test code to operate on ADC1015 analog to digital converter.
  *
@@ -115,15 +150,21 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
  * | start | slave_addr + rd_bit + ack | read 1 byte + ack  | read 1 byte + nack | stop |
  * --------|---------------------------|--------------------|--------------------|------|
  */
-static esp_err_t i2c_ads1015(i2c_port_t i2c_num)
+static void i2c_ads1015(void *i2c_num_arg)
 {
-    int ret, status;
+    int ret;
     uint8_t data_h = 0;
     uint8_t data_l = 0;
     uint8_t cmdBuffer[6];
     uint16_t adcCfg = 0;
     i2c_cmd_handle_t cmd;
-
+    i2c_port_t i2c_num;
+    
+    if(i2c_num_arg == 0) {
+        i2c_num = I2C_NUM_0;
+    } else {
+        i2c_num = I2C_NUM_1;
+    }
     cmd = i2c_cmd_link_create();
     vTaskDelay(5 / portTICK_RATE_MS);
     adcCfg = ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_4_096V |
@@ -134,7 +175,7 @@ static esp_err_t i2c_ads1015(i2c_port_t i2c_num)
     cmdBuffer[2] = adcCfg >> 8;
 	cmdBuffer[3] = adcCfg & 0x00FF;
     i2c_master_start(cmd);
-    i2c_master_write(cmd, cmdBuffer, 4, ACK_CHECK_EN);
+    i2c_master_write(cmd, cmdBuffer, 4, ACK_VAL);
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(i2c_num, cmd, 3 / portTICK_RATE_MS);
     if (ret != ESP_OK) {
@@ -186,7 +227,6 @@ static esp_err_t i2c_ads1015(i2c_port_t i2c_num)
  
     vTaskDelay(20 / portTICK_RATE_MS);
     }
-    return ret;
 }
 
 /**
@@ -338,6 +378,6 @@ void app_main(void)
     //xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
     //xTaskCreate(i2c_test_task, "i2c_test_task_1", 1024 * 2, (void *)1, 10, NULL);
 
-    xTaskCreate(i2c_ads1015, "i2c_test_task_0", 1024 * 2, (void *)1, 10, NULL);
+    xTaskCreate(i2c_ads1015, "i2c_ads1015", 1024 * 2, (int *)1, 10, NULL);
     //i2c_ads1015(I2C_MASTER_NUM);
 }
