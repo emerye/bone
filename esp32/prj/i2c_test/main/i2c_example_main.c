@@ -12,10 +12,21 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
 #include "sdkconfig.h"
 #include "ads1015.h"
+#include "lcdchar.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
+
+#define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
+#define NO_OF_SAMPLES   128          //Multisampling
 
 static const char *TAG = "i2c-example";
 
@@ -52,6 +63,13 @@ static const char *TAG = "i2c-example";
 
 SemaphoreHandle_t print_mux = NULL;
 
+static esp_adc_cal_characteristics_t *adc_chars;
+static const adc_channel_t channel = ADC1_CHANNEL_6; 
+static const adc_atten_t atten = ADC_ATTEN_DB_0;
+static const adc_unit_t unit = ADC_UNIT_1;
+static const int16_t VOFFSET = 20; 
+
+
 /**
  * @brief test code to read esp-i2c-slave
  *        We need to fill the buffer of esp slave device, then master can read them out.
@@ -69,6 +87,33 @@ static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, siz
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | READ_BIT, ACK_CHECK_EN);
+    if (size > 1) {
+        i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
+    }
+    i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+    return ret;
+}
+
+/**
+ * @brief test code to read esp-i2c-slave
+ *        We need to fill the buffer of esp slave device, then master can read them out.
+ *
+ * _______________________________________________________________________________________
+ * | start | slave_addr + rd_bit +ack | read n-1 bytes + ack | read 1 byte + nack | stop |
+ * --------|--------------------------|----------------------|--------------------|------|
+ *
+ */
+static esp_err_t i2c_read_slave(i2c_port_t i2c_num, uint8_t tgtAddress, uint8_t *data_rd, size_t size)
+{
+    if (size == 0) {
+        return ESP_OK;
+    }
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (tgtAddress << 1) | READ_BIT, ACK_CHECK_EN);
     if (size > 1) {
         i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
     }
@@ -102,6 +147,18 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
     return ret;
 }
 
+esp_err_t ic2_master_write_byte(i2c_port_t i2c_num, uint8_t address, uint8_t data_wr)
+{
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (address << 1) | WRITE_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, data_wr, ACK_CHECK_EN);
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+    return ret;
+}
+
 
 /** Read a block of data from a slave.
  * esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress, 
@@ -111,16 +168,14 @@ static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, si
  * 
  * Returns standard errors. ESP_OK for success
  */
-esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress,
+static esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress,
  uint8_t *readData, uint8_t numBytestoRead) 
  {
     i2c_cmd_handle_t cmd;
 
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_VAL);
-    i2c_master_write_byte(cmd, startAddress, true);
-
+    i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_CHECK_EN);
     for(int i=0; i<numBytestoRead-1; i++) {
         i2c_master_read_byte(cmd, readData++, ACK_VAL);
     }
@@ -155,7 +210,7 @@ static void i2c_ads1015(void *i2c_num_arg)
     int ret;
     uint8_t data_h = 0;
     uint8_t data_l = 0;
-    uint8_t cmdBuffer[6];
+    uint8_t cmdBuffer[64];
     uint16_t adcCfg = 0;
     i2c_cmd_handle_t cmd;
     i2c_port_t i2c_num;
@@ -166,7 +221,6 @@ static void i2c_ads1015(void *i2c_num_arg)
         i2c_num = I2C_NUM_1;
     }
     cmd = i2c_cmd_link_create();
-    vTaskDelay(5 / portTICK_RATE_MS);
     adcCfg = ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_4_096V |
 			ADS1115_REG_CONFIG_DR_16SPS;
 
@@ -184,7 +238,6 @@ static void i2c_ads1015(void *i2c_num_arg)
     i2c_cmd_link_delete(cmd);
 
     cmd = i2c_cmd_link_create();
-    vTaskDelay(5 / portTICK_RATE_MS);
     cmdBuffer[0] = 0x48 << 1 | I2C_MASTER_WRITE;
     cmdBuffer[1] = ADS1015_REG_POINTER_CONVERT;
     i2c_master_start(cmd);
@@ -193,24 +246,13 @@ static void i2c_ads1015(void *i2c_num_arg)
     ret = i2c_master_cmd_begin(i2c_num, cmd, 20 / portTICK_RATE_MS);
     if(ret != ESP_OK) {
         printf("Sending setup to ADC1015 returned error %d\n", ret);
-    }
+    } 
     i2c_cmd_link_delete(cmd);
-
+    
 //Read
-    /*
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, BH1750_SENSOR_ADDR << 1 | WRITE_BIT, ACK_CHECK_EN);
-    i2c_master_write_byte(cmd, BH1750_CMD_START, ACK_CHECK_EN);
-    i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
-    if (ret != ESP_OK) {
-        return ret;
-    }
-    */
+   
    while(1) {
     cmd = i2c_cmd_link_create();
-    vTaskDelay(5 / portTICK_RATE_MS);
   
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_CHECK_EN);
@@ -224,9 +266,25 @@ static void i2c_ads1015(void *i2c_num_arg)
     printf("High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) data_h, (unsigned int) data_l, 
         (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
     i2c_cmd_link_delete(cmd);
- 
-    vTaskDelay(20 / portTICK_RATE_MS);
+
+    ret = I2CReadBlock(i2c_num, 0x48, 0, cmdBuffer, 2); 
+    if (ret != ESP_OK) {
+        printf("Sending blockread returned error %d\n", ret);
     }
+    printf("I2CReadBlock   High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) cmdBuffer[1], (unsigned int) cmdBuffer[0], 
+        (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
+   
+    memset(cmdBuffer,0,sizeof(cmdBuffer));
+    i2c_read_slave(i2c_num, 0x48, cmdBuffer, 2);
+     if (ret != ESP_OK) {
+        printf("Sending MasterReadBlock returned error %d\n", ret);
+    }
+    printf("MasterReadSlave  High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) cmdBuffer[1], (unsigned int) cmdBuffer[0], 
+        (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
+
+    puts("");
+    vTaskDelay(300 / portTICK_RATE_MS);
+   }  //End while1
 }
 
 /**
@@ -279,6 +337,46 @@ static void disp_buf(uint8_t *buf, int len)
     }
     printf("\n");
 }
+
+
+static void print_char_val_type(esp_adc_cal_value_t val_type)
+{
+    if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
+        printf("Characterized using Two Point Value\n");
+    } else if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
+        printf("Characterized using eFuse Vref\n");
+    } else {
+        printf("Characterized using Default Vref\n");
+    }
+}
+
+
+void init_adc() 
+{
+    //Check TP is burned into eFuse
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK) {
+        printf("eFuse Two Point: Supported\n");
+    } else {
+        printf("eFuse Two Point: NOT supported\n");
+    }
+
+    //Check Vref is burned into eFuse
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK) {
+        printf("eFuse Vref: Supported\n");
+    } else {
+        printf("eFuse Vref: NOT supported\n");
+    }
+
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(channel, atten);
+
+    //Characterize ADC
+    adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
+    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
+    print_char_val_type(val_type);
+}
+
+
 
 static void i2c_test_task(void *arg)
 {
@@ -368,7 +466,7 @@ static void i2c_test_task(void *arg)
     }
     vSemaphoreDelete(print_mux);
     vTaskDelete(NULL);
-}
+} 
 
 void app_main(void)
 {
@@ -378,6 +476,44 @@ void app_main(void)
     //xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
     //xTaskCreate(i2c_test_task, "i2c_test_task_1", 1024 * 2, (void *)1, 10, NULL);
 
-    xTaskCreate(i2c_ads1015, "i2c_ads1015", 1024 * 2, (int *)1, 10, NULL);
+    //xTaskCreate(i2c_ads1015, "i2c_ads1015", 1024 * 2, (int *)1, 10, NULL);
     //i2c_ads1015(I2C_MASTER_NUM);
+    /*
+    for (int i=0; i<10; i++) {
+        ic2_master_write_byte(1, 0x27, 0x55);
+    }
+    */
+
+    Setup4bit();
+    DisplayClear();
+    init_adc();
+   
+    WriteString(0, 0, (char *)"Hello");
+    WriteString(2, 0, (char *)"November 24, 2020");
+    WriteString(3, 0, (char *)"64 Degrees");
+
+      //Continuously sample ADC1
+    while (1) {
+        char vBuffer[20];
+        uint32_t adc_reading = 0;
+        //Multisampling
+        for (int i = 0; i < NO_OF_SAMPLES; i++) {
+            if (unit == ADC_UNIT_1) {
+                adc_reading += adc1_get_raw((adc1_channel_t)channel);
+            } else {
+                int raw;
+                adc2_get_raw((adc2_channel_t)channel, ADC_WIDTH_BIT_12, &raw);
+                adc_reading += raw;
+            }
+        }
+        adc_reading /= NO_OF_SAMPLES;
+
+        //Convert adc_reading to voltage in mV
+        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage - VOFFSET);
+        sprintf(vBuffer,"%d mV   \n", voltage);
+        WriteString(0, 0, vBuffer);
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+    puts("End Program");
 }
