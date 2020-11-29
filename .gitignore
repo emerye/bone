@@ -63,3 +63,5 @@ Debug/
 **/.history
 
 src/i2clcd/libtest
+
+.jxbroswer-data/
