@@ -509,8 +509,8 @@ void app_main(void)
         adc_reading /= NO_OF_SAMPLES;
 
         //Convert adc_reading to voltage in mV
-        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage - VOFFSET);
+        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars) - VOFFSET;
+        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
         sprintf(vBuffer,"%d mV   \n", voltage);
         WriteString(0, 0, vBuffer);
         vTaskDelay(pdMS_TO_TICKS(500));
