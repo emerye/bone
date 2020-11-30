@@ -25,6 +25,7 @@
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 
+
 #define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
 #define NO_OF_SAMPLES   128          //Multisampling
 
@@ -189,7 +190,6 @@ static esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8
 
     return(status);
  }
- 
 
 
 /**
@@ -338,6 +338,13 @@ static void disp_buf(uint8_t *buf, int len)
     printf("\n");
 }
 
+static void initGPIOs() {
+
+    gpio_pad_select_gpio(GPIO_NUM_23);
+    gpio_set_direction(GPIO_NUM_23, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_23, 0);
+
+}
 
 static void print_char_val_type(esp_adc_cal_value_t val_type)
 {
@@ -483,6 +490,7 @@ void app_main(void)
         ic2_master_write_byte(1, 0x27, 0x55);
     }
     */
+    initGPIOs();
 
     Setup4bit();
     DisplayClear();
