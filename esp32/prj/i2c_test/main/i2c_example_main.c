@@ -68,7 +68,7 @@ static esp_adc_cal_characteristics_t *adc_chars;
 static const adc_channel_t channel = ADC1_CHANNEL_6; 
 static const adc_atten_t atten = ADC_ATTEN_DB_0;
 static const adc_unit_t unit = ADC_UNIT_1;
-static const int16_t VOFFSET = 20; 
+static const int16_t VOFFSET = 0; 
 
 
 /**
@@ -340,10 +340,9 @@ static void disp_buf(uint8_t *buf, int len)
 
 static void initGPIOs() {
 
-    gpio_pad_select_gpio(GPIO_NUM_23);
-    gpio_set_direction(GPIO_NUM_23, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_23, 0);
-
+    gpio_pad_select_gpio(GPIO_NUM_16);
+    gpio_set_direction(GPIO_NUM_16, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_16, 0);
 }
 
 static void print_char_val_type(esp_adc_cal_value_t val_type)
@@ -477,7 +476,7 @@ static void i2c_test_task(void *arg)
 
 void app_main(void)
 {
-    print_mux = xSemaphoreCreateMutex();
+ //   print_mux = xSemaphoreCreateMutex();
     //ESP_ERROR_CHECK(i2c_slave_init());
     ESP_ERROR_CHECK(i2c_master_init());
     //xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
