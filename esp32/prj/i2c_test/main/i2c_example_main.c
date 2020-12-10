@@ -27,9 +27,8 @@
 #include "esp_adc_cal.h"
 #include "driver/dac.h"
 
-
-#define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
-#define NO_OF_SAMPLES   128          //Multisampling
+#define DEFAULT_VREF 1100 //Use adc2_vref_to_gpio() to obtain a better estimate
+#define NO_OF_SAMPLES 128 //Multisampling
 
 static const char *TAG = "i2c-example";
 
@@ -67,11 +66,10 @@ static const char *TAG = "i2c-example";
 SemaphoreHandle_t print_mux = NULL;
 
 static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t channel = ADC1_CHANNEL_6; 
+static const adc_channel_t channel = ADC1_CHANNEL_6;
 static const adc_atten_t atten = ADC_ATTEN_DB_0;
 static const adc_unit_t unit = ADC_UNIT_1;
-static const int16_t VOFFSET = 0; 
-
+static const int16_t VOFFSET = 0;
 
 /**
  * @brief test code to read esp-i2c-slave
@@ -84,13 +82,15 @@ static const int16_t VOFFSET = 0;
  */
 static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, size_t size)
 {
-    if (size == 0) {
+    if (size == 0)
+    {
         return ESP_OK;
     }
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | READ_BIT, ACK_CHECK_EN);
-    if (size > 1) {
+    if (size > 1)
+    {
         i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
     }
     i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
@@ -111,13 +111,15 @@ static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, siz
  */
 static esp_err_t i2c_read_slave(i2c_port_t i2c_num, uint8_t tgtAddress, uint8_t *data_rd, size_t size)
 {
-    if (size == 0) {
+    if (size == 0)
+    {
         return ESP_OK;
     }
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (tgtAddress << 1) | READ_BIT, ACK_CHECK_EN);
-    if (size > 1) {
+    if (size > 1)
+    {
         i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
     }
     i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
@@ -162,7 +164,6 @@ esp_err_t ic2_master_write_byte(i2c_port_t i2c_num, uint8_t address, uint8_t dat
     return ret;
 }
 
-
 /** Read a block of data from a slave.
  * esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress, 
  * uint8_t *readData, uint8_t numBytestoRead)
@@ -172,27 +173,28 @@ esp_err_t ic2_master_write_byte(i2c_port_t i2c_num, uint8_t address, uint8_t dat
  * Returns standard errors. ESP_OK for success
  */
 static esp_err_t I2CReadBlock(i2c_port_t i2c_num, uint8_t slaveTgtAddress, uint8_t startAddress,
- uint8_t *readData, uint8_t numBytestoRead) 
- {
+                              uint8_t *readData, uint8_t numBytestoRead)
+{
     i2c_cmd_handle_t cmd;
 
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_CHECK_EN);
-    for(int i=0; i<numBytestoRead-1; i++) {
+    for (int i = 0; i < numBytestoRead - 1; i++)
+    {
         i2c_master_read_byte(cmd, readData++, ACK_VAL);
     }
     i2c_master_read_byte(cmd, readData, NACK_VAL);
     i2c_master_stop(cmd);
     esp_err_t status = i2c_master_cmd_begin(i2c_num, cmd, 10 / portTICK_RATE_MS);
-    if (status != ESP_OK) {
+    if (status != ESP_OK)
+    {
         printf("Error reading slave. Error: %d\n", status);
     }
     i2c_cmd_link_delete(cmd);
 
-    return(status);
- }
-
+    return (status);
+}
 
 /**
  * @brief test code to operate on ADC1015 analog to digital converter.
@@ -216,26 +218,30 @@ static void i2c_ads1015(void *i2c_num_arg)
     uint16_t adcCfg = 0;
     i2c_cmd_handle_t cmd;
     i2c_port_t i2c_num;
-    
-    if(i2c_num_arg == 0) {
+
+    if (i2c_num_arg == 0)
+    {
         i2c_num = I2C_NUM_0;
-    } else {
+    }
+    else
+    {
         i2c_num = I2C_NUM_1;
     }
     cmd = i2c_cmd_link_create();
     adcCfg = ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_4_096V |
-			ADS1115_REG_CONFIG_DR_16SPS;
+             ADS1115_REG_CONFIG_DR_16SPS;
 
-    cmdBuffer[0] = 0x48 << 1 | I2C_MASTER_WRITE;      
+    cmdBuffer[0] = 0x48 << 1 | I2C_MASTER_WRITE;
     cmdBuffer[1] = ADS1015_REG_POINTER_CONFIG;
     cmdBuffer[2] = adcCfg >> 8;
-	cmdBuffer[3] = adcCfg & 0x00FF;
+    cmdBuffer[3] = adcCfg & 0x00FF;
     i2c_master_start(cmd);
     i2c_master_write(cmd, cmdBuffer, 4, ACK_VAL);
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(i2c_num, cmd, 3 / portTICK_RATE_MS);
-    if (ret != ESP_OK) {
-      printf("Sending setup of i2c returned error %d\n", ret);
+    if (ret != ESP_OK)
+    {
+        printf("Sending setup of i2c returned error %d\n", ret);
     }
     i2c_cmd_link_delete(cmd);
 
@@ -246,47 +252,52 @@ static void i2c_ads1015(void *i2c_num_arg)
     i2c_master_write(cmd, cmdBuffer, 2, ACK_CHECK_EN);
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(i2c_num, cmd, 20 / portTICK_RATE_MS);
-    if(ret != ESP_OK) {
+    if (ret != ESP_OK)
+    {
         printf("Sending setup to ADC1015 returned error %d\n", ret);
-    } 
-    i2c_cmd_link_delete(cmd);
-    
-//Read
-   
-   while(1) {
-    cmd = i2c_cmd_link_create();
-  
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_CHECK_EN);
-    i2c_master_read_byte(cmd, &data_h, ACK_VAL);
-    i2c_master_read_byte(cmd, &data_l, NACK_VAL);
-    i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(i2c_num, cmd, 10 / portTICK_RATE_MS);
-    if (ret != ESP_OK) {
-        printf("Error reading ADS1015. Error: %d\n", ret);
     }
-    printf("High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) data_h, (unsigned int) data_l, 
-        (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
     i2c_cmd_link_delete(cmd);
 
-    ret = I2CReadBlock(i2c_num, 0x48, 0, cmdBuffer, 2); 
-    if (ret != ESP_OK) {
-        printf("Sending blockread returned error %d\n", ret);
-    }
-    printf("I2CReadBlock   High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) cmdBuffer[1], (unsigned int) cmdBuffer[0], 
-        (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
-   
-    memset(cmdBuffer,0,sizeof(cmdBuffer));
-    i2c_read_slave(i2c_num, 0x48, cmdBuffer, 2);
-     if (ret != ESP_OK) {
-        printf("Sending MasterReadBlock returned error %d\n", ret);
-    }
-    printf("MasterReadSlave  High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int) cmdBuffer[1], (unsigned int) cmdBuffer[0], 
-        (double)((data_h*256 + (data_l >> 4)) / 32768.0) * 4.096);
+    //Read
 
-    puts("");
-    vTaskDelay(300 / portTICK_RATE_MS);
-   }  //End while1
+    while (1)
+    {
+        cmd = i2c_cmd_link_create();
+
+        i2c_master_start(cmd);
+        i2c_master_write_byte(cmd, 0x48 << 1 | I2C_MASTER_READ, ACK_CHECK_EN);
+        i2c_master_read_byte(cmd, &data_h, ACK_VAL);
+        i2c_master_read_byte(cmd, &data_l, NACK_VAL);
+        i2c_master_stop(cmd);
+        ret = i2c_master_cmd_begin(i2c_num, cmd, 10 / portTICK_RATE_MS);
+        if (ret != ESP_OK)
+        {
+            printf("Error reading ADS1015. Error: %d\n", ret);
+        }
+        printf("High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int)data_h, (unsigned int)data_l,
+               (double)((data_h * 256 + (data_l >> 4)) / 32768.0) * 4.096);
+        i2c_cmd_link_delete(cmd);
+
+        ret = I2CReadBlock(i2c_num, 0x48, 0, cmdBuffer, 2);
+        if (ret != ESP_OK)
+        {
+            printf("Sending blockread returned error %d\n", ret);
+        }
+        printf("I2CReadBlock   High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int)cmdBuffer[1], (unsigned int)cmdBuffer[0],
+               (double)((data_h * 256 + (data_l >> 4)) / 32768.0) * 4.096);
+
+        memset(cmdBuffer, 0, sizeof(cmdBuffer));
+        i2c_read_slave(i2c_num, 0x48, cmdBuffer, 2);
+        if (ret != ESP_OK)
+        {
+            printf("Sending MasterReadBlock returned error %d\n", ret);
+        }
+        printf("MasterReadSlave  High 0x%02x Low 0x%02x  %.3fV\n", (unsigned int)cmdBuffer[1], (unsigned int)cmdBuffer[0],
+               (double)((data_h * 256 + (data_l >> 4)) / 32768.0) * 4.096);
+
+        puts("");
+        vTaskDelay(300 / portTICK_RATE_MS);
+    } //End while1
 }
 
 /**
@@ -331,16 +342,19 @@ static esp_err_t i2c_slave_init(void)
 static void disp_buf(uint8_t *buf, int len)
 {
     int i;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         printf("%02x ", buf[i]);
-        if ((i + 1) % 16 == 0) {
+        if ((i + 1) % 16 == 0)
+        {
             printf("\n");
         }
     }
     printf("\n");
 }
 
-static void initGPIOs() {
+static void initGPIOs()
+{
 
     gpio_pad_select_gpio(GPIO_NUM_16);
     gpio_set_direction(GPIO_NUM_16, GPIO_MODE_OUTPUT);
@@ -349,29 +363,39 @@ static void initGPIOs() {
 
 static void print_char_val_type(esp_adc_cal_value_t val_type)
 {
-    if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
+    if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP)
+    {
         printf("Characterized using Two Point Value\n");
-    } else if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
+    }
+    else if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF)
+    {
         printf("Characterized using eFuse Vref\n");
-    } else {
+    }
+    else
+    {
         printf("Characterized using Default Vref\n");
     }
 }
 
-
-void init_adc() 
+void init_adc()
 {
     //Check TP is burned into eFuse
-    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK) {
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK)
+    {
         printf("eFuse Two Point: Supported\n");
-    } else {
+    }
+    else
+    {
         printf("eFuse Two Point: NOT supported\n");
     }
 
     //Check Vref is burned into eFuse
-    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK) {
+    if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK)
+    {
         printf("eFuse Vref: Supported\n");
-    } else {
+    }
+    else
+    {
         printf("eFuse Vref: NOT supported\n");
     }
 
@@ -395,30 +419,30 @@ void init_adc()
     print_char_val_type(val_type);
 
     /* Init DAC */
-    dac_output_enable(DAC_CHANNEL_1);  //GPIO25
-    dac_output_voltage(DAC_CHANNEL_1, 158);  //2.000V
+    dac_output_enable(DAC_CHANNEL_1);       //GPIO25
+    dac_output_voltage(DAC_CHANNEL_1, 158); //2.000V
 }
 
 /** Calculate temperature based on thermistor resistance
  * NTCLP100E3472H Metal pipe thermistor
  * Returns temperature in deg F
  */
-double calcSteinHart(double resth) {
+double calcSteinHart(double resth)
+{
 
-	double a = 1.327532184E-3;
-	double b = 2.312481108E-4;
-	double c = 1.177982663E-7;
-	double tKelvin, oneOverK;
+    double a = 1.327532184E-3;
+    double b = 2.312481108E-4;
+    double c = 1.177982663E-7;
+    double tKelvin, oneOverK;
 
-	// NTCLP100E3472H Metal pipe thermistor
+    // NTCLP100E3472H Metal pipe thermistor
 
-	oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
-	tKelvin = 1.0 / oneOverK;
-	//printf("Rth: %f deg K: %f deg C: %.1f  deg F: %.1f\n", resth, tKelvin,
-	//		tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
-	return (((tKelvin - 273.15) * 1.8) + 32);
+    oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
+    tKelvin = 1.0 / oneOverK;
+    //printf("Rth: %f deg K: %f deg C: %.1f  deg F: %.1f\n", resth, tKelvin,
+    //		tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
+    return (((tKelvin - 273.15) * 1.8) + 32);
 }
-
 
 static void i2c_test_task(void *arg)
 {
@@ -431,40 +455,53 @@ static void i2c_test_task(void *arg)
     uint8_t sensor_data_h, sensor_data_l;
     int cnt = 0;
 
-    while (1) {
+    while (1)
+    {
         ESP_LOGI(TAG, "TASK[%d] test cnt: %d", task_idx, cnt++);
-     //   ret = i2c_ads1015(I2C_MASTER_NUM, &sensor_data_h, &sensor_data_l);
+        //   ret = i2c_ads1015(I2C_MASTER_NUM, &sensor_data_h, &sensor_data_l);
         xSemaphoreTake(print_mux, portMAX_DELAY);
-        if (ret == ESP_ERR_TIMEOUT) {
+        if (ret == ESP_ERR_TIMEOUT)
+        {
             ESP_LOGE(TAG, "I2C Timeout");
-        } else if (ret == ESP_OK) {
+        }
+        else if (ret == ESP_OK)
+        {
             printf("*******************\n");
             printf("TASK[%d]  MASTER READ SENSOR( BH1750 )\n", task_idx);
             printf("*******************\n");
             printf("data_h: %02x\n", sensor_data_h);
             printf("data_l: %02x\n", sensor_data_l);
             printf("sensor val: %.02f [Lux]\n", (sensor_data_h << 8 | sensor_data_l) / 1.2);
-        } else {
+        }
+        else
+        {
             ESP_LOGW(TAG, "%s: No ack, sensor not connected...skip...", esp_err_to_name(ret));
         }
         xSemaphoreGive(print_mux);
         vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS * (task_idx + 1)) / portTICK_RATE_MS);
         //---------------------------------------------------
-        for (i = 0; i < DATA_LENGTH; i++) {
+        for (i = 0; i < DATA_LENGTH; i++)
+        {
             data[i] = i;
         }
         xSemaphoreTake(print_mux, portMAX_DELAY);
         size_t d_size = i2c_slave_write_buffer(I2C_SLAVE_NUM, data, RW_TEST_LENGTH, 1000 / portTICK_RATE_MS);
-        if (d_size == 0) {
+        if (d_size == 0)
+        {
             ESP_LOGW(TAG, "i2c slave tx buffer full");
             ret = i2c_master_read_slave(I2C_MASTER_NUM, data_rd, DATA_LENGTH);
-        } else {
+        }
+        else
+        {
             ret = i2c_master_read_slave(I2C_MASTER_NUM, data_rd, RW_TEST_LENGTH);
         }
 
-        if (ret == ESP_ERR_TIMEOUT) {
+        if (ret == ESP_ERR_TIMEOUT)
+        {
             ESP_LOGE(TAG, "I2C Timeout");
-        } else if (ret == ESP_OK) {
+        }
+        else if (ret == ESP_OK)
+        {
             printf("*******************\n");
             printf("TASK[%d]  MASTER READ FROM SLAVE\n", task_idx);
             printf("*******************\n");
@@ -472,7 +509,9 @@ static void i2c_test_task(void *arg)
             disp_buf(data, d_size);
             printf("====TASK[%d] Master read ====\n", task_idx);
             disp_buf(data_rd, d_size);
-        } else {
+        }
+        else
+        {
             ESP_LOGW(TAG, "TASK[%d] %s: Master read slave error, IO not connected...\n",
                      task_idx, esp_err_to_name(ret));
         }
@@ -480,18 +519,23 @@ static void i2c_test_task(void *arg)
         vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS * (task_idx + 1)) / portTICK_RATE_MS);
         //---------------------------------------------------
         int size;
-        for (i = 0; i < DATA_LENGTH; i++) {
+        for (i = 0; i < DATA_LENGTH; i++)
+        {
             data_wr[i] = i + 10;
         }
         xSemaphoreTake(print_mux, portMAX_DELAY);
         //we need to fill the slave buffer so that master can read later
         ret = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, RW_TEST_LENGTH);
-        if (ret == ESP_OK) {
+        if (ret == ESP_OK)
+        {
             size = i2c_slave_read_buffer(I2C_SLAVE_NUM, data, RW_TEST_LENGTH, 1000 / portTICK_RATE_MS);
         }
-        if (ret == ESP_ERR_TIMEOUT) {
+        if (ret == ESP_ERR_TIMEOUT)
+        {
             ESP_LOGE(TAG, "I2C Timeout");
-        } else if (ret == ESP_OK) {
+        }
+        else if (ret == ESP_OK)
+        {
             printf("*******************\n");
             printf("TASK[%d]  MASTER WRITE TO SLAVE\n", task_idx);
             printf("*******************\n");
@@ -499,7 +543,9 @@ static void i2c_test_task(void *arg)
             disp_buf(data_wr, RW_TEST_LENGTH);
             printf("----TASK[%d] Slave read: [%d] bytes ----\n", task_idx, size);
             disp_buf(data, size);
-        } else {
+        }
+        else
+        {
             ESP_LOGW(TAG, "TASK[%d] %s: Master write slave error, IO not connected....\n",
                      task_idx, esp_err_to_name(ret));
         }
@@ -510,45 +556,50 @@ static void i2c_test_task(void *arg)
     vTaskDelete(NULL);
 }
 
-
-void mainloop(void) {
- while (1) {
+void mainloop(void)
+{
+    while (1)
+    {
         char vBuffer[20];
         uint32_t adc_reading = 0;
         double resTh, degF;
 
         //Multisampling
-        for (int i = 0; i < NO_OF_SAMPLES; i++) {
-            if (unit == ADC_UNIT_1) {
+        for (int i = 0; i < NO_OF_SAMPLES; i++)
+        {
+            if (unit == ADC_UNIT_1)
+            {
                 adc_reading += adc1_get_raw((adc1_channel_t)channel);
-            } else {
+            }
+            else
+            {
                 int raw;
                 adc2_get_raw((adc2_channel_t)channel, ADC_WIDTH_BIT_12, &raw);
                 adc_reading += raw;
             }
         }
         adc_reading /= NO_OF_SAMPLES;
-       
+
         //Convert adc_reading to voltage in mV
         uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars) - VOFFSET;
         printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
-        sprintf(vBuffer,"%d mV   \n", voltage);
+        sprintf(vBuffer, "%d mV   \n", voltage);
         WriteString(0, 0, vBuffer);
 
         //VRef = 2.0V  R1 = 8200
         double currentMa = (2.0 - ((double)voltage / 1000)) / 8200;
-		resTh = voltage / currentMa / 1000;
-		degF = calcSteinHart(resTh);
+        resTh = voltage / currentMa / 1000;
+        degF = calcSteinHart(resTh);
         printf("Thermistor Resistance %.0f  Temperature %.1f\n", resTh, degF);
-        sprintf(vBuffer,"Temperature %.0f deg \n", degF);
-        WriteString(1,0,vBuffer);
+        sprintf(vBuffer, "Temperature %.0f deg \n", degF);
+        WriteString(1, 0, vBuffer);
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
 void app_main(void)
 {
- //   print_mux = xSemaphoreCreateMutex();
+    //   print_mux = xSemaphoreCreateMutex();
     //ESP_ERROR_CHECK(i2c_slave_init());
     ESP_ERROR_CHECK(i2c_master_init());
     //xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
@@ -566,7 +617,7 @@ void app_main(void)
     Setup4bit();
     DisplayClear();
     init_adc();
-   
+
     WriteString(0, 0, (char *)"Hello");
     WriteString(3, 0, (char *)"November 24, 2020");
 
