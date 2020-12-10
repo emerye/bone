@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
 #include "sdkconfig.h"
@@ -24,6 +25,7 @@
 #include "driver/gpio.h"
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
+#include "driver/dac.h"
 
 
 #define DEFAULT_VREF    1100        //Use adc2_vref_to_gpio() to obtain a better estimate
@@ -376,12 +378,46 @@ void init_adc()
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten(channel, atten);
 
+    //Route vREF to ADC pin so it can be measured.
+    //Adafruit Feather measured vREF is 1.115
+    /*
+    esp_err_t status = adc2_vref_to_gpio(GPIO_NUM_25);
+    if (status == ESP_OK) {
+        printf("v_ref routed to GPIO\n");
+    } else {
+        printf("failed to route v_ref\n");
+    }
+    */
+
     //Characterize ADC
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, ADC_WIDTH_BIT_12, DEFAULT_VREF, adc_chars);
     print_char_val_type(val_type);
+
+    /* Init DAC */
+    dac_output_enable(DAC_CHANNEL_1);  //GPIO25
+    dac_output_voltage(DAC_CHANNEL_1, 158);  //2.000V
 }
 
+/** Calculate temperature based on thermistor resistance
+ * NTCLP100E3472H Metal pipe thermistor
+ * Returns temperature in deg F
+ */
+double calcSteinHart(double resth) {
+
+	double a = 1.327532184E-3;
+	double b = 2.312481108E-4;
+	double c = 1.177982663E-7;
+	double tKelvin, oneOverK;
+
+	// NTCLP100E3472H Metal pipe thermistor
+
+	oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
+	tKelvin = 1.0 / oneOverK;
+	//printf("Rth: %f deg K: %f deg C: %.1f  deg F: %.1f\n", resth, tKelvin,
+	//		tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
+	return (((tKelvin - 273.15) * 1.8) + 32);
+}
 
 
 static void i2c_test_task(void *arg)
@@ -472,7 +508,43 @@ static void i2c_test_task(void *arg)
     }
     vSemaphoreDelete(print_mux);
     vTaskDelete(NULL);
-} 
+}
+
+
+void mainloop(void) {
+ while (1) {
+        char vBuffer[20];
+        uint32_t adc_reading = 0;
+        double resTh, degF;
+
+        //Multisampling
+        for (int i = 0; i < NO_OF_SAMPLES; i++) {
+            if (unit == ADC_UNIT_1) {
+                adc_reading += adc1_get_raw((adc1_channel_t)channel);
+            } else {
+                int raw;
+                adc2_get_raw((adc2_channel_t)channel, ADC_WIDTH_BIT_12, &raw);
+                adc_reading += raw;
+            }
+        }
+        adc_reading /= NO_OF_SAMPLES;
+       
+        //Convert adc_reading to voltage in mV
+        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars) - VOFFSET;
+        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        sprintf(vBuffer,"%d mV   \n", voltage);
+        WriteString(0, 0, vBuffer);
+
+        //VRef = 2.0V  R1 = 8200
+        double currentMa = (2.0 - ((double)voltage / 1000)) / 8200;
+		resTh = voltage / currentMa / 1000;
+		degF = calcSteinHart(resTh);
+        printf("Thermistor Resistance %.0f  Temperature %.1f\n", resTh, degF);
+        sprintf(vBuffer,"Temperature %.0f deg \n", degF);
+        WriteString(1,0,vBuffer);
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
 
 void app_main(void)
 {
@@ -496,31 +568,9 @@ void app_main(void)
     init_adc();
    
     WriteString(0, 0, (char *)"Hello");
-    WriteString(2, 0, (char *)"November 24, 2020");
-    WriteString(3, 0, (char *)"64 Degrees");
+    WriteString(3, 0, (char *)"November 24, 2020");
 
-      //Continuously sample ADC1
-    while (1) {
-        char vBuffer[20];
-        uint32_t adc_reading = 0;
-        //Multisampling
-        for (int i = 0; i < NO_OF_SAMPLES; i++) {
-            if (unit == ADC_UNIT_1) {
-                adc_reading += adc1_get_raw((adc1_channel_t)channel);
-            } else {
-                int raw;
-                adc2_get_raw((adc2_channel_t)channel, ADC_WIDTH_BIT_12, &raw);
-                adc_reading += raw;
-            }
-        }
-        adc_reading /= NO_OF_SAMPLES;
+    xTaskCreate(mainloop, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
 
-        //Convert adc_reading to voltage in mV
-        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars) - VOFFSET;
-        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
-        sprintf(vBuffer,"%d mV   \n", voltage);
-        WriteString(0, 0, vBuffer);
-        vTaskDelay(pdMS_TO_TICKS(500));
-    }
     puts("End Program");
 }
