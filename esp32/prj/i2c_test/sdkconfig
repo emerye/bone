@@ -154,7 +154,23 @@ CONFIG_BH1750_ADDR=0x23
 CONFIG_BH1750_ONETIME_L_RESOLUTION=y
 CONFIG_BH1750_OPMODE=0x23
 # end of BH1750 Sensor
+
+#
+# MQTT Example Configuration
+#
+CONFIG_BROKER_URL="mqtt://rbackup.attlocal.net"
+# end of MQTT Example Configuration
 # end of Example Configuration
+
+#
+# Example Connection Configuration
+#
+CONFIG_EXAMPLE_CONNECT_WIFI=y
+# CONFIG_EXAMPLE_CONNECT_ETHERNET is not set
+CONFIG_EXAMPLE_WIFI_SSID="MickeyNet"
+CONFIG_EXAMPLE_WIFI_PASSWORD=""
+# CONFIG_EXAMPLE_CONNECT_IPV6 is not set
+# end of Example Connection Configuration
 
 #
 # Compiler options

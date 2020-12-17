@@ -27,6 +27,26 @@
 #include "esp_adc_cal.h"
 #include "driver/dac.h"
 
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+#include "esp_wifi.h"
+#include "esp_system.h"
+#include "nvs_flash.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "protocol_examples_common.h"
+
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+
+#include "lwip/sockets.h"
+#include "lwip/dns.h"
+#include "lwip/netdb.h"
+
+#include "esp_log.h"
+#include "mqtt_client.h"
+
 #define DEFAULT_VREF 1100 //Use adc2_vref_to_gpio() to obtain a better estimate
 #define NO_OF_SAMPLES 128 //Multisampling
 
@@ -70,6 +90,76 @@ static const adc_channel_t channel = ADC1_CHANNEL_6;
 static const adc_atten_t atten = ADC_ATTEN_DB_0;
 static const adc_unit_t unit = ADC_UNIT_1;
 static const int16_t VOFFSET = 0;
+
+esp_mqtt_client_handle_t client;
+
+
+static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
+{
+    esp_mqtt_client_handle_t client = event->client;
+    int msg_id;
+    // your_context_t *context = event->context;
+    switch (event->event_id) {
+        case MQTT_EVENT_CONNECTED:
+            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+            msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
+            ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+
+            msg_id = esp_mqtt_client_subscribe(client, "/topic/qos0", 0);
+            ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+
+            msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
+            ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+
+            msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
+            ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
+            break;
+        case MQTT_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            break;
+
+        case MQTT_EVENT_SUBSCRIBED:
+            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+            msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);
+            ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+            break;
+        case MQTT_EVENT_UNSUBSCRIBED:
+            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+            break;
+        case MQTT_EVENT_PUBLISHED:
+            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+            break;
+        case MQTT_EVENT_DATA:
+            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
+            printf("DATA=%.*s\r\n", event->data_len, event->data);
+            break;
+        case MQTT_EVENT_ERROR:
+            ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+            break;
+        default:
+            ESP_LOGI(TAG, "Other event id:%d", event->event_id);
+            break;
+    }
+    return ESP_OK;
+}
+
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
+    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
+    mqtt_event_handler_cb(event_data);
+}
+
+static void mqtt_app_start(void)
+{
+    esp_mqtt_client_config_t mqtt_cfg = {
+        .uri = CONFIG_BROKER_URL,
+    };
+
+    client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
+    esp_mqtt_client_start(client);
+}
+
 
 /**
  * @brief test code to read esp-i2c-slave
@@ -259,7 +349,6 @@ static void i2c_ads1015(void *i2c_num_arg)
     i2c_cmd_link_delete(cmd);
 
     //Read
-
     while (1)
     {
         cmd = i2c_cmd_link_create();
@@ -353,6 +442,7 @@ static void disp_buf(uint8_t *buf, int len)
     printf("\n");
 }
 
+
 static void initGPIOs()
 {
 
@@ -377,6 +467,7 @@ static void print_char_val_type(esp_adc_cal_value_t val_type)
     }
 }
 
+
 void init_adc()
 {
     //Check TP is burned into eFuse
@@ -398,7 +489,6 @@ void init_adc()
     {
         printf("eFuse Vref: NOT supported\n");
     }
-
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten(channel, atten);
 
@@ -423,19 +513,17 @@ void init_adc()
     dac_output_voltage(DAC_CHANNEL_1, 158); //2.000V
 }
 
+
 /** Calculate temperature based on thermistor resistance
  * NTCLP100E3472H Metal pipe thermistor
  * Returns temperature in deg F
  */
 double calcSteinHart(double resth)
 {
-
     double a = 1.327532184E-3;
     double b = 2.312481108E-4;
     double c = 1.177982663E-7;
     double tKelvin, oneOverK;
-
-    // NTCLP100E3472H Metal pipe thermistor
 
     oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
     tKelvin = 1.0 / oneOverK;
@@ -556,11 +644,12 @@ static void i2c_test_task(void *arg)
     vTaskDelete(NULL);
 }
 
+
 void mainloop(void)
 {
     while (1)
     {
-        char vBuffer[20];
+        char vBuffer[40];
         uint32_t adc_reading = 0;
         double resTh, degF;
 
@@ -582,7 +671,7 @@ void mainloop(void)
 
         //Convert adc_reading to voltage in mV
         uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars) - VOFFSET;
-        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        //printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
         sprintf(vBuffer, "%d mV   \n", voltage);
         WriteString(0, 0, vBuffer);
 
@@ -591,14 +680,45 @@ void mainloop(void)
         resTh = voltage / currentMa / 1000;
         degF = calcSteinHart(resTh);
         printf("Thermistor Resistance %.0f  Temperature %.1f\n", resTh, degF);
-        sprintf(vBuffer, "Temperature %.0f deg \n", degF);
+        sprintf(vBuffer, "Temperature %.1f deg\n", degF);
         WriteString(1, 0, vBuffer);
-        vTaskDelay(pdMS_TO_TICKS(500));
+
+        sprintf(vBuffer, "%.1f", degF);
+        int msg_id = esp_mqtt_client_publish(client, "/Reading", vBuffer, 0, 1, 0);
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
 
+
+void protocol_init(void) {
+    ESP_LOGI(TAG, "[APP] Startup..");
+    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
+    ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
+
+    esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
+    esp_log_level_set("MQTT_EXAMPLE", ESP_LOG_VERBOSE);
+    esp_log_level_set("TRANSPORT_TCP", ESP_LOG_VERBOSE);
+    esp_log_level_set("TRANSPORT_SSL", ESP_LOG_VERBOSE);
+    esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
+    esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
+
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
+     * Read "Establishing Wi-Fi or Ethernet Connection" section in
+     * examples/protocols/README.md for more information about this function.
+     */
+    ESP_ERROR_CHECK(example_connect());
+    vTaskDelay(3000 / portTICK_RATE_MS);
+}
+
+
 void app_main(void)
 {
+
     //   print_mux = xSemaphoreCreateMutex();
     //ESP_ERROR_CHECK(i2c_slave_init());
     ESP_ERROR_CHECK(i2c_master_init());
@@ -606,22 +726,19 @@ void app_main(void)
     //xTaskCreate(i2c_test_task, "i2c_test_task_1", 1024 * 2, (void *)1, 10, NULL);
 
     //xTaskCreate(i2c_ads1015, "i2c_ads1015", 1024 * 2, (int *)1, 10, NULL);
-    //i2c_ads1015(I2C_MASTER_NUM);
-    /*
-    for (int i=0; i<10; i++) {
-        ic2_master_write_byte(1, 0x27, 0x55);
-    }
-    */
+  
     initGPIOs();
-
     Setup4bit();
     DisplayClear();
     init_adc();
+    protocol_init();
 
     WriteString(0, 0, (char *)"Hello");
     WriteString(3, 0, (char *)"November 24, 2020");
 
-    xTaskCreate(mainloop, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
+    xTaskCreate((void *) mainloop, "i2c_task", 1024 * 2, (void *)0, 10, NULL);
+    //xTaskCreate((void *) mqtt_app_start, "imqtt_task", 1024 * 2, (void *)0, 10, NULL);
+    mqtt_app_start();
 
     puts("End Program");
 }

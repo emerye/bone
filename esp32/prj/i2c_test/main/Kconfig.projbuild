@@ -121,4 +121,16 @@ menu "Example Configuration"
 
     endmenu
 
+    menu "MQTT Example Configuration"
+
+       config BROKER_URL
+           string "Broker URL"
+           default "mqtt://mqtt.eclipse.org"
+        help
+            URL of the broker to connect to
+
+       config BROKER_URL_FROM_STDIN
+           bool
+           default y if BROKER_URL = "FROM_STDIN"
+    endmenu
 endmenu
