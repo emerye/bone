@@ -37,7 +37,7 @@ double readADS1115()
 	usleep(2000);
 	read(handle, buffer, 2);
 	adcReading = ((buffer[0] << 8) | buffer[1]);
-	//printf("ADC %d\n", adcReading);
+	printf("ADC lsb 0x%02x\n", buffer[1]);
 	voltage = (double)adcReading * (double)0.000125; //4.096
 	//voltage = (double)adcReading * (double)0.0001875; //6.144V
 	//voltage = (double)adcReading * (double)0.000015625; //256mvV
@@ -118,7 +118,7 @@ void timer_callback(int sig)
 	double current, vIn;
 	double offsetCal = 2.571;
 	double VOFFSET = 0.0;
-	double VSLOPE = 15.99;
+	double VSLOPE = 1;
 	FILE *vLog;
 
 	
@@ -129,9 +129,9 @@ void timer_callback(int sig)
 				  ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
 	vMeasure = readADS1115();
 	vIn = vMeasure * VSLOPE + VOFFSET;
-	sprintf(strBuffer, "Ch1: %.3f     \n", vIn);
-	printf("%d  %.3fV\n", count, vIn);
-	WriteString(dispfd, 0, 0, strBuffer);
+	sprintf(strBuffer, "Ch1: %f     \n", vMeasure);
+	printf("%d  %fV\n", count, vMeasure);
+	WriteString(dispfd, 1, 0, strBuffer);
 	vLog = fopen("/home/andy/bone/plot/voltmeter.txt", "a");
 	if (vLog == NULL)
 	{
@@ -139,7 +139,7 @@ void timer_callback(int sig)
 	}
 	else
 	{
-		fprintf(vLog, "%d  %.3f\n", count, vIn);
+		fprintf(vLog, "%d  %f\n", count, vIn);
 		fclose(vLog);
 	}
 	count += 1;
