@@ -1,7 +1,7 @@
 {
     "idf.portWin": "COM8",
-    "idf.espIdfPathWin": "C:\\Users\\andy\\esp-idf",
-    "idf.toolsPathWin": "C:\\Users\\andy\\.espressif",
+    "idf.espIdfPathWin": "C:\\Users\\andyh\\Desktop\\esp-idf",
+    "idf.toolsPathWin": "C:\\Users\\andyh\\.espressif",
     "C_Cpp.intelliSenseEngine": "Tag Parser",
     "files.associations": {
         "esp_netif.h": "c"
