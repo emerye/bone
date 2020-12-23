@@ -7,7 +7,7 @@
             "includePath": [
                 "${config:idf.espIdfPathWin}/components/**",
                 "${config:idf.espIdfPathWin}/examples/**",
-                "c:\\users\\andy\\esp-idf\\examples\\common_components\\protocol_examples_common\\include",
+                "c:\\users\\andyh\\Desktop\\esp-idf\\examples\\common_components\\protocol_examples_common\\include",
                 "${config:idf.espIdfPathWin}/components/**",
                 "${workspaceFolder}/**"
             ],
@@ -15,7 +15,7 @@
                 "path": [
                     "${config:idf.espIdfPathWin}/components",
                     "${config:idf.espIdfPathWin}/examples/**",
-                    "c:\\users\\andy\\esp-idf\\examples\\common_components\\protocol_examples_common\\include",
+                    "c:\\users\\andyh\\Desktop\\esp-idf\\examples\\common_components\\protocol_examples_common\\include",
                     "${config:idf.espIdfPathWin}/components",
                     "${workspaceFolder}"
                 ],
