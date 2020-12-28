@@ -4,7 +4,7 @@
  Author      : Andy Hughes
  Version     :
  Copyright   : 
- Description : CellVoltMonitor with bq76952
+ Description : Cell voltage monitor with bq76952
  ============================================================================
  */
 #include <stdio.h>
@@ -406,6 +406,7 @@ int main(int argc, char *argv[]) {
 	int c;
 	opterr = 0;
 	char currentTime[64];
+	char systemBuffer[512], stackVoltBuffer[20];
 
 	while ((c = getopt(argc, argv, "hd:")) != -1)
 		switch (c) {
@@ -472,6 +473,12 @@ int main(int argc, char *argv[]) {
 		sleep(gloopDelay);
 		//int maxV = maxCellV(CELL6);
 		//printf("Exclude 6 %d  V %d\n", maxV + 1, cellV[maxV]);
+		sprintf(stackVoltBuffer, "%d", stackVolts);
+		sprintf(systemBuffer, "mosquitto_pub -h rbackup -p 1883 -u andy -P andy -t /ebike/stackv \
+			-m %s --keepalive 300 -q 1", stackVoltBuffer);
+		status = system((const char *)systemBuffer); 
+		printf("MQTT publish Status: %d\n",status);
+
 	}
 	fclose(logFile);
 	close(handle);
