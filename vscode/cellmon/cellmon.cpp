@@ -54,7 +54,7 @@ FILE *logFile;
 static const char *logFileName = "/home/andy/bone/plot/celllog.txt";
 int logTime=0;
 int stackVolts;
-int gloopDelay = 5;      //Time in seconds
+int gloopDelay = 10;      //Time in seconds
 int sortedCellV[MAXCELLS][2];   //Array to hold sorted cells and voltages.
 long int pStartTime;	//Start time since epoch
 struct timespec ts;     //Time structure
@@ -325,12 +325,13 @@ int readCells() {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
 		loopcnt = 3;
-		while ( ((data < 3300) || (data > 4300)) && (loopcnt > 0)) {
+		while ( ((data < 2000) || (data > 5000)) && (loopcnt > 0)) {
 			usleep(10000);
 			data = wiringPiI2CReadReg16(handle, address + (i * 2));
 			loopcnt -= 1;
 		}
 		if (loopcnt < 1) {
+			printf("One or more cell voltages is out of range.\n");
 			return -1;
 		} else {
 			cellV[i] = data;
@@ -465,6 +466,7 @@ int main(int argc, char *argv[]) {
 	fprintf(logFile, "# Delay is %d seconds.\n", gloopDelay);
 	fprintf(logFile,"# Time Cell1 Cell2 Cell3 Cell4 Cell5 Cell6 Cell7 Cell8 Cell9 Cell10 Cell11 Cell12 Cell13 Cell14 MinCell MaxCell DeltaV StackV Current\n");
 	pStartTime = time(NULL);
+
 	//Main loop
 	while (1) {
 		timeStamp(currentTime);
@@ -477,8 +479,9 @@ int main(int argc, char *argv[]) {
 		sprintf(systemBuffer, "mosquitto_pub -h rbackup -p 1883 -u andy -P andy -t /ebike/stackv \
 			-m %s --keepalive 300 -q 1", stackVoltBuffer);
 		status = system((const char *)systemBuffer); 
-		printf("MQTT publish Status: %d\n",status);
-
+		if (status == -1) {
+		   printf("MQTT publish Status: %d\n",status);
+		}
 	}
 	fclose(logFile);
 	close(handle);
