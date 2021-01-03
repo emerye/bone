@@ -320,6 +320,12 @@ int readCells() {
 	double curVoltage, current;
 	int loopcnt;
 	long int currentTime;
+	int lastCellV[16];
+	int INCORRECTREADING = 400;   //Absolute value of a rejected reading.
+
+	for (i=0; i<MAXCELLS; i++) {
+		lastCellV[i] = cellV[i];
+	}
 
 	for (i = 0; i < MAXCELLS; i++) {
 		data = wiringPiI2CReadReg16(handle, address + (i * 2));
@@ -328,6 +334,10 @@ int readCells() {
 		while ( ((data < 2000) || (data > 5000)) && (loopcnt > 0)) {
 			usleep(10000);
 			data = wiringPiI2CReadReg16(handle, address + (i * 2));
+			if (abs(data - lastCellV[i]) > INCORRECTREADING) {
+				usleep(1000);
+				data = wiringPiI2CReadReg16(handle, address + (i * 2));
+			} 
 			loopcnt -= 1;
 		}
 		if (loopcnt < 1) {
@@ -338,21 +348,14 @@ int readCells() {
 		}
 	}
 
-	// By cell order.
-	/*
-	for (i = 0; i < MAXCELLS; i += 2) {
-		printf("Cell%d=%d Cell%d=%d\n", i + 1, cellV[i], i + 2, cellV[i + 1]);
-	}
-	*/
-
 	currentTime = time(NULL);
 	printf("Elapsed seconds %ld\n", currentTime-pStartTime);
 
 	// By voltage order.
 	sort();
 	for (i = 0; i < MAXCELLS; i += 2) {
-			printf("Cell%d=%d   ", sortedCellV[i][1] + 1, sortedCellV[i][0]);
-			printf("Cell%d=%d\n", sortedCellV[i + 1][1] + 1, sortedCellV[i + 1][0]);
+			printf("Cell%d = %d   ", sortedCellV[i][1] + 1, sortedCellV[i][0]);
+			printf("Cell%d = %d\n", sortedCellV[i + 1][1] + 1, sortedCellV[i + 1][0]);
 		}
 
 	currentTime = time(NULL);
