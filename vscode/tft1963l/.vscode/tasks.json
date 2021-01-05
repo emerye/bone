@@ -8,6 +8,7 @@
             "args": [
                 "-c",
                 "${workspaceFolder}/*.cpp",
+                "${workspaceFolder}/*.c",
                 "-fPIC",
                 "-lwiringPi"
             ],
