@@ -52,7 +52,6 @@ RpiHardware::RpiHardware(int width, int height) : Adafruit_GFX(width, height) {
 	VPW = 16;
 	}
 
-
 	wiringPiSetup();
 	spiDescriptor = wiringPiSPISetup(0, 8000000);
 	if (spiDescriptor < 0) {
@@ -64,6 +63,7 @@ RpiHardware::~RpiHardware() {
 }
 
 void RpiHardware::initRpiHardware() {
+
 	pinMode(RESETGPIO, OUTPUT);
 	pinMode(DATACMDGPIO, OUTPUT);
 	pinMode(WRITEGPIO, OUTPUT);
@@ -128,10 +128,10 @@ void RpiHardware::Write_Command(unsigned int data) {
 	data = data & 0xFFFF;
 	buffer[0] = (unsigned char) ((data >> 8) & 0xFF);
 	buffer[1] = (unsigned char) (data & 0xFF);
-    int status = wiringPiSPIDataRW(spiDescriptor, buffer, 2);
+    int status = wiringPiSPIDataRW(0, buffer, 2);
+
     if (status < 0) {
-    	int error = errno;
-    	printf("Write SPI command failed in Write_Command. Error: %d\n", error);
+    	printf("Write SPI command failed in Write_Command. Error: %d\n", errno);
     }
 	SendCommand(WRITECMD);
 }

@@ -123,10 +123,9 @@ int main(int argc, char * argv[]) {
 	fillWithColor(WHITE);
 	sleep(1);
 
-for (int i = 1; i < 3; i++) {
+for (i = 1; i < 3; i++) {
  //  while(1) {
-		i+=1;
-		y = 30;
+		y = 50;
 		memset(rpiObj.fBuffer, 0x00, sizeof(rpiObj.fBuffer));
 
         iBuf[0] = '\0';
@@ -136,7 +135,7 @@ for (int i = 1; i < 3; i++) {
         strcat(cBuffer, tBuf);
 
 		try {
-			rpiObj.writeString(x, 30, 1, "OK", PURPLE);
+			rpiObj.writeString(x, y, 1, "OK", PURPLE);
 
 			rpiObj.writeString(x, y += 40, 1, "Hello", BLUE);
 
@@ -144,7 +143,7 @@ for (int i = 1; i < 3; i++) {
 
 			rpiObj.writeString(x, y += 40, 1, "012.34567", YELLOW);
 
-	//		rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
+			rpiObj.writeString(x, y += 200, 4, tBuf, GREEN);
 
 	//		rpiObj.drawPixel(799,479, WHITE);
 			rpiObj.drawPixel(TFTWIDTH-1,TFTHEIGHT-1,WHITE);

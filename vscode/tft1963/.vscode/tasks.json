@@ -8,7 +8,8 @@
 			"args": [
 				"-g",
 				"*.cpp",
-				"-I${workspaceFolder}/../tft1963l/",
+				"-I${workspaceFolder}",
+				"-I${workspaceFolder}/../tft1963l",
 				"-L/home/andy/bone/vscode/tft1963l",
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}",
