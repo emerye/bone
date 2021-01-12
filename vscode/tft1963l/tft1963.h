@@ -10,9 +10,9 @@
 
 #include "Adafruit_GFX.h"
 
-#define WRITEGPIO 21
-#define DATACMDGPIO 28
-#define RESETGPIO 25
+#define WRITEGPIO 21	//Header Pin 29
+#define DATACMDGPIO 28	//Header Pin 38
+#define RESETGPIO 25	//Header Pin 37
 
 //RGB 565
 #define BLACK  0x0000
