@@ -19,6 +19,7 @@ This uses SIGALRM signal with a timer.
 #include "wiringPiI2C.h"
 #include "ads1115.h"
 #include "lcdchar.h"
+#include "mcp3424.h"
 
 int handle;
 int i2caddr = 0x27;
@@ -83,6 +84,7 @@ int intI2CcharDisplay()
 	if (r < 0)
 		perror("Selecting i2c device.\n");
 	Setup4bit(dispfd);
+
 	DisplayClear(dispfd);
 }
 
@@ -109,6 +111,7 @@ void stop_timer(void)
 	value.it_interval.tv_nsec = 0;
 	timer_settime(gTimerid, 0, &value, NULL);
 }
+
 
 void timer_callback(int sig)
 {
@@ -157,6 +160,29 @@ void timer_callback(int sig)
 	fflush(stdout);
 }
 
+
+void timer_mcp3424callback(int sig)
+{
+	uint8_t buffer[10] = { 0 };
+	double adcReading;
+	uint8_t sign;
+	char stBuffer[20] = { 0 };
+
+	read(handle, buffer, 5);
+	
+	if( (buffer[0] & 0x02) == 0x2) {
+		//Negative
+		sign = 0xFF;
+		adcReading = (int32_t)(sign << 24 | ((buffer[0] & 0x01) | 0xFE)<<16 | buffer[1]<<8 | buffer[2]) * 0.000015625;
+	} else {
+		sign = 0;
+		adcReading = (int32_t)(sign << 24 | (buffer[0] & 01) <<16 | buffer[1]<<8 | buffer[2]) * 0.000015625;
+	}
+	printf("ADC reading %.4f %02x %02x %02x %02x %02x\n", adcReading, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+	sprintf(stBuffer, "%.4fV    ", adcReading);
+	WriteString(dispfd, 0, 0, stBuffer);
+}
+
 int main(int argc, char *args[])
 {
 	int i, status;
@@ -165,15 +191,23 @@ int main(int argc, char *args[])
 	char strBuffer[256];
 	FILE *vLog;
 
-	handle = wiringPiI2CSetup(ADS1015_ADDRESS);
+	//handle = wiringPiI2CSetup(ADS1015_ADDRESS);
+	handle = wiringPiI2CSetup(MCP3424ADDR);
+	if (handle == -1) {
+		printf("Not able to open handle to I2C device.");
+	}
 	intI2CcharDisplay();
+	
+	status = wiringPiI2CWrite(handle, 0x1C);
 
+	/*
 	status = configADS1115(ADS1015_REG_CONFIG_MUX_SINGLE_0 | ADS1015_REG_CONFIG_PGA_6_144V |
 						   ADS1115_REG_CONFIG_DR_32SPS | ADS1015_REG_CONFIG_MODE_CONTIN);
+						   */
 	if (status == -1)
 	{
 		strcpy(strBuffer, "Error: I2C write\n");
-		WriteString(dispfd, 4, 0, strBuffer);
+		WriteString(dispfd, 0, 0, strBuffer);
 	}
 
 	vLog = fopen("/home/andy/bone/plot/voltmeter.txt", "w");
@@ -184,9 +218,11 @@ int main(int argc, char *args[])
 	
 		fclose(vLog);
 	}
+	
+
 
 	//Start timer
-	(void)signal(SIGALRM, timer_callback);
+	(void)signal(SIGALRM, timer_mcp3424callback);
 	start_timer();
 
 	while (1)

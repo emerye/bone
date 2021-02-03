@@ -9,6 +9,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
+            "targetArchitecture": "arm",
             "program": "${workspaceFolder}/imeter",
             "args": [],
             "stopAtEntry": false,
