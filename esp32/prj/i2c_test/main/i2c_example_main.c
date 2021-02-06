@@ -96,7 +96,7 @@ esp_mqtt_client_handle_t client;
 
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
-    esp_mqtt_client_handle_t client = event->client;
+    client = event->client;
     int msg_id;
     // your_context_t *context = event->context;
     switch (event->event_id) {
@@ -153,8 +153,9 @@ static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = CONFIG_BROKER_URL,
+        .username = "andy",
+        .password = "andy",
     };
-
     client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
     esp_mqtt_client_start(client);
@@ -510,7 +511,9 @@ void init_adc()
 
     /* Init DAC */
     dac_output_enable(DAC_CHANNEL_1);       //GPIO25
-    dac_output_voltage(DAC_CHANNEL_1, 158); //2.000V
+  //  dac_output_voltage(DAC_CHANNEL_1, 158); //2.000V
+  //  dac_output_voltage(DAC_CHANNEL_1, 158); //2.000V
+    dac_output_voltage(DAC_CHANNEL_1, 118); //1.5V
 }
 
 
@@ -523,6 +526,13 @@ double calcSteinHart(double resth)
     double a = 1.327532184E-3;
     double b = 2.312481108E-4;
     double c = 1.177982663E-7;
+
+    //Using 4.7K data from datasheet
+    /*
+    double a = 1.304074410E-3;
+    double b = 2.352070455E-4;
+    double c = 1.012284959E-7;
+    */
     double tKelvin, oneOverK;
 
     oneOverK = a + b * (log(resth)) + c * pow((log(resth)), 3);
@@ -676,7 +686,8 @@ void mainloop(void)
         WriteString(0, 0, vBuffer);
 
         //VRef = 2.0V  R1 = 8200
-        double currentMa = (2.0 - ((double)voltage / 1000)) / 8200;
+      //  double currentMa = (2.0 - ((double)voltage / 1000)) / 8200;
+        double currentMa = (1.5 - ((double)voltage / 1000)) / 8200;
         resTh = voltage / currentMa / 1000;
         degF = calcSteinHart(resTh);
         printf("Thermistor Resistance %.0f  Temperature %.1f\n", resTh, degF);
