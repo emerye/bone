@@ -83,6 +83,8 @@ static const char *TAG = "vmonitor";
 #define ACK_VAL 0x0                             /*!< I2C ack value */
 #define NACK_VAL 0x1                            /*!< I2C nack value */
 
+#define MCP3424ADDR 0x68                        /* MCP3425 I2C address */
+
 SemaphoreHandle_t print_mux = NULL;
 
 static esp_adc_cal_characteristics_t *adc_chars;
@@ -127,7 +129,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
             break;
         case MQTT_EVENT_PUBLISHED:
-            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+         //   ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
             break;
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
@@ -171,7 +173,7 @@ static void mqtt_app_start(void)
  * --------|--------------------------|----------------------|--------------------|------|
  *
  */
-static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, size_t size)
+static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t tgtAddr, uint8_t *data_rd, size_t size)
 {
     if (size == 0)
     {
@@ -179,7 +181,7 @@ static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t *data_rd, siz
     }
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | READ_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, (tgtAddr << 1) | READ_BIT, ACK_CHECK_EN);
     if (size > 1)
     {
         i2c_master_read(cmd, data_rd, size - 1, ACK_VAL);
@@ -231,11 +233,11 @@ static esp_err_t i2c_read_slave(i2c_port_t i2c_num, uint8_t tgtAddress, uint8_t 
  * --------|---------------------------|----------------------|------|
  *
  */
-static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t *data_wr, size_t size)
+static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t tgtAddr, uint8_t *data_wr, size_t size)
 {
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | WRITE_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, (tgtAddr << 1) | WRITE_BIT, ACK_CHECK_EN);
     i2c_master_write(cmd, data_wr, size, ACK_CHECK_EN);
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 1000 / portTICK_RATE_MS);
@@ -408,25 +410,8 @@ static esp_err_t i2c_master_init(void)
     return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
-/**
- * @brief i2c slave initialization
- 
-static esp_err_t i2c_slave_init(void)
-{
-    int i2c_slave_port = I2C_SLAVE_NUM;
-    i2c_config_t conf_slave;
-    conf_slave.sda_io_num = I2C_SLAVE_SDA_IO;
-    conf_slave.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf_slave.scl_io_num = I2C_SLAVE_SCL_IO;
-    conf_slave.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf_slave.mode = I2C_MODE_SLAVE;
-    conf_slave.slave.addr_10bit_en = 0;
-    conf_slave.slave.slave_addr = ESP_SLAVE_ADDR;
-    i2c_param_config(i2c_slave_port, &conf_slave);
-    return i2c_driver_install(i2c_slave_port, conf_slave.mode, I2C_SLAVE_RX_BUF_LEN, I2C_SLAVE_TX_BUF_LEN, 0);
-}
-*/
-/**
+
+/*
  * @brief test function to show buffer
  */
 static void disp_buf(uint8_t *buf, int len)
@@ -451,6 +436,7 @@ static void initGPIOs()
     gpio_set_direction(GPIO_NUM_16, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_16, 0);
 }
+
 
 static void print_char_val_type(esp_adc_cal_value_t val_type)
 {
@@ -516,7 +502,6 @@ void init_adc()
     dac_output_voltage(DAC_CHANNEL_1, 118); //1.5V
 }
 
-
 /** Calculate temperature based on thermistor resistance
  * NTCLP100E3472H Metal pipe thermistor
  * Returns temperature in deg F
@@ -540,118 +525,6 @@ double calcSteinHart(double resth)
     //printf("Rth: %f deg K: %f deg C: %.1f  deg F: %.1f\n", resth, tKelvin,
     //		tKelvin - 273.15, ((tKelvin - 273.15) * 1.8) + 32);
     return (((tKelvin - 273.15) * 1.8) + 32);
-}
-
-static void i2c_test_task(void *arg)
-{
-    int i = 0;
-    int ret;
-    uint32_t task_idx = (uint32_t)arg;
-    uint8_t *data = (uint8_t *)malloc(DATA_LENGTH);
-    uint8_t *data_wr = (uint8_t *)malloc(DATA_LENGTH);
-    uint8_t *data_rd = (uint8_t *)malloc(DATA_LENGTH);
-    uint8_t sensor_data_h, sensor_data_l;
-    int cnt = 0;
-
-    while (1)
-    {
-        ESP_LOGI(TAG, "TASK[%d] test cnt: %d", task_idx, cnt++);
-        //   ret = i2c_ads1015(I2C_MASTER_NUM, &sensor_data_h, &sensor_data_l);
-        xSemaphoreTake(print_mux, portMAX_DELAY);
-        if (ret == ESP_ERR_TIMEOUT)
-        {
-            ESP_LOGE(TAG, "I2C Timeout");
-        }
-        else if (ret == ESP_OK)
-        {
-            printf("*******************\n");
-            printf("TASK[%d]  MASTER READ SENSOR( BH1750 )\n", task_idx);
-            printf("*******************\n");
-            printf("data_h: %02x\n", sensor_data_h);
-            printf("data_l: %02x\n", sensor_data_l);
-            printf("sensor val: %.02f [Lux]\n", (sensor_data_h << 8 | sensor_data_l) / 1.2);
-        }
-        else
-        {
-            ESP_LOGW(TAG, "%s: No ack, sensor not connected...skip...", esp_err_to_name(ret));
-        }
-        xSemaphoreGive(print_mux);
-        vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS * (task_idx + 1)) / portTICK_RATE_MS);
-        //---------------------------------------------------
-        for (i = 0; i < DATA_LENGTH; i++)
-        {
-            data[i] = i;
-        }
-        xSemaphoreTake(print_mux, portMAX_DELAY);
-        size_t d_size = i2c_slave_write_buffer(I2C_SLAVE_NUM, data, RW_TEST_LENGTH, 1000 / portTICK_RATE_MS);
-        if (d_size == 0)
-        {
-            ESP_LOGW(TAG, "i2c slave tx buffer full");
-            ret = i2c_master_read_slave(I2C_MASTER_NUM, data_rd, DATA_LENGTH);
-        }
-        else
-        {
-            ret = i2c_master_read_slave(I2C_MASTER_NUM, data_rd, RW_TEST_LENGTH);
-        }
-
-        if (ret == ESP_ERR_TIMEOUT)
-        {
-            ESP_LOGE(TAG, "I2C Timeout");
-        }
-        else if (ret == ESP_OK)
-        {
-            printf("*******************\n");
-            printf("TASK[%d]  MASTER READ FROM SLAVE\n", task_idx);
-            printf("*******************\n");
-            printf("====TASK[%d] Slave buffer data ====\n", task_idx);
-            disp_buf(data, d_size);
-            printf("====TASK[%d] Master read ====\n", task_idx);
-            disp_buf(data_rd, d_size);
-        }
-        else
-        {
-            ESP_LOGW(TAG, "TASK[%d] %s: Master read slave error, IO not connected...\n",
-                     task_idx, esp_err_to_name(ret));
-        }
-        xSemaphoreGive(print_mux);
-        vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS * (task_idx + 1)) / portTICK_RATE_MS);
-        //---------------------------------------------------
-        int size;
-        for (i = 0; i < DATA_LENGTH; i++)
-        {
-            data_wr[i] = i + 10;
-        }
-        xSemaphoreTake(print_mux, portMAX_DELAY);
-        //we need to fill the slave buffer so that master can read later
-        ret = i2c_master_write_slave(I2C_MASTER_NUM, data_wr, RW_TEST_LENGTH);
-        if (ret == ESP_OK)
-        {
-            size = i2c_slave_read_buffer(I2C_SLAVE_NUM, data, RW_TEST_LENGTH, 1000 / portTICK_RATE_MS);
-        }
-        if (ret == ESP_ERR_TIMEOUT)
-        {
-            ESP_LOGE(TAG, "I2C Timeout");
-        }
-        else if (ret == ESP_OK)
-        {
-            printf("*******************\n");
-            printf("TASK[%d]  MASTER WRITE TO SLAVE\n", task_idx);
-            printf("*******************\n");
-            printf("----TASK[%d] Master write ----\n", task_idx);
-            disp_buf(data_wr, RW_TEST_LENGTH);
-            printf("----TASK[%d] Slave read: [%d] bytes ----\n", task_idx, size);
-            disp_buf(data, size);
-        }
-        else
-        {
-            ESP_LOGW(TAG, "TASK[%d] %s: Master write slave error, IO not connected....\n",
-                     task_idx, esp_err_to_name(ret));
-        }
-        xSemaphoreGive(print_mux);
-        vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS * (task_idx + 1)) / portTICK_RATE_MS);
-    }
-    vSemaphoreDelete(print_mux);
-    vTaskDelete(NULL);
 }
 
 
@@ -700,6 +573,31 @@ void mainloop(void)
     }
 }
 
+double mcp3424_read()
+{
+	uint8_t buffer[10] = { 0 };
+	double adcReading;
+	uint8_t sign;
+	char stBuffer[20] = { 0 };
+
+  //  i2c_master_read_slave(1, (uint8_t)MCP3424ADDR, buffer, 6);
+    i2c_read_slave(I2C_MASTER_NUM, (uint8_t)MCP3424ADDR, buffer, 7);
+
+	
+	if( (buffer[0] & 0x02) == 0x2) {
+		//Negative
+		sign = 0xFF;
+		adcReading = (int32_t)(sign << 24 | ((buffer[0] & 0x01) | 0xFE)<<16 | buffer[1]<<8 | buffer[2]) * 0.000015625;
+	} else {
+		sign = 0;
+		adcReading = (int32_t)(sign << 24 | (buffer[0] & 01) <<16 | buffer[1]<<8 | buffer[2]) * 0.000015625;
+	}
+	printf("ADC reading %.5f %02x %02x %02x %02x %02x %02x\n", adcReading, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[6]);
+	sprintf(stBuffer, "%.5fV    ", adcReading);
+	WriteString(2, 0, stBuffer);
+    return adcReading; 
+}
+
 
 void protocol_init(void) {
     ESP_LOGI(TAG, "[APP] Startup..");
@@ -729,9 +627,10 @@ void protocol_init(void) {
 
 void app_main(void)
 {
+    uint8_t mcp3424cfg = 0x1C;
+    double voltsRead;
+    char buffer[20]; 
 
-    //   print_mux = xSemaphoreCreateMutex();
-    //ESP_ERROR_CHECK(i2c_slave_init());
     ESP_ERROR_CHECK(i2c_master_init());
     //xTaskCreate(i2c_test_task, "i2c_test_task_0", 1024 * 2, (void *)0, 10, NULL);
     //xTaskCreate(i2c_test_task, "i2c_test_task_1", 1024 * 2, (void *)1, 10, NULL);
@@ -744,6 +643,11 @@ void app_main(void)
    // init_adc();
     protocol_init();
 
+    esp_err_t status = ic2_master_write_byte(I2C_MASTER_NUM, MCP3424ADDR, mcp3424cfg);
+    if(status != ESP_OK) {
+        printf("Error communicating with MCP3424 ADC\n");
+    }
+
     WriteString(0, 0, (char *)"Hello");
     WriteString(3, 0, (char *)"February 5, 2021");
 
@@ -752,10 +656,10 @@ void app_main(void)
     mqtt_app_start();
 
     while(1) {
-    int msg_id = esp_mqtt_client_publish(client, "/Reading", "My Value", 0, 1, 0);
-    vTaskDelay((DELAY_TIME_BETWEEN_ITEMS_MS) / portTICK_RATE_MS);
-    msg_id = esp_mqtt_client_publish(client, "/Reading", "My Value", 0, 1, 0);
-    vTaskDelay((10000) / portTICK_RATE_MS);
+        voltsRead = mcp3424_read();
+        sprintf(buffer, "%.5f", voltsRead);
+        int msg_id = esp_mqtt_client_publish(client, "/Reading", buffer, 0, 1, 0);
+        vTaskDelay((1000) / portTICK_RATE_MS);
     }
 
     puts("End Program");

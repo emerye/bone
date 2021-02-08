@@ -8,6 +8,6 @@
         "*.ipp": "c",
         "ratio": "c"
     },
-    "idf.baudRate": "921600",
+    "idf.flashBaudRate": "921600",
     "idf.flashType": "UART"
 }
