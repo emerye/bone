@@ -575,29 +575,36 @@ void mainloop(void)
 
 double mcp3424_read()
 {
-	uint8_t buffer[10] = { 0 };
-	double adcReading;
-	uint8_t sign;
-	char stBuffer[20] = { 0 };
+    uint8_t buffer[10] = {0};
+    double adcReading;
+    uint8_t sign;
+    char stBuffer[20] = {0};
+    int loop = 0; 
 
-  //  i2c_master_read_slave(1, (uint8_t)MCP3424ADDR, buffer, 6);
-    i2c_read_slave(I2C_MASTER_NUM, (uint8_t)MCP3424ADDR, buffer, 7);
+    //  i2c_master_read_slave(1, (uint8_t)MCP3424ADDR, buffer, 6);
+    do
+    {
+        i2c_read_slave(I2C_MASTER_NUM, (uint8_t)MCP3424ADDR, buffer, 7);
+        vTaskDelay((50) / portTICK_RATE_MS);
+        //printf("Loop number %d\n", loop++);
+    } while ((buffer[3] & 0x80) == 0x80);    //Check ready bit
 
-	
-	if( (buffer[0] & 0x02) == 0x2) {
-		//Negative
-		sign = 0xFF;
-		adcReading = (int32_t)(sign << 24 | ((buffer[0] & 0x01) | 0xFE)<<16 | buffer[1]<<8 | buffer[2]) * 0.000015625;
-	} else {
-		sign = 0;
-		adcReading = (int32_t)(sign << 24 | (buffer[0] & 01) <<16 | buffer[1]<<8 | buffer[2]) * 0.000015625;
-	}
-	printf("ADC reading %.5f %02x %02x %02x %02x %02x %02x\n", adcReading, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[6]);
-	sprintf(stBuffer, "%.5fV    ", adcReading);
-	WriteString(2, 0, stBuffer);
-    return adcReading; 
+    if ((buffer[0] & 0x02) == 0x2)
+    {
+        //Negative
+        sign = 0xFF;
+        adcReading = (int32_t)(sign << 24 | ((buffer[0] & 0x01) | 0xFE) << 16 | buffer[1] << 8 | buffer[2]) * 0.000015625;
+    }
+    else
+    {
+        sign = 0;
+        adcReading = (int32_t)(sign << 24 | (buffer[0] & 01) << 16 | buffer[1] << 8 | buffer[2]) * 0.000015625;
+    }
+    printf("ADC reading %.5f %02x %02x %02x %02x %02x %02x\n", adcReading, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[6]);
+    sprintf(stBuffer, "%.5fV    ", adcReading);
+    WriteString(2, 0, stBuffer);
+    return adcReading;
 }
-
 
 void protocol_init(void) {
     ESP_LOGI(TAG, "[APP] Startup..");
@@ -643,11 +650,11 @@ void app_main(void)
    // init_adc();
     protocol_init();
 
+    //Channel 1 18 bit
     esp_err_t status = ic2_master_write_byte(I2C_MASTER_NUM, MCP3424ADDR, mcp3424cfg);
     if(status != ESP_OK) {
         printf("Error communicating with MCP3424 ADC\n");
     }
-
     WriteString(0, 0, (char *)"Hello");
     WriteString(3, 0, (char *)"February 5, 2021");
 
@@ -658,8 +665,8 @@ void app_main(void)
     while(1) {
         voltsRead = mcp3424_read();
         sprintf(buffer, "%.5f", voltsRead);
-        int msg_id = esp_mqtt_client_publish(client, "/Reading", buffer, 0, 1, 0);
-        vTaskDelay((1000) / portTICK_RATE_MS);
+        esp_mqtt_client_publish(client, "/Reading", buffer, 0, 1, 0);
+        vTaskDelay((500) / portTICK_RATE_MS);
     }
 
     puts("End Program");
