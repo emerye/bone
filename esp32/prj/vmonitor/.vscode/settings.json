@@ -9,5 +9,5 @@
         "ratio": "c"
     },
     "idf.flashBaudRate": "921600",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
 }

@@ -1,5 +1,5 @@
 {
-    "idf.portWin": "COM4",
+    "idf.portWin": "COM6",
     "idf.espIdfPathWin": "C:\\Users\\andyh\\Desktop\\esp-idf",
     "idf.toolsPathWin": "C:\\Users\\andyh\\.espressif",
     "C_Cpp.intelliSenseEngine": "Tag Parser",
@@ -7,5 +7,6 @@
         "esp_netif.h": "c",
         "*.ipp": "c"
     },
-    "idf.baudRate": "921600"
+    "idf.baudRate": "921600",
+    "idf.flashType": "UART"
 }
