@@ -17,5 +17,5 @@ plot 'celllog.txt' using ($1/60):2 with lines title 'Cell1',\
 'celllog.txt' using ($1/60):15 with lines title 'Cell14'
  
 #pause -1
-pause 10 
+pause 15 
 reread 
