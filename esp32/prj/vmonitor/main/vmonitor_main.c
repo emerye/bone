@@ -656,7 +656,7 @@ void app_main(void)
         printf("Error communicating with MCP3424 ADC\n");
     }
     WriteString(0, 0, (char *)"Hello");
-    WriteString(3, 0, (char *)"February 5, 2021");
+    WriteString(3, 0, (char *)"June 29, 2021");
 
  //   xTaskCreate((void *) mainloop, "i2c_task", 1024 * 2, (void *)0, 10, NULL);
     //xTaskCreate((void *) mqtt_app_start, "imqtt_task", 1024 * 2, (void *)0, 10, NULL);
