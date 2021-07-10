@@ -75,7 +75,7 @@ void app_main(void)
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    const int wakeup_time_sec = 20;
+    const int wakeup_time_sec = 5;
     printf("Enabling timer wakeup, %ds\n", wakeup_time_sec);
     esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
 
@@ -88,7 +88,6 @@ void app_main(void)
 
     printf("Entering deep sleep\n");
     gettimeofday(&sleep_enter_time, NULL);
-
     esp_deep_sleep_start();
 } 
 
