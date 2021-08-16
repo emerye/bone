@@ -34,7 +34,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
-#include "driverlib.h"
+#include "driverlib/MSP430F5xx_6xx/driverlib.h"
 #include "oled1309.h"
 #include "gfxfont.h"
 #include "glcdfont.h"
