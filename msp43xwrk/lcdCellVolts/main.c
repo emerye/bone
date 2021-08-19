@@ -44,6 +44,7 @@ volatile uint16_t A3results[Num_of_Results];
 volatile uint16_t A0ADCcnt, A1ADCcnt, A2ADCcnt, A3ADCcnt;
 
 volatile bool adcReadingReady = false;
+volatile static uint16_t index = 0;
 
 void toggleEnable() {
 	GPIO_setOutputHighOnPin(GPIO_PORT_P7, GPIO_PIN0);
@@ -325,81 +326,68 @@ __interrupt
 #elif defined(__GNUC__)
 __attribute__((interrupt(WDT_VECTOR)))
 #endif
-void WDT_A_ISR(void) {
-	char buffer[10];
-	int i;
-	float r1 = 2.7E6;
-	float r2 = 68.0E3;
-	float gain, absVoltage;
-	int displayOffset;
+void WDT_A_ISR(void)
+{
+    char buffer[10];
+    int i;
+    float absVoltage;
+    int displayOffset;
 
-	//Toggle P1.0
-	GPIO_toggleOutputOnPin(
-	GPIO_PORT_P1,
-	GPIO_PIN0);
-	if (adcReadingReady == true) {
-		A0ADCcnt = A1ADCcnt = A2ADCcnt = A3ADCcnt = 0;
-		for (i = 0; i < Num_of_Results; i++) {
-			A0ADCcnt += A0results[i];
-			A1ADCcnt += A1results[i];
-			A2ADCcnt += A2results[i];
-			A3ADCcnt += A3results[i];
-		}
-		A0ADCcnt = A0ADCcnt / Num_of_Results;
-		A1ADCcnt = A1ADCcnt / Num_of_Results;
-		A2ADCcnt = A2ADCcnt / Num_of_Results;
-		A3ADCcnt = A3ADCcnt / Num_of_Results;
+    __disable_interrupt();
 
-		gain = r2 / (r1 + r2);
-		gain = 1.00 / gain;
+    //Toggle P1.0
+    GPIO_toggleOutputOnPin(
+    GPIO_PORT_P1,
+                           GPIO_PIN0);
+    A0ADCcnt = A1ADCcnt = A2ADCcnt = A3ADCcnt = 0;
+    for (i = 0; i < Num_of_Results; i++)
+    {
+        A0ADCcnt += A0results[i];
+        A1ADCcnt += A1results[i];
+        A2ADCcnt += A2results[i];
+        A3ADCcnt += A3results[i];
+    }
+    A0ADCcnt = A0ADCcnt / Num_of_Results;
+    A1ADCcnt = A1ADCcnt / Num_of_Results;
+    A2ADCcnt = A2ADCcnt / Num_of_Results;
+    A3ADCcnt = A3ADCcnt / Num_of_Results;
 
-		//Cell 9
-		r2 = 68.5E3;
-		r1 = 2.721E6;
-		gain = r2 / (r1 + r2);
-		gain = 1.00 / gain;
-		absVoltage = ((float) A1ADCcnt / (float) 4096) * 1.50;
-		sprintf(buffer, "%.3f", absVoltage);
-		displayOffset = 0;
-		writeString(displayOffset, "C9 ");
-		writeString(displayOffset + 4, buffer);
-		writeString(displayOffset + 10, "  ");
-		memset(buffer, 0, sizeof(buffer));
-		sprintf(buffer, "%.3f", absVoltage * gain);
-		writeString(displayOffset + 11, buffer);
+    //A0
+    absVoltage = ((float) A0ADCcnt / (float) 4096) * 1.50;
+    sprintf(buffer, "%.3f", absVoltage);
+    displayOffset = 0;
+    writeString(displayOffset, "A0 ");
+    writeString(displayOffset + 4, buffer);
+    writeString(displayOffset + 10, "A");
 
-		//Cell 10
-		r2 = 69.4E3;
-		r1 = 2.696E6;
-		gain = r2 / (r1 + r2);
-		gain = 1.00 / gain;
-		absVoltage = ((float) A2ADCcnt / (float) 4096) * 1.50;
-		sprintf(buffer, "%.3f", absVoltage);
-		displayOffset = 20;
-		writeString(displayOffset, "C10");
-		writeString(displayOffset + 4, buffer);
-		writeString(displayOffset + 10, "  ");
-		memset(buffer, 0, sizeof(buffer));
-		sprintf(buffer, "%.3f", absVoltage * gain);
-		writeString(displayOffset + 11, buffer);
+    //A1
+    absVoltage = ((float) A1ADCcnt / (float) 4096) * 1.50;
+    sprintf(buffer, "%.3f", absVoltage);
+    displayOffset = 0x40;
+    writeString(displayOffset, "A1 ");
+    writeString(displayOffset + 4, buffer);
+    writeString(displayOffset + 10, "B");
 
-		//Cell 8
-		r2 = 70.6E3;
-		r1 = 2.772E6;
-		gain = r2 / (r1 + r2);
-		gain = 1.00 / gain;
-		absVoltage = ((float) A3ADCcnt / (float) 4096) * 1.50;
-		sprintf(buffer, "%.3f", absVoltage);
-		displayOffset = 0x40;
-		writeString(displayOffset, "C8");
-		writeString(displayOffset + 4, buffer);
-		writeString(displayOffset + 10, "  ");
-		memset(buffer, 0, sizeof(buffer));
-		sprintf(buffer, "%.3f", absVoltage * gain);
-		writeString(displayOffset + 11, buffer);
+    //A2
+    absVoltage = ((float) A2ADCcnt / (float) 4096) * 1.50;
+    memset(buffer, 0, sizeof(buffer));
+    sprintf(buffer, "%.3f", absVoltage);
+    displayOffset = 20;
+    writeString(displayOffset, "A2 ");
+    writeString(displayOffset + 4, buffer);
+    writeString(displayOffset + 10, "C");
 
-		adcReadingReady = false;
-	}
+    //A3
+    absVoltage = ((float) A3ADCcnt / (float) 4096) * 1.50;
+    sprintf(buffer, "%.3f", absVoltage);
+    displayOffset = 0x40 + 20;
+    writeString(displayOffset, "A3 ");
+    writeString(displayOffset + 4, buffer);
+    writeString(displayOffset + 10, "D");
+
+    adcReadingReady = false;
+    index = 0;
+    __enable_interrupt();
 }
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -409,7 +397,6 @@ __interrupt
 __attribute__((interrupt(ADC12_VECTOR)))
 #endif
 void ADC12ISR(void) {
-	static uint16_t index = 0;
 
 	switch (__even_in_range(ADC12IV, 34)) {
 	case 0:
@@ -441,7 +428,7 @@ void ADC12ISR(void) {
 		//Increment results index, modulo; Set BREAKPOINT here
 		index++;
 
-		if (index == Num_of_Results) {
+		if (index >= Num_of_Results) {
 			(index = 0);
 			adcReadingReady = true;
 		}
