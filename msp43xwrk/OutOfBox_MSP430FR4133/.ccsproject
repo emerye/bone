@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?ccsproject version="1.0"?>
+<projectOptions>
+	<ccsVersion value="11.0.0"/>
+	<deviceVariant value="MSP430FR4133"/>
+	<deviceFamily value="MSP430"/>
+	<deviceEndianness value="little"/>
+	<codegenToolVersion value="20.2.5.LTS"/>
+	<isElfFormat value="true"/>
+	<linkerCommandFile value="lnk_msp430fr4133.cmd"/>
+	<rts value="libc.a"/>
+	<createSlaveProjects value=""/>
+	<templateProperties value="id=OutOfBox_MSP430FR4133.projectspec.OutOfBox_MSP430FR4133"/>
+	<origin value="C:\Users\andyh\Documents\exp430FR4133\MSP-EXP430FR4133_Software_Examples_windows\MSP-EXP430FR4133_Software_Examples_windows\Firmware\Source\OutOfBox_MSP430FR4133\CCS\OutOfBox_MSP430FR4133.projectspec"/>
+	<filesToOpen value="main.c"/>
+</projectOptions>
