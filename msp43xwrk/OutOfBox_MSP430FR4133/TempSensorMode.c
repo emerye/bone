@@ -58,7 +58,8 @@ Timer_A_initUpModeParam initUpParam_A1 =
 {
     TIMER_A_CLOCKSOURCE_ACLK,               // ACLK Clock Source
     TIMER_A_CLOCKSOURCE_DIVIDER_1,          // ACLK/1 = 32768Hz
-    0x2000,                                 // Timer period
+     0x2000,                                 // Timer period original value.
+//    0xFFFD,                                  // Attempt to update every 2 sec
     TIMER_A_TAIE_INTERRUPT_DISABLE,         // Disable Timer interrupt
     TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE ,   // Disable CCR0 interrupt
     TIMER_A_DO_CLEAR                        // Clear value
@@ -142,6 +143,7 @@ void tempSensor()
             // Calculate Temperature in degree C and F
             signed short temp = (ADCMEM0 - CALADC_15V_30C);
             *degC = ((long)temp * 10 * (85-30) * 10)/((CALADC_15V_85C-CALADC_15V_30C)*10) + 300;
+            *degC = *degC - 25;  //Manual correction
             *degF = (*degC) * 9 / 5 + 320;
 
             // Update temperature on LCD

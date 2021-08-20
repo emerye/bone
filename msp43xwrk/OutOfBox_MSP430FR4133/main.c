@@ -97,6 +97,8 @@ int main(void) {
         Init_RTC();
         Init_LCD();
 
+        displayScrollText("ABCDEFGHIJKLMNOQRSTUVWXYZ");
+
         GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN2);
         GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN6);
 
@@ -209,7 +211,7 @@ void Init_GPIO()
  */
 void Init_Clock()
 {
-    // Intializes the XT1 crystal oscillator
+    // Initializes the XT1 crystal oscillator
     CS_turnOnXT1(CS_XT1_DRIVE_1);
 }
 
@@ -258,7 +260,7 @@ __interrupt void PORT1_ISR(void)
 
                 // Start debounce timer
                 Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam_A0);
-            }
+            } break;
         case P1IV_P1IFG3 : break;
         case P1IV_P1IFG4 : break;
         case P1IV_P1IFG5 : break;
@@ -326,8 +328,7 @@ __interrupt void PORT2_ISR(void)
 
                 // Start debounce timer
                 Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam_A0);
-            }
-
+            } break;
         case P2IV_P2IFG7 : break;
     }
 }
@@ -395,7 +396,7 @@ __interrupt void TIMER0_A0_ISR (void)
 
 /*
  * RTC Interrupt Service Routine
- * Wakes up every ~10 milliseconds to update stowatch
+ * Wakes up every ~10 milliseconds to update stopwatch
  */
 #pragma vector = RTC_VECTOR
 __interrupt void RTC_ISR(void)
