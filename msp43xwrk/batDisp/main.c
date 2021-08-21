@@ -72,7 +72,6 @@ Timer_A_initUpModeParam initUpParam_A0 =
  */
 int main(void) {
 
-
     // Stop Watchdog timer
     WDT_A_hold(__MSP430_BASEADDRESS_WDT_A__);     // Stop WDT
 
@@ -100,10 +99,6 @@ int main(void) {
         Init_RTC();
         Init_LCD();
 
-        displayScrollText("ABCDEFGHIJKLMNOQRSTUVWXYZ");
-
-
-
         GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN2);
         GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN6);
 
@@ -111,7 +106,7 @@ int main(void) {
 
         __enable_interrupt();
 
-        displayScrollText("WELCOME TO THE FR4133 LAUNCHPAD");
+        displayScrollText("TEMPERATURE");
     }
 
     int i = 0x01;
@@ -146,6 +141,7 @@ int main(void) {
                     displayScrollText("HOLD S1 AND S2 TO SWITCH MODES");
                 }
                 break;
+
             case STOPWATCH_MODE:         // Stopwatch Timer mode
                 clearLCD();              // Clear all LCD segments
                 stopWatchModeInit();     // Initialize stopwatch mode
@@ -156,6 +152,10 @@ int main(void) {
                 tempSensor();
                 break;
         }
+        *mode = TEMPSENSOR_MODE;
+        clearLCD();              // Clear all LCD segments
+        tempSensorModeInit();    // initialize temperature mode
+        tempSensor();
         __bis_SR_register(LPM3_bits | GIE);         // enter LPM3
         __no_operation();
     }
@@ -356,18 +356,19 @@ __interrupt void TIMER0_A0_ISR (void)
 
             // Change mode
             if (*mode == STARTUP_MODE)
-                (*mode) = STOPWATCH_MODE;
+             //   (*mode) = STOPWATCH_MODE;
+                  (*mode) = TEMPSENSOR_MODE;
             else if (*mode == STOPWATCH_MODE)
             {
                 (*mode) = TEMPSENSOR_MODE;
                 *stopWatchRunning = 0;
                 RTC_stop(RTC_BASE);
             }
-            else if (*mode == TEMPSENSOR_MODE)
-            {
-                (*mode) = STOPWATCH_MODE;
-                *tempSensorRunning = 0;
-            }
+          //  else if (*mode == TEMPSENSOR_MODE)
+          //  {
+          //      (*mode) = STOPWATCH_MODE;
+          //      *tempSensorRunning = 0;
+          //  }
             __bic_SR_register_on_exit(LPM3_bits);                // exit LPM3
         }
     }
