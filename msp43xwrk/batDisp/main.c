@@ -105,8 +105,6 @@ int main(void) {
         *S1buttonDebounce = *S2buttonDebounce = *stopWatchRunning = *tempSensorRunning = *mode = 0;
 
         __enable_interrupt();
-
-        displayScrollText("TEMPERATURE");
     }
 
     int i = 0x01;

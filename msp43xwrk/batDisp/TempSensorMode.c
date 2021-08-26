@@ -181,7 +181,7 @@ void tempSensorModeInit()
 {
     *tempSensorRunning = 1;
 
-    displayScrollText("TEMPSENSOR MODE");
+    //displayScrollText("TEMPSENSOR MODE");
 
     RTC_stop(RTC_BASE);                           // Stop stopwatch
 

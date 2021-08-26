@@ -123,7 +123,6 @@ void Init_LCD()
 
     // Select to display main LCD memory
     LCD_E_selectDisplayMemory(LCD_E_BASE, LCD_E_DISPLAYSOURCE_MEMORY);
-
     // Turn on LCD
     LCD_E_on(LCD_E_BASE);
 }
@@ -160,6 +159,7 @@ void displayScrollText(char *msg)
         showChar(buffer[4], pos5);
         showChar(buffer[5], pos6);
 
+
         __delay_cycles(200000);
     }
 }
@@ -170,6 +170,7 @@ void displayScrollText(char *msg)
  */
 void showChar(char c, int position)
 {
+
     if (c == ' ')
     {
         // Display space
@@ -203,5 +204,7 @@ void clearLCD()
     LCDMEMW[pos4/2] = 0;
     LCDMEMW[pos5/2] = 0;
     LCDMEMW[pos6/2] = 0;
-    LCDMEM[12] = LCDMEM[13] = 0;
+
+    LCDMEM[12] = 0x00;
+    LCDMEM[13] = 0x00;
 }
