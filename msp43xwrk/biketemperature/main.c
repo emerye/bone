@@ -67,48 +67,49 @@ Timer_A_initUpModeParam initUpParam_A0 =
 		true                                    // Start Timer
 };
 
+// Enable 1.2 Volt Reference output on P1.4
+void enableExtReference()
+{
+// Set P1.4 to output 1.2 volt VRef
+    GPIO_setAsPeripheralModuleFunctionOutputPin(
+    GPIO_PORT_P1,
+    GPIO_PIN4,
+    GPIO_SECONDARY_MODULE_FUNCTION);
+
+    // Configure reference
+    PMMCTL0_H = PMMPW_H;                             // Unlock the PMM registers
+    PMMCTL2 |= EXTREFEN;                   // Enable external 1.2 volt reference
+    __delay_cycles(400);                         // Delay for reference settling
+}
+
+
 /*
  * main.c
  */
-int main(void) {
+int main(void)
+{
 
     // Stop Watchdog timer
     WDT_A_hold(__MSP430_BASEADDRESS_WDT_A__);     // Stop WDT
 
-    // Check if a wakeup from LPMx.5
-    if (SYSRSTIV == SYSRSTIV_LPM5WU)
-    {
-        Init_GPIO();
-        __enable_interrupt();
+    // Initializations
+    Init_GPIO();
+    Init_Clock();
+    Init_RTC();
+    Init_LCD();
+    //enableExtReference();
 
-        switch(*mode)
-        {
-            case STOPWATCH_MODE:
-                stopWatch();
-                break;
-            case TEMPSENSOR_MODE:
-                tempSensor();
-                break;
-        }
-    }
-    else
-    {
-        // Initializations
-        Init_GPIO();
-        Init_Clock();
-        Init_RTC();
-        Init_LCD();
+    PMM_Internal1_2VRef(1);
 
-        GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN2);
-        GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN6);
+    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN2);
+    GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN6);
 
-        *S1buttonDebounce = *S2buttonDebounce = *stopWatchRunning = *tempSensorRunning = *mode = 0;
+    *S1buttonDebounce = *S2buttonDebounce = *stopWatchRunning =
+            *tempSensorRunning = *mode = STARTUP_MODE;
 
-        __enable_interrupt();
-    }
+    __enable_interrupt();
 
     int i = 0x01;
-
     while(1)
     {
         LCD_E_selectDisplayMemory(LCD_E_BASE, LCD_E_DISPLAYSOURCE_MEMORY);
@@ -136,7 +137,7 @@ int main(void) {
                 {
                     i=1;
                     clearLCD();
-                    displayScrollText("HOLD S1 AND S2 TO SWITCH MODES");
+               //     displayScrollText("HOLD S1 AND S2 TO SWITCH MODES");
                 }
                 break;
 
@@ -173,6 +174,7 @@ void Init_GPIO()
     GPIO_setOutputLowOnPin(GPIO_PORT_P6, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setOutputLowOnPin(GPIO_PORT_P7, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+
 
     GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);

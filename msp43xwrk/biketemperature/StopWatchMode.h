@@ -39,7 +39,7 @@
  * E. Chen
  *
  ******************************************************************************/
-
+#include <stdint.h>
 #include <msp430fr4133.h>
 
 #ifndef STOPWATCHMODE_H_
@@ -58,6 +58,6 @@ void stopWatchModeInit(void);
 void Inc_RTC(void);
 void resetStopWatch(void);
 void displayTime(void);
-
+void PMM_Internal1_2VRef(uint8_t mode);
 
 #endif /* STOPWATCHMODE_H_ */

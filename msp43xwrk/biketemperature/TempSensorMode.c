@@ -41,6 +41,7 @@
  *
  ******************************************************************************/
 
+#include <stdint.h>
 #include "TempSensorMode.h"
 #include "hal_LCD.h"
 #include "main.h"
@@ -59,7 +60,7 @@ Timer_A_initUpModeParam initUpParam_A1 =
     TIMER_A_CLOCKSOURCE_ACLK,               // ACLK Clock Source
     TIMER_A_CLOCKSOURCE_DIVIDER_1,          // ACLK/1 = 32768Hz
  //    0x2000,                                 // Timer period original value.
-    0xFFFD,                                  // Attempt to update every 2 sec
+    0xFFFD,                                  // Update every 2 seconds
     TIMER_A_TAIE_INTERRUPT_DISABLE,         // Disable Timer interrupt
     TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE ,   // Disable CCR0 interrupt
     TIMER_A_DO_CLEAR                        // Clear value
@@ -98,6 +99,8 @@ void tempSensor()
      */
     ADC_configureMemory(ADC_BASE,
         ADC_INPUT_TEMPSENSOR,
+    //    ADC_INPUT_REFVOLTAGE,
+    //    ADC_INPUT_A4,
         ADC_VREFPOS_INT,
         ADC_VREFNEG_AVSS);
 
@@ -143,7 +146,8 @@ void tempSensor()
             // Calculate Temperature in degree C and F
             signed short temp = (ADCMEM0 - CALADC_15V_30C);
             *degC = ((long)temp * 10 * (85-30) * 10)/((CALADC_15V_85C-CALADC_15V_30C)*10) + 300;
-            *degC = *degC - 25;  //Manual correction
+
+            *degC = *degC - 25;  //Manual correction   Needed for board on bike. This seems to change.
             *degF = (*degC) * 9 / 5 + 320;
 
             // Update temperature on LCD
@@ -177,6 +181,24 @@ void tempSensor()
     }
 }
 
+// Zero for off and any positive number for on
+void PMM_Internal1_2VRef(uint8_t action)
+{
+    HWREG8(PMM_BASE + OFS_PMMCTL0_H) = PMMPW_H;
+    if (action == 0)
+    {
+        HWREG8(PMM_BASE + OFS_PMMCTL2) &= 0xFFFD;
+    }
+    else
+    {
+        HWREG8(PMM_BASE + OFS_PMMCTL2) |= EXTREFEN;
+    }
+
+    HWREG8(PMM_BASE + OFS_PMMCTL0_H) = 0x00;
+}
+
+
+
 void tempSensorModeInit()
 {
     *tempSensorRunning = 1;
@@ -187,6 +209,7 @@ void tempSensorModeInit()
 
     // Check if any button is pressed
     Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam_A0);
+
 }
 
 void displayTemp()
