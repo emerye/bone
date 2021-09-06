@@ -45,6 +45,7 @@
 #include "TempSensorMode.h"
 #include "hal_LCD.h"
 #include "main.h"
+#include "steinhart_hart.h"
 
                                                         // See device datasheet for TLV table memory mapping
 #define CALADC_15V_30C  *((unsigned int *)0x1A1A)       // Temperature Sensor Calibration-30 C
@@ -59,7 +60,7 @@ Timer_A_initUpModeParam initUpParam_A1 =
 {
     TIMER_A_CLOCKSOURCE_ACLK,               // ACLK Clock Source
     TIMER_A_CLOCKSOURCE_DIVIDER_1,          // ACLK/1 = 32768Hz
- //    0x2000,                                 // Timer period original value.
+ // 0x2000,                                 // Timer period original value.
     0xFFFD,                                  // Update every 2 seconds
     TIMER_A_TAIE_INTERRUPT_DISABLE,         // Disable Timer interrupt
     TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE ,   // Disable CCR0 interrupt
@@ -74,8 +75,20 @@ Timer_A_initCompareModeParam initCompParam =
     0x1000                                    // Compare value
 };
 
+
+double readADCVoltage()
+{
+    double VREF = 1.5000;
+    return ((double)(ADCMEM0 / 1024.0) * VREF);
+}
+
+
 void tempSensor()
 {
+    volatile double adcVoltage;
+    volatile double curTemperature;
+    volatile double degc;
+
     //Initialize the ADC Module
     /*
      * Base Address for the ADC Module
@@ -98,9 +111,10 @@ void tempSensor()
      * Use negative reference of AVss
      */
     ADC_configureMemory(ADC_BASE,
-        ADC_INPUT_TEMPSENSOR,
+     //   ADC_INPUT_TEMPSENSOR,
     //    ADC_INPUT_REFVOLTAGE,
     //    ADC_INPUT_A4,
+        ADC_INPUT_A6,    // Thermistor network ADC input.
         ADC_VREFPOS_INT,
         ADC_VREFNEG_AVSS);
 
@@ -115,6 +129,7 @@ void tempSensor()
                         ADC_REPEATED_SINGLECHANNEL);
 
     // Enable internal reference and temperature sensor
+    PMM_turnOnRegulator();
     PMM_enableInternalReference();
     PMM_enableTempSensor();
 
@@ -150,8 +165,16 @@ void tempSensor()
             *degC = *degC - 25;  //Manual correction   Needed for board on bike. This seems to change.
             *degF = (*degC) * 9 / 5 + 320;
 
-            // Update temperature on LCD
-            displayTemp();
+            // Update temperature on LCD. Internal temperature sensor
+   //         displayTemp();
+
+            // Display voltage
+            adcVoltage = readADCVoltage();
+            curTemperature = calccurrentTemperature(adcVoltage);
+            displayNTCTemperature(curTemperature);
+            //   Test functions
+            //   degc = calcTemperature_fromRes(1694.0);
+            //   displayADCVoltage();
 
             P1OUT &= ~BIT0;
         }
@@ -182,7 +205,7 @@ void tempSensor()
 }
 
 // Zero for off and any positive number for on
-void PMM_Internal1_2VRef(uint8_t action)
+void PMM_External_1_2VRef(uint8_t action)
 {
     HWREG8(PMM_BASE + OFS_PMMCTL0_H) = PMMPW_H;
     if (action == 0)
@@ -196,7 +219,6 @@ void PMM_Internal1_2VRef(uint8_t action)
 
     HWREG8(PMM_BASE + OFS_PMMCTL0_H) = 0x00;
 }
-
 
 
 void tempSensorModeInit()
@@ -253,4 +275,63 @@ void displayTemp()
 
     // Degree symbol
     LCDMEM[pos5+1] |= 0x04;
+}
+
+
+void displayNTCTemperature(double temperature)
+{
+    clearLCD();
+    int temp = (int)(temperature * 10);
+
+    // Handles displaying up to 99999
+    if (temp>=10000)
+        showChar((temp/10000)%10 + '0',pos1);
+    if (temp>=1000)
+        showChar((temp/1000)%10 + '0',pos2);
+    if (temp>=100)
+        showChar((temp/100)%10 + '0',pos3);
+    if (temp>=10)
+        showChar((temp/10)%10 + '0',pos4);
+    if (temp>=1)
+        showChar((temp/1)%10 + '0',pos5);
+    if (temp == 0)
+        showChar('0',pos5);
+
+    // Decimal point
+     LCDMEM[pos4+1] |= 0x01;
+
+    // Degree symbol
+     LCDMEM[pos5+1] |= 0x04;
+
+     showChar('F',pos6);
+}
+
+
+void displayADCVoltage()
+{
+    unsigned int adcVolts;
+
+    adcVolts = (int) (readADCVoltage() * 1000.0);
+
+    clearLCD();
+
+    // Handles displaying up to 99999
+    if (adcVolts>=10000)
+        showChar((adcVolts/10000)%10 + '0',pos1);
+    if (adcVolts>=1000)
+        showChar((adcVolts/1000)%10 + '0',pos2);
+    if (adcVolts>=100)
+        showChar((adcVolts/100)%10 + '0',pos3);
+    if (adcVolts>=10)
+        showChar((adcVolts/10)%10 + '0',pos4);
+    if (adcVolts>=1)
+        showChar((adcVolts/1)%10 + '0',pos5);
+    if (adcVolts == 0)
+        showChar('0',pos5);
+
+    // Decimal point
+    // LCDMEM[pos4+1] |= 0x01;
+
+    // Degree symbol
+    // LCDMEM[pos5+1] |= 0x04;
 }

@@ -53,5 +53,7 @@ extern volatile unsigned char * tempUnit;
 void tempSensor(void);
 void tempSensorModeInit(void);
 void displayTemp(void);
+void displayADCVoltage(void);
+void displayNTCTemperature(double temperature);
 
 #endif /* TEMPSENSORMODE_H_ */

@@ -97,9 +97,9 @@ int main(void)
     Init_Clock();
     Init_RTC();
     Init_LCD();
-    //enableExtReference();
+    //enableExtReference();  This is the old function.
 
-    PMM_Internal1_2VRef(1);
+    PMM_External_1_2VRef(1);  //Expose 1.2 volt reference on P1.4
 
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN2);
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN6);
@@ -206,6 +206,7 @@ void Init_GPIO()
            GPIO_PRIMARY_MODULE_FUNCTION
            );
 
+
     // Disable the GPIO power-on default high-impedance mode
     // to activate previously configured port settings
     PMM_unlockLPM5();
@@ -298,6 +299,7 @@ __interrupt void PORT2_ISR(void)
                 holdCount = 0;
                 switch (*mode)
                 {
+                /*
                     case STOPWATCH_MODE:
                         // Reset stopwatch if stopped; Split if running
                         if (!(*stopWatchRunning))
@@ -322,6 +324,7 @@ __interrupt void PORT2_ISR(void)
                             LCDMEMCTL ^= LCDDISP;
                         }
                         break;
+                        */
                     case TEMPSENSOR_MODE:
                         // Toggle temperature unit flag
                         *tempUnit ^= 0x01;
