@@ -43,14 +43,11 @@ double celsius_to_f(double celsius)
 
 double calccurrentTemperature(double adcReading)
 {
-    double referenceVolts = 1.206;
+    double referenceVolts = 1.207;
     double thval;
     double tempdegC;
 
     thval = 5600 * ((referenceVolts/adcReading)-1);
     tempdegC = calcTemperature_fromRes(thval);
     return tempdegC;
-
-
-
 }

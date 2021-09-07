@@ -78,7 +78,7 @@ Timer_A_initCompareModeParam initCompParam =
 
 double readADCVoltage()
 {
-    double VREF = 1.5000;
+    double VREF = 1.500;
     return ((double)(ADCMEM0 / 1024.0) * VREF);
 }
 
@@ -131,7 +131,7 @@ void tempSensor()
     // Enable internal reference and temperature sensor
     PMM_turnOnRegulator();
     PMM_enableInternalReference();
-    PMM_enableTempSensor();
+    //PMM_enableTempSensor();
 
     // TimerA1.1 (125ms ON-period) - ADC conversion trigger signal
     Timer_A_initUpMode(TIMER_A1_BASE, &initUpParam_A1);
@@ -168,10 +168,11 @@ void tempSensor()
             // Update temperature on LCD. Internal temperature sensor
    //         displayTemp();
 
-            // Display voltage
+            // Thermistor temperature sensor
             adcVoltage = readADCVoltage();
+
             curTemperature = calccurrentTemperature(adcVoltage);
-            displayNTCTemperature(curTemperature);
+            displayNTCTemperature(curTemperature + 1.75);    //Offset correction need by PCB and thermistor on bike
             //   Test functions
             //   degc = calcTemperature_fromRes(1694.0);
             //   displayADCVoltage();
