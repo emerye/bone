@@ -55,5 +55,6 @@ void tempSensorModeInit(void);
 void displayTemp(void);
 void displayADCVoltage(void);
 void displayNTCTemperature(double temperature);
+void PMM_External_1_2VRef(uint8_t action);
 
 #endif /* TEMPSENSORMODE_H_ */
