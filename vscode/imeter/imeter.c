@@ -183,6 +183,7 @@ void timer_mcp3424callback(int sig)
 	WriteString(dispfd, 0, 0, stBuffer);
 }
 
+
 int main(int argc, char *args[])
 {
 	int i, status;

@@ -1,8 +1,0 @@
-CC=gcc
-CFLAGS=-Wall -g 
-
-i2ctest : i2ctest.o
-	$(CC) $(CFLAGS) i2ctest.c -o i2ctest
-
-clean:
-	 rm -f i2ctest.o i2ctest
