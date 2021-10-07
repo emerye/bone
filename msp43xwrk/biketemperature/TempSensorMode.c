@@ -162,7 +162,7 @@ void tempSensor()
             signed short temp = (ADCMEM0 - CALADC_15V_30C);
             *degC = ((long)temp * 10 * (85-30) * 10)/((CALADC_15V_85C-CALADC_15V_30C)*10) + 300;
 
-            *degC = *degC - 25;  //Manual correction   Needed for board on bike. This seems to change.
+            *degC = *degC - 25;  //Manual correction   Needed for board on bike. This seems to change. Not used.
             *degF = (*degC) * 9 / 5 + 320;
 
             // Update temperature on LCD. Internal temperature sensor
@@ -172,7 +172,7 @@ void tempSensor()
             adcVoltage = readADCVoltage();
 
             curTemperature = calccurrentTemperature(adcVoltage);
-            displayNTCTemperature(curTemperature + 1.75);    //Offset correction need by PCB and thermistor on bike
+            displayNTCTemperature(curTemperature + 0.25);    //Offset correction need by PCB and thermistor on bike
             //   Test functions
             //   degc = calcTemperature_fromRes(1694.0);
             //   displayADCVoltage();
