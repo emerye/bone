@@ -281,7 +281,6 @@ void displayTemp()
 
 void displayNTCTemperature(double temperature)
 {
-    clearLCD();
     int temp = (int)(temperature * 10);
 
     // Handles displaying up to 99999
@@ -303,7 +302,6 @@ void displayNTCTemperature(double temperature)
 
     // Degree symbol
      LCDMEM[pos5+1] |= 0x04;
-
      showChar('F',pos6);
 }
 
@@ -330,9 +328,4 @@ void displayADCVoltage()
     if (adcVolts == 0)
         showChar('0',pos5);
 
-    // Decimal point
-    // LCDMEM[pos4+1] |= 0x01;
-
-    // Degree symbol
-    // LCDMEM[pos5+1] |= 0x04;
 }

@@ -109,7 +109,6 @@ int main(void)
 
     __enable_interrupt();
 
-    int i = 0x01;
     while(1)
     {
         LCD_E_selectDisplayMemory(LCD_E_BASE, LCD_E_DISPLAYSOURCE_MEMORY);
@@ -120,39 +119,21 @@ int main(void)
                 RTC_setModulo(RTC_BASE, 8191);
                 RTC_enableInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT);
                 RTC_start(RTC_BASE, RTC_CLOCKSOURCE_XT1CLK);
-
-                // Cycle through all LCD segments and display instruction message
-                if (i <= 0x80)
-                {
-                    LCDMEM[pos1] = LCDMEM[pos1+1] = i;
-                    LCDMEM[pos2] = LCDMEM[pos2+1] = i;
-                    LCDMEM[pos3] = LCDMEM[pos3+1] = i;
-                    LCDMEM[pos4] = LCDMEM[pos4+1] = i;
-                    LCDMEM[pos5] = LCDMEM[pos5+1] = i;
-                    LCDMEM[pos6] = LCDMEM[pos6+1] = i;
-                    LCDMEM[12] = LCDMEM[13] = i;
-                    i<<=1;
-                }
-                else
-                {
-                    i=1;
-                    clearLCD();
-               //     displayScrollText("HOLD S1 AND S2 TO SWITCH MODES");
-                }
+                clearLCD();
                 break;
 
             case STOPWATCH_MODE:         // Stopwatch Timer mode
                 clearLCD();              // Clear all LCD segments
                 stopWatchModeInit();     // Initialize stopwatch mode
                 break;
+
             case TEMPSENSOR_MODE:        // Temperature Sensor mode
-                clearLCD();              // Clear all LCD segments
+              clearLCD();              // Clear all LCD segments
                 tempSensorModeInit();    // initialize temperature mode
                 tempSensor();
                 break;
         }
         *mode = TEMPSENSOR_MODE;
-        clearLCD();              // Clear all LCD segments
         tempSensorModeInit();    // initialize temperature mode
         tempSensor();
         __bis_SR_register(LPM3_bits | GIE);         // enter LPM3
@@ -187,25 +168,12 @@ void Init_GPIO()
 
     GPIO_setAsInputPin(GPIO_PORT_P1, GPIO_PIN1);
 
-    // Configure button S1 (P1.2) interrupt
-    GPIO_selectInterruptEdge(GPIO_PORT_P1, GPIO_PIN2, GPIO_HIGH_TO_LOW_TRANSITION);
-    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN2);
-    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN2);
-    GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN2);
-
-    // Configure button S2 (P2.6) interrupt
-    GPIO_selectInterruptEdge(GPIO_PORT_P2, GPIO_PIN6, GPIO_HIGH_TO_LOW_TRANSITION);
-    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P2, GPIO_PIN6);
-    GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN6);
-    GPIO_enableInterrupt(GPIO_PORT_P2, GPIO_PIN6);
-
     // Set P4.1 and P4.2 as Secondary Module Function Input, LFXT.
     GPIO_setAsPeripheralModuleFunctionInputPin(
            GPIO_PORT_P4,
            GPIO_PIN1 + GPIO_PIN2,
            GPIO_PRIMARY_MODULE_FUNCTION
            );
-
 
     // Disable the GPIO power-on default high-impedance mode
     // to activate previously configured port settings
@@ -299,32 +267,6 @@ __interrupt void PORT2_ISR(void)
                 holdCount = 0;
                 switch (*mode)
                 {
-                /*
-                    case STOPWATCH_MODE:
-                        // Reset stopwatch if stopped; Split if running
-                        if (!(*stopWatchRunning))
-                        {
-                            if (LCDMEMCTL & LCDDISP)
-                                LCDMEMCTL &= ~LCDDISP;
-                            else
-                                resetStopWatch();
-                        }
-                        else
-                        {
-                            // Use LCD Blink memory to pause/resume stopwatch at split time
-                            LCDBMEMW[pos1/2] = LCDMEMW[pos1/2];
-                            LCDBMEMW[pos2/2] = LCDMEMW[pos2/2];
-                            LCDBMEMW[pos3/2] = LCDMEMW[pos3/2];
-                            LCDBMEMW[pos4/2] = LCDMEMW[pos4/2];
-                            LCDBMEMW[pos5/2] = LCDMEMW[pos5/2];
-                            LCDBMEMW[pos6/2] = LCDMEMW[pos6/2];
-                            LCDBMEMW[12/2] = LCDMEMW[12/2];
-
-                            // Toggle between LCD Normal/Blink memory
-                            LCDMEMCTL ^= LCDDISP;
-                        }
-                        break;
-                        */
                     case TEMPSENSOR_MODE:
                         // Toggle temperature unit flag
                         *tempUnit ^= 0x01;
