@@ -97,7 +97,7 @@ int main(void)
     Init_Clock();
     Init_RTC();
     Init_LCD();
-    //enableExtReference();  This is the old function.
+    enableExtReference();
 
     PMM_External_1_2VRef(1);  //Expose 1.2 volt reference on P1.4
 

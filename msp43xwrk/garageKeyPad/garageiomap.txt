@@ -1,0 +1,4 @@
+16x2 LCD character display required +5 for backlight
+MSP430G2553
+P1.7 is SDA
+P1.6 is CLK

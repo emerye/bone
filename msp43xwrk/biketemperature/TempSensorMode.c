@@ -61,7 +61,7 @@ Timer_A_initUpModeParam initUpParam_A1 =
     TIMER_A_CLOCKSOURCE_ACLK,               // ACLK Clock Source
     TIMER_A_CLOCKSOURCE_DIVIDER_1,          // ACLK/1 = 32768Hz
  // 0x2000,                                 // Timer period original value.
-    0xFFFD,                                  // Update every 2 seconds
+    0xFFFD,                                  // Update every 4 seconds
     TIMER_A_TAIE_INTERRUPT_DISABLE,         // Disable Timer interrupt
     TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE ,   // Disable CCR0 interrupt
     TIMER_A_DO_CLEAR                        // Clear value
