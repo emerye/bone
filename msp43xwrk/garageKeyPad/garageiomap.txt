@@ -1,4 +1,14 @@
 16x2 LCD character display required +5 for backlight
 MSP430G2553
-P1.7 is SDA
-P1.6 is CLK
+P1.7 is I2C SDA
+P1.6 is I2C SCL 
+
+Keypad
+P1.1   Col1  Keypad pin 4    1,4,7,*   Output
+P1.2   Col2  Keypad pin 3    2,5,8,0   Output
+P2.0   Col3  Keypad pin 2    3,6,9,#   Output
+P2.1   Col4  Keypad pin 1    A,B,C,D   Output
+P2.2   Row1  Keypad pin 8    1,2,3,A   Input with PU
+P2.3   Row2  Keypad pin 7    4,5,6,B   Input with PU
+P2.4   Row3  Keypad pin 6    7,8,9,C   Input with PU
+P2.5   Row4  Keypad pin 5    *,0,#,D   Input with PU

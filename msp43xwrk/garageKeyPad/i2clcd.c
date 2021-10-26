@@ -78,3 +78,32 @@ void LCDinit(void) {
        __delay_cycles (20000);
 
 }
+
+//Prints a string starting at position.
+
+void WriteString (int row, int ypos, const char message[])
+{
+  int stLength = strlen (message);
+  int i, address;
+
+  switch (row)
+    {
+    case 0:
+      address = ypos;
+      break;
+    case 1:
+      address = 0x40 + ypos;
+      break;
+    }
+  address += 0x80;
+  WriteI2CByte ((unsigned char) address, 0);
+  for (i = 0; i < stLength; i++)
+    {
+      if (message[i] > 0x1f)
+    {
+      WriteI2CByte (message[i], 1);
+    }
+    }
+}
+
+

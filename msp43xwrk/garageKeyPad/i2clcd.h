@@ -38,5 +38,6 @@ extern volatile unsigned char TXByteCtr;
 void SendNibble(uint8_t, uint8_t);
 void WriteI2CByte (uint8_t bytetoWrite, uint8_t cmd);
 void LCDinit(void);
+void WriteString (int row, int ypos, const char message[]);
 
 #endif /* I2CLCD_H_ */
