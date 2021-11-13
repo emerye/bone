@@ -75,28 +75,42 @@
 #include <intrinsics.h>
 #include "i2clcd.h"
 
+//Combo is 5,4,7
+uint8_t combo[4] = { 5, 4, 8 };
+
 volatile unsigned char TXData;
 volatile unsigned char TXByteCtr;
 volatile unsigned char activeRow;
 volatile unsigned char activeCol;
 volatile unsigned char pressedCol;
 volatile unsigned char keyValid;
+volatile unsigned int tickCount = 0;
+volatile unsigned int backLightCount = 480;
+volatile uint8_t comboDigitCount;
+volatile uint8_t ledState = 1;       //0 for off  1 for on
 
-char buffer[10] = { 0 };
+uint8_t comboIn[4];
+
+char buffer[20] = { 0 };
 
 void initKeyPadIO(void);
 void scanColumns(void);
 void setColumnState(uint8_t, uint8_t);
+void backLightOff(void);
+void backLightOn(void);
 
 const char keymap[] = { '1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9',
                         'C', '*', '0', '#', 'D' };
 const char message[] = "0123456789ABCDEF";
-
+https://www.msn.com/en-us/feed
 int main(void)
 {
-    //Init WD Counter 128msec
-    BCSCTL1 |= DIVA_3;                        // ACLK/8
-    WDTCTL = WDT_ADLY_16;                     // WDT 16msec * 8 = 128msec
+    uint8_t openState = 0;
+
+    //BCSCTL1 |= DIVA_3;                      // ACLK/8
+    BCSCTL1 |= DIVA_2;                        // ACLK/4         // 16 msec * 4 = 64 msec
+    //BCSCTL1 |= DIVA_1;                      // ACLK/2
+    WDTCTL = WDT_ADLY_16;                     // WDT 16msec * 8 = 128msec   16msec * 4 = 64msec
     IE1 |= WDTIE;                             // Enable WDT interrupt
     P1DIR = 0xFF;                             // All P1.x outputs
     P1OUT = 0;                                // All P1.x reset
@@ -120,28 +134,107 @@ int main(void)
     IE2 |= UCB0TXIE;                          // Enable TX interrupt
 
     LCDinit();
-    WriteString(0, 0, message);
-    WriteString(1, 0, "     ");
+
     while (1)
     {
+        if (backLightCount > 480)
+        {
+            backLightOff();
+            backLightCount = 0;
+        }
+
+        if ((tickCount % 16) == 0)
+        {
+            WriteString(0, 7, "        ");
+            sprintf(buffer, "Tick %d\0", tickCount / 16);
+            WriteString(0, 7, buffer);
+        }
+
+        keyValid = 0;
         scanColumns();
         if (keyValid)
         {
-            sprintf(buffer, "%c", keymap[activeRow + pressedCol]);
-            WriteString(1, 0, buffer);
-            P1OUT &= ~BIT0;
-            keyValid = 0;
+            sprintf(buffer, "Key %c\0", keymap[activeRow + pressedCol]);
+            WriteString(0, 0, buffer);
+
+            if (openState == 1)
+            {
+                WriteString(1, 0, "Action");
+              //  comboIn[0] = 20;
+            }
+
+            if (openState == 0)
+            {
+                comboIn[comboDigitCount] = activeRow + pressedCol;
+                if (comboIn[comboDigitCount] == 5)  //Digit 1  '5' Pressed
+                {
+                    tickCount = 0;        //'1' Pressed
+                    comboDigitCount = 0;
+                    backLightCount = 0;
+                }
+                comboDigitCount += 1;
+
+                if (comboDigitCount >= 3)
+                {
+                    if (((combo[0] == comboIn[0]) && (combo[1] == comboIn[1])
+                            && (combo[2] == comboIn[2])) == 1)
+                    {
+                        WriteString(1, 0, "Action");
+                        comboIn[0] = 20;
+                        openState = 1;
+                    }
+                    tickCount = 0;
+                    comboDigitCount = 0;
+                }
+            }
+        }
+
+        if (openState == 0)
+        {
+            //Five seconds to enter code.
+            if (tickCount > 80)
+            {
+                tickCount = 0;
+                comboDigitCount = 0;
+                P1OUT &= ~BIT0;
+            }
+        }
+
+        if (openState == 1)
+        {
+            if (tickCount > 272)
+            {                           //17 second delay
+                openState = 0;
+                tickCount = 0;
+                comboDigitCount = 0;
+                WriteString(1, 0, "             ");
+                P1OUT &= ~BIT0;
+            }
         }
         __bis_SR_register(LPM3_bits | GIE);     // Re-enter LPM0
     }
+}
+
+void backLightOff(void)
+{
+    ledState = 0;
+    backLightCount = 0;
+    WriteString(1, 15, " ");
+}
+
+void backLightOn(void)
+{
+    ledState = 1;
+    backLightCount = 0;
+    WriteString(1, 15, " ");
 }
 
 void setColumnState(uint8_t colnum, uint8_t state)
 {
     switch (colnum)
     {
-        case 0:
-        if(state)
+    case 0:
+        if (state)
         {
             P1OUT |= BIT1;
         }
@@ -150,8 +243,8 @@ void setColumnState(uint8_t colnum, uint8_t state)
             P1OUT &= ~BIT1;
         }
         break;
-        case 1:
-        if(state)
+    case 1:
+        if (state)
         {
             P1OUT |= BIT2;
         }
@@ -160,8 +253,8 @@ void setColumnState(uint8_t colnum, uint8_t state)
             P1OUT &= ~BIT2;
         }
         break;
-        case 2:
-        if(state)
+    case 2:
+        if (state)
         {
             P2OUT |= BIT0;
         }
@@ -170,8 +263,8 @@ void setColumnState(uint8_t colnum, uint8_t state)
             P2OUT &= ~BIT0;
         }
         break;
-        case 3:
-        if(state)
+    case 3:
+        if (state)
         {
             P2OUT |= BIT1;
         }
@@ -182,7 +275,6 @@ void setColumnState(uint8_t colnum, uint8_t state)
         break;
     }
 }
-
 
 void scanColumns()
 {
@@ -195,19 +287,21 @@ void scanColumns()
     setColumnState(1, 1);
     activeCol = 1;
     __delay_cycles(10);
-    setColumnState(1, 0);;
+    setColumnState(1, 0);
+    ;
     //Col 2
-    setColumnState(2, 1);;
+    setColumnState(2, 1);
+    ;
     activeCol = 2;
     __delay_cycles(10);
-    setColumnState(2, 0);;
+    setColumnState(2, 0);
+    ;
     //Col 3
     setColumnState(3, 1);
     activeCol = 3;
     __delay_cycles(10);
     setColumnState(3, 0);
 }
-
 
 void initKeyPadIO()
 {
@@ -226,7 +320,6 @@ void initKeyPadIO()
     P2IFG &= ~(BIT2 | BIT3 | BIT4 | BIT5);  //Clear interrupt
 }
 
-
 // Port 2 interrupt service routine
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT2_VECTOR
@@ -244,7 +337,8 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         __disable_interrupt();
         P2IFG &= ~BIT2;                 //Clear interrupt bit
         setColumnState(pressedCol, 1);  //Set column high
-        while((P2IN & 0x04) == 0x04);   //Loop until key depressed
+        while ((P2IN & 0x04) == 0x04)
+            ;   //Loop until key depressed
         setColumnState(pressedCol, 0);  //Set column low
         keyValid = 1;                   //Set key valid flag
         P1OUT |= BIT0;                  //Turn on LED on board
@@ -257,7 +351,8 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         __disable_interrupt();
         P2IFG &= ~BIT3;
         setColumnState(pressedCol, 1);
-        while((P2IN & 0x08) == 0x08);
+        while ((P2IN & 0x08) == 0x08)
+            ;
         setColumnState(pressedCol, 0);
         keyValid = 1;
         P1OUT |= BIT0;
@@ -270,7 +365,8 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         __disable_interrupt();
         P2IFG &= ~BIT4;
         setColumnState(pressedCol, 1);
-        while((P2IN & 0x10) == 0x10);
+        while ((P2IN & 0x10) == 0x10)
+            ;
         setColumnState(pressedCol, 0);
         keyValid = 1;
         P1OUT |= BIT0;
@@ -283,13 +379,15 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         __disable_interrupt();
         P2IFG &= ~BIT5;
         setColumnState(pressedCol, 1);
-        while((P2IN & BIT5) == BIT5);
+        while ((P2IN & BIT5) == BIT5)
+            ;
         setColumnState(pressedCol, 0);
         keyValid = 1;
         P1OUT |= BIT0;
         __enable_interrupt();
     }
     P2IFG = 0;        //Clear interrupts
+    backLightOn();
     __bic_SR_register_on_exit(LPM3_bits);
 }
 
@@ -315,9 +413,10 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
     {
         UCB0CTL1 |= UCTXSTP;                    // I2C stop condition
         IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
-      __bic_SR_register_on_exit(LPM3_bits);      // Exit LPM3
+        __bic_SR_register_on_exit(LPM3_bits);      // Exit LPM3
     }
 }
+
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=WDT_VECTOR
@@ -328,5 +427,8 @@ void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
 #error Compiler not supported!
 #endif
 {
+    tickCount++;
+    backLightCount++;
+    P1OUT &= ~BIT0;         //Turn off led on pcb
     __bic_SR_register_on_exit(LPM3_bits);   // Clear LPM3 bits from 0(SR)
 }

@@ -1,5 +1,6 @@
 #include <msp430.h>
 #include <stdint.h>
+#include <string.h>
 #include "i2clcd.h"
 
 //Send 4 high bits over I2C
@@ -9,7 +10,7 @@ void SendNibble(uint8_t byte, uint8_t cmd) {
     TXByteCtr = 1;                          // Load TX byte counter
     while (UCB0CTL1 & UCTXSTP);             // Ensure stop condition got sent
     UCB0CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
-    __bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
+    __bis_SR_register(LPM3_bits + GIE);        // Enter LPM0 w/ interrupts
                                             // Remain in LPM0 until all data
                                             // is TX'd
 }
@@ -17,7 +18,13 @@ void SendNibble(uint8_t byte, uint8_t cmd) {
 
 void WriteI2CNibble (uint8_t msbtoWrite, uint8_t cmd)
 {
-  unsigned char bytetoWrite = BACKLED;
+  unsigned char bytetoWrite;
+
+  if(ledState > 0) {
+      bytetoWrite = BACKLED;
+  } else {
+      bytetoWrite = 0;
+  }
 
   bytetoWrite = bytetoWrite | (msbtoWrite & 0xF0) | ENABLE | cmd;
   SendNibble(bytetoWrite, cmd);
@@ -27,7 +34,6 @@ void WriteI2CNibble (uint8_t msbtoWrite, uint8_t cmd)
 
   bytetoWrite |= ENABLE;
   SendNibble(bytetoWrite, cmd);
-
 }
 
 /**
@@ -43,12 +49,11 @@ void WriteI2CByte (uint8_t bytetoWrite, uint8_t cmd)
 }
 
 
-
 /**
  * Initialize character lcd in 4 bit mode.
  */
-void LCDinit(void) {
-
+void LCDinit(void)
+{
     __delay_cycles(20000);      //Wait 15 msec after power up
     WriteI2CNibble(0x30, 0);
     __delay_cycles(10000);       //Wait 5 msec
@@ -57,52 +62,51 @@ void LCDinit(void) {
     WriteI2CNibble(0x30, 0);
     __delay_cycles(10000);       //Wait 4.1 msec
 
-    WriteI2CNibble (0x20, 0);     //Set 4-bit/2-line
+    WriteI2CNibble(0x20, 0);     //Set 4-bit/2-line
     __delay_cycles(2000);       //Wait 160usec
 
     // Default Cursor, Display and Entry states set in the constructor
-       __delay_cycles(1000);
+    __delay_cycles(1000);
 
-       WriteI2CByte (LCD_CLEAR_DISPLAY, 0);
-       __delay_cycles (2000);
-       WriteI2CByte (LCD_RETURN_HOME, 0);
-       __delay_cycles (2000);
-       WriteI2CByte (LCD_CURSOR_DISPLAY, 0);
-       __delay_cycles (100);
-       WriteI2CByte (LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE, 0);
+    WriteI2CByte(LCD_CLEAR_DISPLAY, 0);
+    __delay_cycles(2000);
+    WriteI2CByte(LCD_RETURN_HOME, 0);
+    __delay_cycles(2000);
+    WriteI2CByte(LCD_CURSOR_DISPLAY, 0);
+    __delay_cycles(100);
+    WriteI2CByte(LCD_DISPLAY_ON_OFF | DISPLAY_ENTIRE, 0);
 
-       __delay_cycles (2000);
-       WriteI2CByte (LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT, 0);
-       __delay_cycles (2000);
-       WriteI2CByte (LCD_RETURN_HOME, 0);
-       __delay_cycles (20000);
-
+    __delay_cycles(2000);
+    WriteI2CByte(LCD_ENTRY_MODE_SET | ENTRY_MODE_LEFT, 0);
+    __delay_cycles(2000);
+    WriteI2CByte(LCD_RETURN_HOME, 0);
+    __delay_cycles(20000);
 }
 
+
 //Prints a string starting at position.
-
-void WriteString (int row, int ypos, const char message[])
+void WriteString(int row, int ypos, const char message[])
 {
-  int stLength = strlen (message);
-  int i, address;
+    int stLength = strlen(message);
+    int i, address;
 
-  switch (row)
+    switch (row)
     {
     case 0:
-      address = ypos;
-      break;
+        address = ypos;
+        break;
     case 1:
-      address = 0x40 + ypos;
-      break;
+        address = 0x40 + ypos;
+        break;
     }
-  address += 0x80;
-  WriteI2CByte ((unsigned char) address, 0);
-  for (i = 0; i < stLength; i++)
+    address += 0x80;
+    WriteI2CByte((unsigned char) address, 0);
+    for (i = 0; i < stLength; i++)
     {
-      if (message[i] > 0x1f)
-    {
-      WriteI2CByte (message[i], 1);
-    }
+        if (message[i] > 0x1f)
+        {
+            WriteI2CByte(message[i], 1);
+        }
     }
 }
 

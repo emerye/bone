@@ -34,6 +34,7 @@
 
 extern volatile unsigned char TXData;
 extern volatile unsigned char TXByteCtr;
+extern volatile uint8_t ledState;
 
 void SendNibble(uint8_t, uint8_t);
 void WriteI2CByte (uint8_t bytetoWrite, uint8_t cmd);
