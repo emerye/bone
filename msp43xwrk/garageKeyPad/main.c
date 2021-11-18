@@ -75,8 +75,6 @@
 #include <intrinsics.h>
 #include "i2clcd.h"
 
-//Combo is 5,4,7
-uint8_t combo[4] = { 5, 4, 8 };
 
 volatile unsigned char TXData;
 volatile unsigned char TXByteCtr;
@@ -84,28 +82,31 @@ volatile unsigned char activeRow;
 volatile unsigned char activeCol;
 volatile unsigned char pressedCol;
 volatile unsigned char keyValid;
-volatile unsigned int tickCount = 0;
-volatile unsigned int backLightCount = 480;
+volatile unsigned int tickCount = 600;
 volatile uint8_t comboDigitCount;
 volatile uint8_t ledState = 1;       //0 for off  1 for on
-
-uint8_t comboIn[4];
+volatile uint8_t openState = 0;
+volatile uint16_t codeEntered = 0;
 
 char buffer[20] = { 0 };
-
 void initKeyPadIO(void);
 void scanColumns(void);
 void setColumnState(uint8_t, uint8_t);
 void backLightOff(void);
 void backLightOn(void);
 
+
+const uint16_t combo = 547;
 const char keymap[] = { '1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9',
                         'C', '*', '0', '#', 'D' };
-const char message[] = "0123456789ABCDEF";
-https://www.msn.com/en-us/feed
+const char digits[] = { 1, 2, 3, 80, 4, 5, 6, 81, 7, 8, 9, 82, 83, 0, 84, 85 };
+
+
+void checkCombo(void);
+
 int main(void)
 {
-    uint8_t openState = 0;
+    uint8_t btnCode;
 
     //BCSCTL1 |= DIVA_3;                      // ACLK/8
     BCSCTL1 |= DIVA_2;                        // ACLK/4         // 16 msec * 4 = 64 msec
@@ -137,16 +138,20 @@ int main(void)
 
     while (1)
     {
-        if (backLightCount > 480)
+        if (tickCount > 256)
         {
             backLightOff();
-            backLightCount = 0;
+            tickCount = 0;
+            codeEntered = 0;
+            comboDigitCount = 0;
+            openState = 0;
+            WriteString(1, 0, "          ");
         }
 
         if ((tickCount % 16) == 0)
         {
             WriteString(0, 7, "        ");
-            sprintf(buffer, "Tick %d\0", tickCount / 16);
+            sprintf(buffer, "Ticks %d\0", tickCount / 16);
             WriteString(0, 7, buffer);
         }
 
@@ -155,48 +160,52 @@ int main(void)
         if (keyValid)
         {
             sprintf(buffer, "Key %c\0", keymap[activeRow + pressedCol]);
+            ledState = 1;
             WriteString(0, 0, buffer);
+            if((openState == 0) && comboDigitCount == 0) {
+                tickCount = 0;
+            }
 
             if (openState == 1)
             {
-                WriteString(1, 0, "Action");
-              //  comboIn[0] = 20;
-            }
-
-            if (openState == 0)
-            {
-                comboIn[comboDigitCount] = activeRow + pressedCol;
-                if (comboIn[comboDigitCount] == 5)  //Digit 1  '5' Pressed
-                {
-                    tickCount = 0;        //'1' Pressed
-                    comboDigitCount = 0;
-                    backLightCount = 0;
-                }
-                comboDigitCount += 1;
-
-                if (comboDigitCount >= 3)
-                {
-                    if (((combo[0] == comboIn[0]) && (combo[1] == comboIn[1])
-                            && (combo[2] == comboIn[2])) == 1)
-                    {
-                        WriteString(1, 0, "Action");
-                        comboIn[0] = 20;
-                        openState = 1;
-                    }
-                    tickCount = 0;
-                    comboDigitCount = 0;
-                }
-            }
-        }
-
-        if (openState == 0)
-        {
-            //Five seconds to enter code.
-            if (tickCount > 80)
-            {
+                ledState = 1;
+                tickCount = 0;
+                WriteString(1, 0, "ReOpen");
                 tickCount = 0;
                 comboDigitCount = 0;
-                P1OUT &= ~BIT0;
+                codeEntered = 0;
+            }
+
+            btnCode = activeRow + pressedCol;
+            if (openState == 0)
+            {
+                if(btnCode == 14) {
+                    checkCombo();
+                }
+                if (digits[btnCode] < 10) {
+                    switch (comboDigitCount) {
+                    case 0:
+                        codeEntered = digits[btnCode];
+                        comboDigitCount++;
+                        break;
+                    case 1:
+                        codeEntered = codeEntered * 10 + digits[btnCode];
+                        comboDigitCount++;
+                        break;
+                    case 2:
+                        codeEntered = codeEntered * 10 + digits[btnCode];
+                        comboDigitCount++;
+                        break;
+                    case 3:
+                        codeEntered = codeEntered * 10 + digits[btnCode];
+                        comboDigitCount++;
+                        break;
+                    default:
+                        comboDigitCount = 0;
+                        codeEntered = 0;
+                        break;
+                    }
+                }
             }
         }
 
@@ -207,8 +216,11 @@ int main(void)
                 openState = 0;
                 tickCount = 0;
                 comboDigitCount = 0;
+                codeEntered = 0;
                 WriteString(1, 0, "             ");
                 P1OUT &= ~BIT0;
+            } else {
+
             }
         }
         __bis_SR_register(LPM3_bits | GIE);     // Re-enter LPM0
@@ -218,14 +230,14 @@ int main(void)
 void backLightOff(void)
 {
     ledState = 0;
-    backLightCount = 0;
+    tickCount = 0;
     WriteString(1, 15, " ");
 }
 
 void backLightOn(void)
 {
     ledState = 1;
-    backLightCount = 0;
+    tickCount = 0;
     WriteString(1, 15, " ");
 }
 
@@ -288,19 +300,32 @@ void scanColumns()
     activeCol = 1;
     __delay_cycles(10);
     setColumnState(1, 0);
-    ;
     //Col 2
     setColumnState(2, 1);
-    ;
     activeCol = 2;
     __delay_cycles(10);
     setColumnState(2, 0);
-    ;
     //Col 3
     setColumnState(3, 1);
     activeCol = 3;
     __delay_cycles(10);
     setColumnState(3, 0);
+}
+
+void checkCombo(void) {
+
+    if(combo == codeEntered) {
+        WriteString(1, 0, "Moving  ");
+        openState = 1;
+        tickCount = 0;
+        comboDigitCount = 0;
+        codeEntered = 0;
+    } else {
+        WriteString(1, 0, "Failed  ");
+        comboDigitCount = 0;
+        openState = 0;
+        codeEntered = 0;
+    }
 }
 
 void initKeyPadIO()
@@ -387,7 +412,6 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         __enable_interrupt();
     }
     P2IFG = 0;        //Clear interrupts
-    backLightOn();
     __bic_SR_register_on_exit(LPM3_bits);
 }
 
@@ -428,7 +452,6 @@ void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
 #endif
 {
     tickCount++;
-    backLightCount++;
     P1OUT &= ~BIT0;         //Turn off led on pcb
     __bic_SR_register_on_exit(LPM3_bits);   // Clear LPM3 bits from 0(SR)
 }
