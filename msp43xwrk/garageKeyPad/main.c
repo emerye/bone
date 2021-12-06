@@ -75,6 +75,8 @@
 #include <intrinsics.h>
 #include "i2clcd.h"
 
+#define TIMEOUT 256
+
 
 volatile unsigned char TXData;
 volatile unsigned char TXByteCtr;
@@ -138,7 +140,7 @@ int main(void)
 
     while (1)
     {
-        if (tickCount > 256)
+        if (tickCount > TIMEOUT)
         {
             backLightOff();
             tickCount = 0;
