@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from smbus2 import SMBus
 from time import sleep
 
@@ -37,7 +38,7 @@ def initLCD():
 
 # Write a byte of data to LCD display
 def writeLCDByte(bytetoWrite, commandType):
-    bus = SMBus(1)
+    bus = SMBus(2)
 
     highByte = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
     bus.write_byte(address, highByte)
@@ -50,7 +51,7 @@ def writeLCDByte(bytetoWrite, commandType):
     bus.write_byte(address, lowByte)
 
 def writeLCDNibble(bytetoWrite, commandType):
-    bus = SMBus(1)
+    bus = SMBus(2)
 
     highByte = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
     bus.write_byte(address, highByte)
@@ -65,13 +66,13 @@ def WriteString(row, pos, displayString):
     for x in displayString:
         writeLCDByte(ord(x),1)
 
-bus = SMBus(1)
+bus = SMBus(2)
 initLCD()
 
-WriteString(0, 20, "Hello There Sunday")
-WriteString(1, 20, "Hello There")
-#WriteString(0, 0, "Hello There")
-#WriteString(1, 0, "Hello There")
+WriteString(0, 0, "Line1")
+WriteString(1, 20, "Line4")
+WriteString(0, 20, "Line3")
+WriteString(1, 0, "Line2")
 
 bus.close()
 
