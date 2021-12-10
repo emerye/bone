@@ -38,7 +38,7 @@ def initLCD():
 
 # Write a byte of data to LCD display
 def writeLCDByte(bytetoWrite, commandType):
-    bus = SMBus(2)
+    bus = SMBus(1)
 
     highByte = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
     bus.write_byte(address, highByte)
@@ -51,7 +51,7 @@ def writeLCDByte(bytetoWrite, commandType):
     bus.write_byte(address, lowByte)
 
 def writeLCDNibble(bytetoWrite, commandType):
-    bus = SMBus(2)
+    bus = SMBus(1)
 
     highByte = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
     bus.write_byte(address, highByte)
@@ -66,7 +66,7 @@ def WriteString(row, pos, displayString):
     for x in displayString:
         writeLCDByte(ord(x),1)
 
-bus = SMBus(2)
+bus = SMBus(1)
 initLCD()
 
 WriteString(0, 0, "Line1")
