@@ -1,27 +1,23 @@
+#!/usr/bin/env python3
+
 from adafruit_ble import BLERadio
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_ble.services.standard.device_info import DeviceInfoService
 from adafruit_ble_cycling_speed_and_cadence import CyclingSpeedAndCadenceService
 import time
 
+
 radio = BLERadio()
-print("scanning")
-found = set()
-for entry in radio.start_scan(timeout=10, minimum_rssi=-70):
-    addr = entry.address
-    if addr not in found:
-        print(entry)
-    found.add(addr)
-
-print("scan done")
-
 advs = {}
-for adv in radio.start_scan(ProvideServicesAdvertisement, timeout=5):
+print("scanning")
+for adv in radio.start_scan(ProvideServicesAdvertisement, timeout=10, minimum_rssi=-65):
     if CyclingSpeedAndCadenceService in adv.services:
         print("found a CyclingSpeedAndCadenceService advertisement")
         # Save advertisement. Overwrite duplicates from same address (device).
         advs[adv.address] = adv
-
+        print("Scan address: ", adv.address)
+        if adv.address == "c5:6a:43:c8:99:6b":
+            break
 radio.stop_scan()
 print("Done")
 
@@ -52,12 +48,21 @@ for conn in cyc_connections:
     cyc_services.append(conn[CyclingSpeedAndCadenceService])
     # Read data from each sensor once a second.
     # Stop if we lose connection to all sensors.
+    cuurentCrankRevs = None
+    currentCrankEventTime = None
+
+lastCrankTime = 0
+lastCrankRevs = 0
+diffCrankTime = 0
+diffCrankRevs = 0
 
 while True:
     still_connected = False
     wheel_revs = None
     crank_revs = None
     crank_event_time = None
+    crankRPM = None
+  
     for conn, svc in zip(cyc_connections, cyc_services):
         if conn.connected:
             still_connected = True
@@ -75,14 +80,27 @@ while True:
         break
     if wheel_revs:   # might still be None
         print(wheel_revs)
-#        clue_data[0].text = "Wheel: {0:d}".format(wheel_revs)
-#        clue_data.show()
-    if crank_revs:
-        print(crank_revs)
-#        clue_data[2].text = "Crank: {0:d}".format(crank_revs)
-#       clue_data.show()
-    if crank_event_time:
-        print("Crank event time:", crank_event_time)
-    time.sleep(0.1)
+    if crank_revs and crank_event_time:
+        diffCrankRevs = crank_revs - lastCrankRevs
+        if diffCrankRevs < 0:
+            diffCrankRevs = crank_revs + (65535 - lastCrankRevs)
+        lastCrankRevs = crank_revs
+
+        diffCrankTime = crank_event_time - lastCrankTime
+        if diffCrankTime < 0:
+            diffCrankTime = crank_event_time + (65535 - lastCrankTime)
+        lastCrankTime = crank_event_time
+        if diffCrankTime == 0:
+            crankRPM = 0
+        else:
+            crankRPM = (((diffCrankRevs / diffCrankTime) * 1024.0) * 60)
+    
+
+       # print("DiffTime %d  DiifRevs %d" % (diffCrankTime, diffCrankRevs))
+        if crankRPM != 0:
+            print("RPM %d  EventTime %d  CrankRev %d" % (crankRPM, crank_event_time, crank_revs))
+        
+    time.sleep(2)
+   
 
 
