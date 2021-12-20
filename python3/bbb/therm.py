@@ -5,33 +5,33 @@ import time
 import math
 
 def kelvin_to_c(kelvin):
-    return (kelvin - 273.15);
+    return (kelvin - 273.15)
 
 def celsius_to_f(celsius):
-    return (celsius * 1.8 + 32);
+    return (celsius * 1.8 + 32)
 
 
 def calcTemperature_fromRes(r):
 
-    a = 0.001307395;
-    b = 0.000234655;
-    c = 0.000000103;
+    a = 0.001307395
+    b = 0.000234655
+    c = 0.000000103
 
     bterm = 0.0
-    logr = 0.0;
+    logr = 0.0
     cterm = 0
     temp = 0
-    tkelvin = 0;
-    degc = 0;
+    tkelvin = 0
+    degc = 0
 
-    logr = math.log(r);
-    bterm = b * logr;
-    temp = logr * logr * logr;
-    cterm = c * temp;
+    logr = math.log(r)
+    bterm = b * logr
+    temp = logr * logr * logr
+    cterm = c * temp
     temp = a + bterm + cterm
     tkelvin = 1 / temp
-    temp = kelvin_to_c(tkelvin);
-    return celsius_to_f(temp);
+    temp = kelvin_to_c(tkelvin)
+    return celsius_to_f(temp)
  
 #main
 adc.setup()
@@ -53,4 +53,4 @@ adc.cleanup()
 
 
 def kelvin_to_c(kelvin):
-    return (kelvin - 273.15);
+    return (kelvin - 273.15)
