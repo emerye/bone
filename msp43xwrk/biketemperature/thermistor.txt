@@ -1,0 +1,3 @@
+Thermistor connections.
+P1.4 is 1.2 volt reference.
+P1.6 is ADC input.
