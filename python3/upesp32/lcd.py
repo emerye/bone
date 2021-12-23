@@ -10,7 +10,8 @@ class CharLCD:
     def __init__(self, address):
         self.address = address
         #Micropython hardward default
-        self.i2cobj = I2C(0, scl=Pin(18), sda=Pin(19), freq=100000) 
+        #self.i2cobj = I2C(0, scl=Pin(18), sda=Pin(19), freq=100000) 
+        self.i2cobj = I2C(1)   #default SDA=GPIO26 SCL=GPIO25
         self.initLCD()
 
     def writeLCDNibble(self, bytetoWrite, commandType):
