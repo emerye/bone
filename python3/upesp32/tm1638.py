@@ -211,6 +211,17 @@ class TM1638(object):
             self.segments(self.encode_string(string), pos)
         self.show('*F', pos + 2) # degrees C
 
+    def temperaturefloat(self, num, pos=0):
+        """Display temperature with .1 deg resolution"""
+        if num < -9:
+            self.show('lo', pos) # low
+        elif num > 99:
+            self.show('hi', pos) # high
+        else:
+            string = '{:>.1f}'.format(num)
+            self.segments(self.encode_string(string), pos)
+        self.show('*F', pos + 4) # degrees C
+
     def humidity(self, num, pos=4):
         """Displays 2 digit humidity followed by RH"""
         if num < -9:
