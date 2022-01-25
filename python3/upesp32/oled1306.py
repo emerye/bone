@@ -59,6 +59,7 @@ def writeByte(x, y, dta):
             display.pixel(x,y,0)
         x=x+1
 
+
 def disp16x16():
     x=10
     y=10
@@ -70,7 +71,6 @@ def disp16x16():
             x = x + 8
         x=0
    
-
 
 def disp32x50(xstart,ystart,dtaAddr):
 
@@ -97,25 +97,27 @@ def dispgrotesk32x64(xstart,ystart,dtaAddr):
             x = x + 8
         x = xstart
    
-###################################################
 
-display.fill(0x0)
-display.show()
-x=0
-y=0
-xpos=32
-byteCnt = 0
-for cnt in range(11):
-    for yinc in range (64):
-        for xinc in range(0,4):
-            writeByte( x, y + yinc, grotesk32x64[byteCnt] )
-            byteCnt += 1
-            x = x + 8
-        x=0
-    dispgrotesk32x64(xpos*1, 0, 256*cnt)
-    dispgrotesk32x64(xpos*2, 0, 256*cnt)
-    dispgrotesk32x64(xpos*3, 0, 256*cnt)
+
+###################################################
+while(True):
+    display.fill(0x0)
     display.show()
+    x=0
     y=0
+    xpos=32
+    byteCnt = 0
+    for cnt in range(11):
+        for yinc in range (64):
+            for xinc in range(0,4):
+                writeByte( x, y + yinc, grotesk32x64[byteCnt] )
+                byteCnt += 1
+                x = x + 8
+            x=0
+        dispgrotesk32x64(xpos*1, 0, 256*cnt)
+        dispgrotesk32x64(xpos*2, 0, 256*cnt)
+        dispgrotesk32x64(xpos*3, 0, 256*cnt)
+        display.show()
+        y=0
 
 
