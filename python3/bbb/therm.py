@@ -33,6 +33,7 @@ def calcTemperature_fromRes(r):
     temp = kelvin_to_c(tkelvin)
     return celsius_to_f(temp)
  
+ 
 #main
 adc.setup()
 ref = 1.808

@@ -1,5 +1,7 @@
 from machine import Pin, SPI
 import ssd1306
+import micropython
+
 from time import sleep
 
 hspi = SPI(1)  # sck=14 (scl), mosi=13 (sda), miso=12 (unused)
