@@ -4,11 +4,10 @@ from machine import Pin, SPI
 from xglcd_font import XglcdFont
 from ssd1309 import Display
 
-
 def test():
     """Test code."""
     spi = SPI(1, baudrate=10000000, sck=Pin(14), mosi=Pin(13))
-    display = Display(spi, dc=Pin(4), cs=Pin(15), rst=Pin(5))
+    display = Display(spi, dc=Pin(4), cs=Pin(15), rst=Pin(5), width=132)
 
     print("Loading fonts.  Please wait.")
   #  bally = XglcdFont('fonts/Bally7x9.c', 7, 9)
@@ -34,15 +33,27 @@ def test():
   #  text_height = perfect.height
   #  display.draw_text(display.width // 2 - text_width // 2, display.height - text_height, "1234", perfect, invert=False)
 
-    
+     
     text_width = arial.measure_text("0.9")
     text_height = arial.height
     display.draw_text(display.width // 2 - text_width // 2, display.height - text_height, "0.9", arial, invert=False)
-
         
     display.present()
 
-    sleep(10)
+    display.clear()
+    temperature = 9.3
+    for i in range(15):
+        dtemp = '{0:.1f}'.format(temperature) 
+        text_width = arial.measure_text(dtemp)
+        text_height = arial.height
+        display.draw_text(display.width // 2 - text_width // 2, display.height - text_height, dtemp , arial, invert=False)
+        display.present()
+        sleep(2)
+        display.clear()
+        temperature = temperature + 4.1
+        print(temperature)
+
+
     display.cleanup()
     print('Done.')
 
