@@ -23,6 +23,7 @@ def init():
     global starttick
     global perfect
     global display
+    
 
     spi = SPI(0, baudrate=2000000, sck=Pin(18), mosi=Pin(19))
     #SSD1309 with width of 128 is used on bike
@@ -37,15 +38,23 @@ def init():
 
 
 def dispCadence(cadvalue):
-
     display.clear()
     dispString = str("{:.0f}".format(cadvalue))
     text_width = perfect.measure_text(dispString)
     text_height = perfect.height
     display.draw_text(display.width // 2 - text_width // 2, display.height//2 - text_height, dispString, perfect, spacing=2 )
     display.present()
-      
+
+
+def dispString(dispValue):
+    display.clear()
+    text_width = perfect.measure_text(dispValue)
+    text_height = perfect.height
+    display.draw_text(display.width // 2 - text_width // 2, display.height//2 - text_height, dispValue, perfect, spacing=2 )
+    display.present() 
+
 # Start
+deadloop = 0
 init()
 
 display.draw_text(1, 19, 'POWER', perfect, spacing=2 )
@@ -53,8 +62,13 @@ display.present()
 utime.sleep(2)
 
 while(True):
-  
+    deadloop += 1
+    if (deadloop > 400):
+        deadloop = 0
+        dispString('---')
+
     if newevent > 0:
+        deadloop = 0
         curtick = utime.ticks_ms()
         period = utime.ticks_diff(curtick, starttick)
         starttick = curtick 
