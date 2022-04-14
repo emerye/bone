@@ -162,7 +162,7 @@ void tempSensor()
             signed short temp = (ADCMEM0 - CALADC_15V_30C);
             *degC = ((long)temp * 10 * (85-30) * 10)/((CALADC_15V_85C-CALADC_15V_30C)*10) + 300;
 
-            *degC = *degC - 25;  //Manual correction   Needed for board on bike. This seems to change. Not used.
+            *degC = *degC - 25;  //Manual correction   Needed for board on bike. This seems to change.
             *degF = (*degC) * 9 / 5 + 320;
 
             // Update temperature on LCD. Internal temperature sensor
@@ -232,8 +232,8 @@ void tempSensorModeInit()
 
     // Check if any button is pressed
     Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam_A0);
-
 }
+
 
 void displayTemp()
 {
@@ -327,5 +327,4 @@ void displayADCVoltage()
         showChar((adcVolts/1)%10 + '0',pos5);
     if (adcVolts == 0)
         showChar('0',pos5);
-
 }

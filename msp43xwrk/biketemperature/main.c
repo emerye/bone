@@ -128,7 +128,7 @@ int main(void)
                 break;
 
             case TEMPSENSOR_MODE:        // Temperature Sensor mode
-              clearLCD();              // Clear all LCD segments
+                clearLCD();              // Clear all LCD segments
                 tempSensorModeInit();    // initialize temperature mode
                 tempSensor();
                 break;

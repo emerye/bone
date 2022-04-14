@@ -3,7 +3,7 @@
     "python.analysis.typeshedPaths": [
         ".vscode\\Pico-Stub"
     ],
-    "python.languageServer": "Pylance",
+    "python.languageServer": "Default",
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.extraPaths": [
         ".vscode\\Pico-Stub\\stubs"
