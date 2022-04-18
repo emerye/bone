@@ -76,7 +76,8 @@ void initLCD()
        LCDPCTL1 = 0x07FF;
        LCDPCTL2 = 0x00F0;                                         // L0~L26 & L36~L39 pins selected
 
-       LCDCTL0 = LCDSSEL_0 | LCDDIV_7;                            // flcd ref freq is xtclk
+   //    LCDCTL0 = LCDSSEL_0 | LCDDIV_7;                            // flcd ref freq is xtclk  Original value with flicker in sunlight
+       LCDCTL0 = LCDSSEL_0 | LCDDIV_4;                            // flcd ref freq is xtclk. Changed divider and battery to fix.
 
        // LCD Operation - Mode 3, internal 3.08v, charge pump 256Hz
        LCDVCTL = LCDCPEN | LCDREFEN | VLCD_6 | (LCDCPFSEL0 | LCDCPFSEL1 | LCDCPFSEL2 | LCDCPFSEL3);
