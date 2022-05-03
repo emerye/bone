@@ -12,6 +12,7 @@ volatile unsigned int cds_tick = 0;             //msec tick count used for caden
 volatile unsigned int cadence_value = 0;        //Cadence value to display
 volatile unsigned char update_cds;               // Flag to tell to update cadence
 volatile unsigned int cds_timeout;
+volatile float bat_voltage;               //Battery voltage when S2 is pushed.
 
 
 #define pos1 4                                                 // Digit A1 - L4
@@ -240,7 +241,10 @@ double readADCVoltage()
     return ((double)(ADCMEM0 / 1024.0) * VREF);
 }
 
-
+/*  Cadence Input P1.3
+ *  ADC6 Temperature Input P1.6
+ *  Bat input ADC5 P1.5
+ */
 int main(void)
 {
     volatile double tempC;
@@ -249,8 +253,6 @@ int main(void)
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
 
     initGpio();                             // Set all gpio as outputs with low state to prevent floating nodes
-
-    P1DIR |= BIT0;                                // P1.0 output On board LED
 
     // Configure XT1 oscillator
     P4SEL0 |= BIT1 | BIT2;                              // P4.2~P4.1: crystal pins
@@ -264,13 +266,24 @@ int main(void)
 
     CSCTL4 = SELMS__DCOCLKDIV | SELA__XT1CLK;   // set XT1 32768Hz, DCOCLK as MCLK and SMCLK source
 
-    // Configure GPIO
+    // Configure GPIOs
     P1OUT &= ~BIT0;                         // Clear P1.0 output latch for a defined power-on state
     P1DIR |= BIT0;                          // Set P1.0 to output direction
+
+    //Cadence switch input
     P1OUT |= BIT3;                          // Configure P1.3 as pulled-up
     P1REN |= BIT3;                          // P1.3 pull-up register enable
     P1IES |= BIT3;                          // P1.3 Hi/Low edge
     P1IE |= BIT3;                           // P1.3 interrupt enabled
+
+    //S2 Button P2.6
+    P2DIR &= ~BIT6;                          // Set P2.6 as input
+    P2OUT |= BIT6;                           // P2.6 high
+    P2REN |= BIT6;                          // P2.3 pull-up register enable
+    P2IES |= BIT6;                          // P2.3 Hi/Low edge
+    //P2IE |= BIT6;                           // P2.3 interrupt enabled
+
+    P1OUT &= ~BIT1;                          // Set P1.1 low
 
     // Disable the GPIO power-on default high-impedance mode
     // to activate previously configured port settings
@@ -285,12 +298,13 @@ int main(void)
     // Configure ADC A6 pin for ADC and Ext 1.2 volt Ref in system cfg register in SYS Module
     SYSCFG2 |= ADCPCTL6;
     SYSCFG2 |= ADCPCTL4;
+    SYSCFG2 |= ADCPCTL5;        //Input for measuring Bat Voltage P1.5
 
     // Configure ADC10
     ADCCTL0 |= ADCSHT_4 | ADCON;                             // ADCON, S&H=64 ADC clks
     ADCCTL1 |= ADCSHP;                                       // ADCCLK = MODOSC; sampling timer
     ADCCTL2 |= ADCRES;                                       // 10-bit conversion results
-    ADCMCTL0 |= ADCINCH_6 | ADCSREF_1;;                      // A1 ADC input select; 1.5 volt internal reference
+    ADCMCTL0 |= ADCINCH_6 | ADCSREF_1;;                      // A6 ADC input select
     ADCIE |= ADCIE0;                                         // Enable ADC conv complete interrupt
 
     //Timer 1
@@ -314,6 +328,30 @@ int main(void)
             tempF = calccurrentTemperature(readADCVoltage()) + 1;
             displayTemperature(tempF);
         }
+
+        //Bat Voltage A5 P1.5
+        if( (P2IN & 0x40) == 0x40) {
+                 LCDM12W_L &= ~BIT1;
+               } else {
+                 LCDM12W_L |= BIT1;
+
+                 ADCMCTL0 &= ~ADCINCH_6;                        //Disable channel 6
+                 ADCMCTL0 |= ADCINCH_5 | ADCSREF_1;;            // A5 ADC input select
+                 ADCIE |= ADCIE0;
+
+                 ADCCTL0 |= ADCENC | ADCSC;                           // Sampling and conversion start
+                 __bis_SR_register(LPM0_bits | GIE);                  // LPM0, ADC_ISR will force exit
+                 __no_operation();                                    // For debug only
+                 bat_voltage = ((ADCMEM0/1024.0) * 1.50) *1000;
+                 __no_operation();
+                 __disable_interrupt();
+                 ADCMCTL0 |= ADCINCH_6 | ADCSREF_1;                      // Set back to A6 ADC input select
+                 clearDisplay();
+                 displayValue((unsigned int)bat_voltage);
+                 __no_operation();
+                 __delay_cycles(100000);
+                 __enable_interrupt();
+               }
 
         if (cds_timeout > 5)
         {
@@ -371,6 +409,11 @@ void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
           cds_timeout += 1;
           twoSecUpdate += 1;
           LCDM12W_L ^= BIT2;
+          if( (P2IN & 0x40) == 0x40) {
+            LCDM12W_L &= ~BIT1;
+          } else {
+            LCDM12W_L |= BIT1;
+          }
         }
     // Adjust for excess counts
     tickCountOffset += 768;
