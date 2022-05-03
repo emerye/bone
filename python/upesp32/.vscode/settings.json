@@ -1,0 +1,18 @@
+{
+    "python.languageServer": "Pylance",
+    "python.autoComplete.extraPaths": [
+        "src/lib",
+        "c:/users/andyh/Desktop/bone/micropython-stubs/stubs/cpython_core-pycopy",
+        "c:/users/andyh/Desktop/bone/micropython-stubs/stubs/micropython-v1_18-frozen/esp32/GENERIC",
+        "c:/users/andyh/Desktop/bone/micropython-stubs/stubs/micropython-v1_18-esp32",
+    ],
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.jediEnabled": false,
+    "python.analysis.extraPaths": [
+        "src/lib",
+        "c:/users/andyh/Desktop/bone/micropython-stubs/stubs/cpython_core-pycopy",
+        "c:/users/andyh/Desktop/bone/micropython-stubs/stubs/micropython-v1_18-frozen/esp32/GENERIC",
+        "c:/users/andyh/Desktop/bone/micropython-stubs/stubs/micropython-v1_18-esp32",
+    ],
+}
