@@ -6,13 +6,13 @@ volatile unsigned int tickmsec = 0;             // 1 msec clock tick counter
 volatile unsigned int ticksec = 0;              // Seconds tick
 volatile unsigned char twoSecUpdate = 0;        // Flag for 2 second ADC update
 volatile unsigned int ADC_Result;               //ADC Result
-volatile unsigned int cds_begin_tick = 0;
-volatile unsigned int cds_end_tick = 0;
+volatile unsigned int cds_begin_tick = 0;       //Cadence begin counting 1 msec clock ticks.
+volatile unsigned int cds_end_tick = 0;         //Cadence number of clock ticks.
 volatile unsigned int cds_tick = 0;             //msec tick count used for cadence
 volatile unsigned int cadence_value = 0;        //Cadence value to display
-volatile unsigned char update_cds;               // Flag to tell to update cadence
-volatile unsigned int cds_timeout;
-volatile float bat_voltage;               //Battery voltage when S2 is pushed.
+volatile unsigned char update_cds;               // Flag to tell main to update cadence
+volatile unsigned int cds_timeout;          //Time in seconds since last valid cadence.
+volatile float bat_voltage;               //Battery voltage when S2 is pushed. Needs a voltage divider.
 
 
 #define pos1 4                                                 // Digit A1 - L4
@@ -77,8 +77,8 @@ void initLCD()
        LCDPCTL1 = 0x07FF;
        LCDPCTL2 = 0x00F0;                                         // L0~L26 & L36~L39 pins selected
 
-   //    LCDCTL0 = LCDSSEL_0 | LCDDIV_7;                            // flcd ref freq is xtclk  Original value with flicker in sunlight
-       LCDCTL0 = LCDSSEL_0 | LCDDIV_4;                            // flcd ref freq is xtclk. Changed divider and battery to fix.
+    //   LCDCTL0 = LCDSSEL_0 | LCDDIV_7;                            //Original value.  flcd ref freq is xtclk  Original value with flicker in sunlight
+       LCDCTL0 = LCDSSEL_0 | LCDDIV_4;                            // flcd ref freq is xtclk. Changed divider and battery to fix. This is needed.
 
        // LCD Operation - Mode 3, internal 3.08v, charge pump 256Hz
        LCDVCTL = LCDCPEN | LCDREFEN | VLCD_6 | (LCDCPFSEL0 | LCDCPFSEL1 | LCDCPFSEL2 | LCDCPFSEL3);
@@ -251,7 +251,6 @@ int main(void)
     volatile unsigned int tempF;
 
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
-
     initGpio();                             // Set all gpio as outputs with low state to prevent floating nodes
 
     // Configure XT1 oscillator
@@ -263,25 +262,25 @@ int main(void)
         } while (SFRIFG1 & OFIFG);                           // Test oscillator fault flag
 
     CSCTL6 = (CSCTL6 & ~(XT1DRIVE_3)) | XT1DRIVE_2;     // Higher drive strength and current consumption for XT1 oscillator
-
     CSCTL4 = SELMS__DCOCLKDIV | SELA__XT1CLK;   // set XT1 32768Hz, DCOCLK as MCLK and SMCLK source
 
     // Configure GPIOs
     P1OUT &= ~BIT0;                         // Clear P1.0 output latch for a defined power-on state
     P1DIR |= BIT0;                          // Set P1.0 to output direction
 
-    //Cadence switch input
-    P1OUT |= BIT3;                          // Configure P1.3 as pulled-up
-    P1REN |= BIT3;                          // P1.3 pull-up register enable
-    P1IES |= BIT3;                          // P1.3 Hi/Low edge
-    P1IE |= BIT3;                           // P1.3 interrupt enabled
+    //Cadence switch input.  Input pull-up with interrupt.
+    P1OUT |= BIT3;                         // Output register high needed for pullup
+    P1DIR &= ~BIT3;                        // Port as input
+    P1REN |= BIT3;                         // P1.3 pull-up register enable
+    P1IES |= BIT3;                         // P1.3 Hi/Low edge
+    P1IE |= BIT3;                          // P1.3 interrupt enabled
 
     //S2 Button P2.6
-    P2DIR &= ~BIT6;                          // Set P2.6 as input
-    P2OUT |= BIT6;                           // P2.6 high
-    P2REN |= BIT6;                          // P2.3 pull-up register enable
-    P2IES |= BIT6;                          // P2.3 Hi/Low edge
-    //P2IE |= BIT6;                           // P2.3 interrupt enabled
+    P2DIR &= ~BIT6;                         // Set P2.6 as input
+    P2OUT |= BIT6;                          // P2.6 high
+    P2REN |= BIT6;                          // P2.6 pull-up register enable
+    P2IES |= BIT6;                          // P2.6 Hi/Low edge
+    //P2IE |= BIT6;                         // P2.6 interrupt enabled
 
     P1OUT &= ~BIT1;                          // Set P1.1 low
 
@@ -305,7 +304,7 @@ int main(void)
     ADCCTL1 |= ADCSHP;                                       // ADCCLK = MODOSC; sampling timer
     ADCCTL2 |= ADCRES;                                       // 10-bit conversion results
     ADCMCTL0 |= ADCINCH_6 | ADCSREF_1;;                      // A6 ADC input select
-    ADCIE |= ADCIE0;                                         // Enable ADC conv complete interrupt
+    ADCIE = ADCIE0;                                         // Enable ADC conv complete interrupt. No other interrupts
 
     //Timer 1
     TA0CCR0 = 0;                          //Stop the Timer
@@ -323,7 +322,7 @@ int main(void)
             twoSecUpdate = 0;
             // ADC_Sample
             ADCCTL0 |= ADCENC | ADCSC;                           // Sampling and conversion start
-            __bis_SR_register(LPM0_bits | GIE);                  // LPM0, ADC_ISR will force exit
+            __bis_SR_register(LPM3_bits | GIE);                  // LPM0, ADC_ISR will force exit
             __no_operation();                                    // For debug only
             tempF = calccurrentTemperature(readADCVoltage()) + 1;
             displayTemperature(tempF);
@@ -334,22 +333,26 @@ int main(void)
                  LCDM12W_L &= ~BIT1;
                } else {
                  LCDM12W_L |= BIT1;
+                 twoSecUpdate = 0;
 
-                 ADCMCTL0 &= ~ADCINCH_6;                        //Disable channel 6
-                 ADCMCTL0 |= ADCINCH_5 | ADCSREF_1;;            // A5 ADC input select
-                 ADCIE |= ADCIE0;
+                 ADCCTL0 &= ~ADCENC;                    //Disable ADC
+                 ADCMCTL0 = ADCINCH_5 | ADCSREF_1;      // A5 ADC input select.
+                 __delay_cycles(1000);
 
                  ADCCTL0 |= ADCENC | ADCSC;                           // Sampling and conversion start
                  __bis_SR_register(LPM0_bits | GIE);                  // LPM0, ADC_ISR will force exit
                  __no_operation();                                    // For debug only
-                 bat_voltage = ((ADCMEM0/1024.0) * 1.50) *1000;
+                 bat_voltage = ((ADC_Result/1024.0) * 1.500) * 1000;
                  __no_operation();
                  __disable_interrupt();
-                 ADCMCTL0 |= ADCINCH_6 | ADCSREF_1;                      // Set back to A6 ADC input select
+
+                 ADCCTL0 &= ~ADCENC;                                //Disable ADC
+                 ADCMCTL0 = ADCINCH_6 | ADCSREF_1;                  // Set back to A6 ADC input select
+                 ADCCTL0 |= ADCENC;
                  clearDisplay();
                  displayValue((unsigned int)bat_voltage);
                  __no_operation();
-                 __delay_cycles(100000);
+                 __delay_cycles(10000);
                  __enable_interrupt();
                }
 
@@ -378,14 +381,17 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) Port_1 (void)
 #endif
 {
     P1OUT ^= BIT0;                      // P1.0 = toggle
+    __disable_interrupt();
     cds_end_tick = cds_tick - cds_begin_tick;
     if((cds_end_tick > 100) && (cds_end_tick < 3500) ) {
         displayCadence((1000.0 / cds_end_tick) * 60);
     }
+    __delay_cycles(10000);
     cds_begin_tick = 0;
     cds_timeout = 0;
     cds_tick = 0;
     P1IFG &= ~BIT3;   // Clear P1.3 IFG
+    __enable_interrupt();
 
     __bic_SR_register_on_exit(LPM3_bits);   // Exit LPM3
 }
@@ -488,7 +494,8 @@ void __attribute__ ((interrupt(ADC_VECTOR))) ADC_ISR (void)
             break;
         case ADCIV_ADCIFG:
             ADC_Result = ADCMEM0;
-            __bic_SR_register_on_exit(LPM0_bits);            // Clear CPUOFF bit from LPM0
+            ADCIFG &= ~BIT0;        //Clear IFG Flag
+            __bic_SR_register_on_exit(LPM3_bits);            // Clear CPUOFF bit from LPM3
             break;
         default:
             break;
