@@ -15,10 +15,10 @@ class LCDChar_4bit:
         self.lcdd6 = Pin(7, Pin.OUT)
         self.lcdd5 = Pin(8, Pin.OUT)
         self.lcdd4 = Pin(9, Pin.OUT)
+        self.initDisplay()
      
 
     def writeNibble(self, nibble, command):
-
 
         self.lcdcommand.value(command)
 
@@ -44,13 +44,13 @@ class LCDChar_4bit:
             self.lcdd4.value(1)
         else:
             self.lcdd4.value(0)
-        time.sleep_ms(1)
+        time.sleep_us(1)
 
         #Toggle Enable
         self.lcdenable.value(1)
-        time.sleep_us(100)
+        time.sleep_us(10)
         self.lcdenable.value(0)
-        time.sleep_us(100)
+        time.sleep_us(10)
 
 
     def writeByte(self, byte, command):
@@ -66,13 +66,13 @@ class LCDChar_4bit:
         time.sleep_ms(5)
 
         self.writeNibble(0x3, 0)
-        time.sleep_ms(5)
+        time.sleep_ms(1)
 
         self.writeNibble(0x3, 0)
         time.sleep_ms(5)
 
         self.writeNibble(0x2, 0)   #Set 4 bit mode
-        time.sleep_ms(10)
+        time.sleep_ms(1)
 
         self.writeByte(0x28, 0)     # Set 2 lines 5 by 8
         time.sleep_us(50)
@@ -89,13 +89,23 @@ class LCDChar_4bit:
         self.writeByte(0xC, 0)      # Display on
         time.sleep_us(50)
 
+    def clearScreen(self):
+        self.writeByte(0x01, 0)     #Clear screen return home
+        time.sleep_ms(2)
+
+    def clearChars(self,row,startPos,numChars):
+        startAddress = startPos + 0x80
+        if row == 2:
+            startAddress = startAddress + 0x40
+        self.writeByte(startAddress,0)
+        for i in range(numChars):
+            self.writeByte(ord(' '), 1)
 
     def writeString(self, row, pos, displayString):
      
         startAddress = pos + 0x80
         if row == 2:
             startAddress = startAddress + 0x40
-
         self.writeByte(startAddress,0)
         for x in displayString:
             self.writeByte(ord(x),1)
@@ -104,11 +114,12 @@ class LCDChar_4bit:
 
 def main():
     lcd = LCDChar_4bit()
-    print('Start')
-    lcd.initDisplay()
     lcd.writeString(1,0,"HelloThere1111111111eeeeee")
-    lcd.writeString(2,0,"abcdefghijkl") 
-  
+    lcd.writeString(2,0,"abcdefghijkl")
+    time.sleep(2) 
+    lcd.clearChars(2,5,4)
+    lcd.writeString(1,9,'Done')
+    print('Done')
     
 
 main()
