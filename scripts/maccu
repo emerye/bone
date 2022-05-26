@@ -1,3 +1,0 @@
-#!/bin/bash
-
-sudo cu -s 115200 -l /dev/cu.SLAB_USBtoUART
