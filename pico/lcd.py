@@ -2,11 +2,10 @@ from machine import Pin, I2C
 from time import sleep
 import machine
 
-BACKLIGHT = 1
 ENABLE = 4
 
 class CharLCD:
-    classvar = 1
+    BACKLIGHT = 1
 
     def __init__(self, i2cobj, address):
         self.i2cobj = i2cobj
@@ -15,7 +14,7 @@ class CharLCD:
 
     def writeLCDNibble(self, bytetoWrite, commandType):
         data = bytearray(1)
-        data[0] = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
+        data[0] = (bytetoWrite & 0x00F0) + ENABLE + (self.BACKLIGHT * 8) + commandType
         self.i2cobj.writeto(self.address, data)
         data[0] = data[0] & ~ENABLE
         self.i2cobj.writeto(self.address, data)
@@ -50,11 +49,11 @@ class CharLCD:
 
     def writeLCDByte(self, bytetoWrite, commandType):
         data = bytearray(1)
-        data[0] = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
+        data[0] = (bytetoWrite & 0x00F0) + ENABLE + (self.BACKLIGHT * 8) + commandType
         self.i2cobj.writeto(self.address, data)
         data[0] = data[0] & ~ENABLE
         self.i2cobj.writeto(self.address, data)
-        data[0] =((bytetoWrite << 4) & 0x00F0) +ENABLE + (BACKLIGHT * 8) + commandType
+        data[0] =((bytetoWrite << 4) & 0x00F0) +ENABLE + (self.BACKLIGHT * 8) + commandType
         self.i2cobj.writeto(self.address, data)
         data[0]= data[0] & ~ENABLE
         self.i2cobj.writeto(self.address, data)
@@ -69,27 +68,31 @@ class CharLCD:
             self.writeLCDByte(ord(x),1)
 
 def main():
-    RefVoltage = 3.210
+    RefVoltage = 3.218
     sensor_temp = machine.ADC(4)
     conversion_factor = RefVoltage / (65535)
-    offsetF = -2.5
+    offsetF = 1.0
 
     i2cobj = I2C(0, scl=Pin(5), sda=Pin(4), freq=400000)
     print(i2cobj) 
     charlcd = CharLCD(i2cobj, 0x27)
+    charlcd.BACKLIGHT = 1
+    print('Backlight =', charlcd.BACKLIGHT)
 
-    loopCnt = 0;
-    while True:
+    loopCnt = 0
+    for i in range(5):
         reading = sensor_temp.read_u16() * conversion_factor
         temperatureC = 27 - (reading - 0.706)/0.001721
         temperatureF = ((temperatureC * 1.8) + 32) + offsetF
         charlcd.WriteString(0,0, ("%.1f  " % temperatureF))
-        charlcd.WriteString(1,0, f'{temperatureF:.1f}  ')
+        charlcd.WriteString(1,0, f'{temperatureF:0.0}  ')
+        charlcd.WriteString(0,20,str(int(temperatureF)))
         sleep(2.0)
         loopCnt += 1
         if loopCnt > 60:
             loopCnt = 0
             print('*')
+            break
         else:
             print('*', end = '')    
 

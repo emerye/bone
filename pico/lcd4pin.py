@@ -60,6 +60,7 @@ class LCDChar_4bit:
 
 
     def initDisplay(self):
+        print("Init Display")
         time.sleep_ms(15)
 
         self.writeNibble(0x3, 0)
