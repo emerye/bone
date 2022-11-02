@@ -69,10 +69,10 @@ def WriteString(row, pos, displayString):
 bus = SMBus(1)
 initLCD()
 
-WriteString(0, 0, "Line1")
-WriteString(1, 20, "Line4")
-WriteString(0, 20, "Line3")
-WriteString(1, 0, "Line2")
+WriteString(0, 0, "0,0 Line1")
+WriteString(1, 20, "1,20 Line4")
+WriteString(0, 20, "0,20 Line3")
+WriteString(1, 0, "1,0 Line2")
 
 bus.close()
 
