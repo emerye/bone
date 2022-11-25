@@ -2,4 +2,4 @@
 
 #Must be run as root on bullseye. Copy to /usr/local/bin
 
-/usr/local/bin/openocd -f interface/raspberrypi-swd.cfg -f target/rp2040.cfg -c "program $1 verify reset exit"
+openocd -f interface/raspberrypi-swd.cfg -f target/rp2040.cfg -c "program $1 verify reset exit"

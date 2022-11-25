@@ -1,0 +1,13 @@
+  == Hardware connection ==
+    EPD    =>    Pico 
+  * VCC    ->    3.3 Pin 40
+  * GND    ->    GND Pin 38
+  * DIN    ->    MOSI SPI0 GP16  Pin 21 
+  * CLK    ->    SCLK SPI0 GP18  Pin 24 
+  * CS     ->    CS SPIO   GP17  Pin 22 
+  * D/C    ->    GP14 Out Pin 19 
+  * RES    ->    GP15 Out Pin 20
+  * BUSY   ->    GP22 In  Pin 22  
+
+
+
