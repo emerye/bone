@@ -20,6 +20,11 @@ endif()
 
 project(epd154 C CXX ASM)
 
+set(CMAKE_BUILD_TYPE Debug)
+IF(CMAKE_BUILD_TYPE MATCHES Debug) 
+  message("Building with debug symbols")
+ENDIF() 
+
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
