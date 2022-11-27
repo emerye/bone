@@ -23,7 +23,7 @@ void  Handler(int signo)
 void InitPicoSPI(int channel) {
 
     // SPI initialisation. This example will use SPI at 1MHz.
-    spi_init(SPI_PORT, 1000*1000);
+    spi_init(SPI_PORT, 1000*100);
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
     gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
     gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
@@ -32,15 +32,23 @@ void InitPicoSPI(int channel) {
     // Chip select is active-low, so we'll initialise it to a driven-high state
     gpio_set_dir(PIN_CS, GPIO_OUT);
     gpio_put(PIN_CS, 1);
+    gpio_set_function(PIN_CS, GPIO_FUNC_SIO);
 
     //Pin Data/Command
-    gpio_set_function(PIN_CS, GPIO_FUNC_SIO);
     gpio_set_dir(PIN_DC, GPIO_OUT);
     gpio_put(PIN_DC, 1);
+    gpio_set_function(PIN_DC, GPIO_FUNC_SIO);
 
     //Pin Reset
-    gpio_set_function(PIN_DC, GPIO_FUNC_SIO);
-    gpio_set_dir(PIN_RESET, GPIO_IN);
+    gpio_set_function(PIN_RESET, GPIO_FUNC_SIO);
+    gpio_set_dir(PIN_RESET, GPIO_OUT);
+    gpio_put(PIN_RESET, 1);
+
+    //Busy input pin
+    gpio_set_function(PIN_BUSY, GPIO_FUNC_SIO);
+    gpio_set_dir(PIN_BUSY, GPIO_IN);
+
+
 }
 
 
@@ -48,18 +56,18 @@ int main(void)
 {
     stdio_init_all();
     printf("1.54inch e-Paper demo\r\n");
-    //DEV_ModuleInit();
+    printf("Version 0.2\n");
     InitPicoSPI(0);
 
     // Exception handling:ctrl + c
     signal(SIGINT, Handler);
 
     if(EPD_Init() != 0) {
-        printf("e-Paper init failed\r\n");
+      printf("e-Paper init failed\r\n");
     }
     printf("epd  clear\r\n");
     EPD_Clear();
-    DEV_Delay_ms(500);
+    DEV_Delay_ms(4000);
 
     //Create a new image cache
     UBYTE *BlackImage;
@@ -70,8 +78,9 @@ int main(void)
     }
     printf("Paint_NewImage\r\n");
     Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 0, WHITE);
-    Paint_SelectImage(BlackImage);
     Paint_Clear(WHITE);
+    Paint_SelectImage(BlackImage);
+   
 #if 1
     /* show bmp */
   /*  printf("show bmp\r\n");    
@@ -82,27 +91,18 @@ int main(void)
     DEV_Delay_ms(500);
    */ 
   
-    printf("show bmp------------------------\r\n");
-    printf("read black bmp\r\n");
-    Paint_SelectImage(BlackImage);
-    Paint_Clear(WHITE);   
-    GUI_ReadBmp("./pic/154-2b1.bmp", 0, 0);
-    EPD_Display(BlackImage);
-    DEV_Delay_ms(2000);
-
 
 #endif
 
-#if 1
     /*show image for array*/
     printf("show image for array\r\n");
     Paint_SelectImage(BlackImage);
     Paint_Clear(WHITE);
+    printf("Drawing Bitmap from gimage.\n");
     Paint_DrawBitMap(gImage);
-    
+    DEV_Delay_ms(4000);
     EPD_Display(BlackImage);
-    DEV_Delay_ms(2000);
-#endif
+    DEV_Delay_ms(4000);
 
     printf("Paint_NewImage\r\n");
     Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 90, WHITE);
@@ -139,7 +139,6 @@ int main(void)
     DEV_Delay_ms(2000);
 #endif
 
-    DEV_Delay_ms(15000);
     printf("epd  clear------------------------\r\n");
     EPD_Clear();
 
