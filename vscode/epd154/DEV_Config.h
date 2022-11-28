@@ -37,7 +37,7 @@ EastRising Technology Co.,LTD
  * GPIO read and write
 **/
 #define DEV_Digital_Write(_pin, _value) gpio_put(_pin, _value)
-#define DEV_Digital_Read(_pin) gpio_get_out_level(_pin)
+#define DEV_Digital_Read(_pin) gpio_get(_pin)
 
 
 /**

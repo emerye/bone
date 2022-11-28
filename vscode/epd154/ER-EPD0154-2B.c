@@ -54,11 +54,11 @@ parameter:
 ******************************************************************************/
 void EPD_WaitUntilIdle(void)
 {
-    Debug("e-Paper busy\r\n");
+    printf("e-Paper busy\r\n");
     while(DEV_Digital_Read(PIN_BUSY) == 1) {      //LOW: idle, HIGH: busy
         DEV_Delay_ms(100);
     }
-    Debug("e-Paper busy release\r\n");
+    printf("e-Paper busy release\r\n");
 }
 
 /******************************************************************************
@@ -115,7 +115,6 @@ UBYTE EPD_Init(void)
 {
     EPD_Reset();
  
-    
     EPD_SendCommand(DRIVER_OUTPUT_CONTROL);  // Driver Output control
     EPD_SendData(0xC7);  
     EPD_SendData(0x00);

@@ -23,7 +23,7 @@ void  Handler(int signo)
 void InitPicoSPI(int channel) {
 
     // SPI initialisation. This example will use SPI at 1MHz.
-    spi_init(SPI_PORT, 1000*100);
+    spi_init(SPI_PORT, 1000*1000);
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
     gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
     gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
@@ -47,8 +47,6 @@ void InitPicoSPI(int channel) {
     //Busy input pin
     gpio_set_function(PIN_BUSY, GPIO_FUNC_SIO);
     gpio_set_dir(PIN_BUSY, GPIO_IN);
-
-
 }
 
 
@@ -67,7 +65,6 @@ int main(void)
     }
     printf("epd  clear\r\n");
     EPD_Clear();
-    DEV_Delay_ms(4000);
 
     //Create a new image cache
     UBYTE *BlackImage;
@@ -132,11 +129,9 @@ int main(void)
     Paint_DrawString_EN(10, 20, "hello world", &Font12, WHITE, BLACK);
     Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
     Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
-    
-
 
     EPD_Display(BlackImage);
-    DEV_Delay_ms(2000);
+    DEV_Delay_ms(6000);
 #endif
 
     printf("epd  clear------------------------\r\n");
