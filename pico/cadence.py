@@ -74,9 +74,9 @@ class CharLCD:
 
 
 def readTemperature(charlcd):
-    refVoltage = 3.23
+    refVoltage = 3.3
     conversion_factor = refVoltage / (65535)
-    offsetF = 0.5
+    offsetF = -2.5
     
     reading = machine.ADC(4).read_u16() * conversion_factor
     temperatureF = ((27 - (reading - 0.706)/0.001721) * 1.8) + 32 + offsetF
@@ -117,8 +117,8 @@ def main():
     readTemperature(charlcd)
     temperatureUpdateTime = time.ticks_add(time.ticks_ms(), 3000)
 
-    #while(True):
-    for i in range(100000):
+    while(True):
+    #for i in range(300000):
         cdstimeout = time.ticks_add(cdsPeriodStart , 3000)
         now = time.ticks_ms()
 
@@ -130,7 +130,7 @@ def main():
 
         if newcdsReady == True:
             if(cdsPeriodDuration > 5):
-                charlcd.WriteString(1,0, (str((1000.0/cdsPeriodDuration)*60.0)+'   RPM    '))
+                charlcd.WriteString(1,0, (str(int((1000.0/cdsPeriodDuration)*60.0))+' RPM     '))
             newcdsReady=False
             cdstimeout=time.ticks_add(time.ticks_ms(), 3000)
 

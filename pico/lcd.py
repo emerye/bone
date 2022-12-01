@@ -80,14 +80,14 @@ def main():
     print('Backlight =', charlcd.BACKLIGHT)
 
     loopCnt = 0
-    for i in range(5):
+    for i in range(10):
         reading = sensor_temp.read_u16() * conversion_factor
         temperatureC = 27 - (reading - 0.706)/0.001721
         temperatureF = ((temperatureC * 1.8) + 32) + offsetF
         charlcd.WriteString(0,0, ("%.1f  " % temperatureF))
         charlcd.WriteString(1,0, f'{temperatureF:0.0}  ')
         charlcd.WriteString(0,20,str(int(temperatureF)))
-        sleep(2.0)
+        sleep(1)
         loopCnt += 1
         if loopCnt > 60:
             loopCnt = 0
@@ -97,8 +97,6 @@ def main():
             print('*', end = '')    
 
     
-        
-
 if __name__ == "__main__":
     main()
 
