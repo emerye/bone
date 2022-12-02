@@ -73,33 +73,18 @@ int main(void)
         printf("Failed to apply for black memory...\r\n");
         exit(0);
     }
-    printf("Paint_NewImage\r\n");
     Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 0, WHITE);
     Paint_Clear(WHITE);
     Paint_SelectImage(BlackImage);
-   
-#if 1
-    /* show bmp */
-  /*  printf("show bmp\r\n");    
-    Paint_SelectImage(BlackImage);    
-    Paint_Clear(WHITE); 
-    GUI_ReadBmp("./pic/100x100.bmp", 10, 10);
-    EPD_Display(BlackImage);
-    DEV_Delay_ms(500);
-   */ 
-  
-
-#endif
+    sleep_ms(2000);
 
     /*show image for array*/
     printf("show image for array\r\n");
-    Paint_SelectImage(BlackImage);
     Paint_Clear(WHITE);
     printf("Drawing Bitmap from gimage.\n");
     Paint_DrawBitMap(gImage);
-    DEV_Delay_ms(4000);
     EPD_Display(BlackImage);
-    DEV_Delay_ms(4000);
+    DEV_Delay_ms(2000);
 
     printf("Paint_NewImage\r\n");
     Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 90, WHITE);
@@ -127,8 +112,9 @@ int main(void)
     Paint_DrawLine(105, 75, 105, 115, BLACK, LINE_STYLE_DOTTED, DOT_PIXEL_1X1);
     Paint_DrawString_EN(0, 0, "www.buydisplay.com", &Font16, BLACK, WHITE);
     Paint_DrawString_EN(10, 20, "hello world", &Font12, WHITE, BLACK);
-    Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
-    Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
+ //   Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
+ //   Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
+    Paint_DrawNum(1, 1, 987654321, &Font64, WHITE, BLACK);
 
     EPD_Display(BlackImage);
     DEV_Delay_ms(6000);
