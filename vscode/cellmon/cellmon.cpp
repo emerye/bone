@@ -479,12 +479,15 @@ int main(int argc, char *argv[]) {
 		//int maxV = maxCellV(CELL6);
 		//printf("Exclude 6 %d  V %d\n", maxV + 1, cellV[maxV]);
 		sprintf(stackVoltBuffer, "%d", stackVolts);
+		
+		/*
 		sprintf(systemBuffer, "mosquitto_pub -h rbackup -p 1883 -u andy -P andy -t /ebike/stackv \
 			-m %s --keepalive 300 -q 1", stackVoltBuffer);
 		status = system((const char *)systemBuffer); 
 		if (status == -1) {
 		   printf("MQTT publish Status: %d\n",status);
 		}
+		*/
 	}
 	fclose(logFile);
 	close(handle);
