@@ -432,13 +432,18 @@ void Paint_DrawChar(UWORD Xpoint, UWORD Ypoint, const char Acsii_Char,
                     sFONT* Font, UWORD Color_Background, UWORD Color_Foreground)
 {
     UWORD Page, Column;
+    uint32_t Char_Offset;
 
     if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
         Debug("Paint_DrawChar Input exceeds the normal display range\r\n");
         return;
     }
+    if (Font->Height == 160) {
+        Char_Offset = (Acsii_Char - '0') * Font->Height * (Font->Width / 8 + (Font->Width % 8 ? 1 : 0));
+    } else {
+        Char_Offset = (Acsii_Char - ' ') * Font->Height * (Font->Width / 8 + (Font->Width % 8 ? 1 : 0));
+    }
 
-    uint32_t Char_Offset = (Acsii_Char - ' ') * Font->Height * (Font->Width / 8 + (Font->Width % 8 ? 1 : 0));
     const unsigned char *ptr = &Font->table[Char_Offset];
 
     for (Page = 0; Page < Font->Height; Page ++ ) {
@@ -446,7 +451,8 @@ void Paint_DrawChar(UWORD Xpoint, UWORD Ypoint, const char Acsii_Char,
 
             //To determine whether the font background color and screen background color is consistent
             if (FONT_BACKGROUND == Color_Background) { //this process is to speed up the scan
-                if (*ptr & (0x80 >> (Column % 8)))
+            //    if (*ptr & (0x80 >> (Column % 8)))
+                  if (*ptr & (0x01 << (Column % 8)))    //ImageMagik xbm format. LSB first
                     Paint_SetPixel(Xpoint + Column, Ypoint + Page, Color_Foreground);
                     // Paint_DrawPoint(Xpoint + Column, Ypoint + Page, Color_Foreground, DOT_PIXEL_DFT, DOT_STYLE_DFT);
             } else {

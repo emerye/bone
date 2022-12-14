@@ -23,7 +23,7 @@ void  Handler(int signo)
 void InitPicoSPI(int channel) {
 
     // SPI initialisation. This example will use SPI at 1MHz.
-    spi_init(SPI_PORT, 1000*1000);
+    spi_init(SPI_PORT, 1000*2000);
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
     gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
     gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
@@ -52,6 +52,8 @@ void InitPicoSPI(int channel) {
 
 int main(void)
 {
+    int i;
+
     stdio_init_all();
     printf("1.54inch e-Paper demo\r\n");
     printf("Version 0.2\n");
@@ -73,31 +75,34 @@ int main(void)
         printf("Failed to apply for black memory...\r\n");
         exit(0);
     }
-    Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 0, WHITE);
+  
+    Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 0, BLACK);
     Paint_Clear(WHITE);
-    Paint_SelectImage(BlackImage);
-    sleep_ms(2000);
+
+    Paint_DrawString_EN(1, 1, "01", &Font160, WHITE, BLACK);
+    EPD_Display(BlackImage);
 
     /*show image for array*/
+
     printf("show image for array\r\n");
     Paint_Clear(WHITE);
     printf("Drawing Bitmap from gimage.\n");
     Paint_DrawBitMap(gImage);
     EPD_Display(BlackImage);
-    DEV_Delay_ms(2000);
+    DEV_Delay_ms(1000);
 
-    printf("Paint_NewImage\r\n");
-    Paint_NewImage(BlackImage, EPD_WIDTH, EPD_HEIGHT, 90, WHITE);
-    Paint_SelectImage(BlackImage);
-    Paint_Clear(WHITE);
+
 
 #if 1   // Drawing on the image
     //1.Select Image
     printf("SelectImage:BlackImage\r\n");
     Paint_SelectImage(BlackImage);
     Paint_Clear(WHITE);
+    EPD_Clear();
+   
 
     // 2.Drawing on the image
+   
     printf("Drawing:BlackImage\r\n");
     Paint_DrawPoint(10, 80, BLACK, DOT_PIXEL_1X1, DOT_STYLE_DFT);
     Paint_DrawPoint(10, 90, BLACK, DOT_PIXEL_2X2, DOT_STYLE_DFT);
@@ -114,10 +119,27 @@ int main(void)
     Paint_DrawString_EN(10, 20, "hello world", &Font12, WHITE, BLACK);
  //   Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
  //   Paint_DrawNum(10, 50, 987654321, &Font16, WHITE, BLACK);
-    Paint_DrawNum(1, 1, 987654321, &Font64, WHITE, BLACK);
+ 
+   // Paint_DrawNum(1, 1, 0, &Font64, WHITE, BLACK);
+  //  Paint_DrawNum(1, 90, 56789, &Font64, WHITE, BLACK);
+    EPD_Display(BlackImage);
+  
+    Paint_Clear(WHITE);
+    EPD_Clear();
+    Paint_DrawString_EN(100, 0, "0", &Font160, WHITE, BLACK);
+    EPD_Display(BlackImage);
+    Paint_Clear(WHITE);
+    sleep_ms(1000);
+    
+    for(int i=10; i<20; i++) {
+      Paint_Clear(WHITE);
+      Paint_DrawNum(1, 1, i, &Font160, WHITE, BLACK);
+      EPD_Display(BlackImage);
+      sleep_ms(1000);
+    }
 
     EPD_Display(BlackImage);
-    DEV_Delay_ms(6000);
+    DEV_Delay_ms(5000);
 #endif
 
     printf("epd  clear------------------------\r\n");
