@@ -4,7 +4,6 @@ from bleak import BleakClient
 import time 
 import binascii
 
-client = BleakClient
 
 address = "C5:6A:43:C8:99:6B"
 
@@ -40,9 +39,17 @@ async def callback_handler(_, data):
     last_crank = current_crank
 
 
-async def getservices():
-    services = await client.get_services()
-    for service in services:
+async def xoss():
+    async with BleakClient(address) as client:
+        model_number = await client.read_gatt_char(MODEL_NBR_UUID)
+        hardware_rev = await client.read_gatt_char(HARDWARE_REVISION_UUID)
+        my_hardware = (hardware_rev.decode('utf-8'))
+        print(my_hardware)
+        print("Model Number: {0}".format("".join(map(chr, model_number))))
+        print("Hardware Revision: {0}".format(my_hardware))
+
+        services = await client.get_services()
+
         for service in services:
             print('\nservice', service.handle, service.uuid, service.description)
             characteristics = service.characteristics
@@ -63,29 +70,20 @@ async def getservices():
         await client.start_notify(12, callback_handler)
         csc_notify = await client.read_gatt_descriptor(14)
         print("CSC Measurement Register", csc_notify) 
-        await asyncio.sleep(15.0)
+        await asyncio.sleep(30.0)
         await client.stop_notify(12)
         # Send an "exit command to the consumer"
         print("Finished")
-        await client.disconnect()
 
 
-async def xoss():
-    global client
-
-    async with BleakClient(address) as client:
-        try:
-            model_number = await client.read_gatt_char(MODEL_NBR_UUID)
-            print("Model Number: {0}".format("".join(map(chr, model_number))))
-            await getservices() 
-        except Exception as e:
-             print(e)
-        finally:
-            await client.disconnect()    #devices = await BleakScanner.discover()
-            print('Disconnected')
+async def main():
+    #devices = await BleakScanner.discover()
+    #for d in devices:
+    #    print(d)
+    print('Started')
 
 
 
-#asyncio.run(main())
+asyncio.run(main())
 asyncio.run(xoss())
   

@@ -30,6 +30,7 @@ EastRising Technology Co.,LTD
 #define BORDER_WAVEFORM_CONTROL                     0x3C
 #define SET_RAM_X_ADDRESS_START_END_POSITION        0x44
 #define SET_RAM_Y_ADDRESS_START_END_POSITION        0x45
+#define AUTOWRITE_PATTERN                           0x46
 #define SET_RAM_X_ADDRESS_COUNTER                   0x4E
 #define SET_RAM_Y_ADDRESS_COUNTER                   0x4F
 
@@ -39,6 +40,5 @@ UBYTE EPD_Init(void);
 void EPD_Clear(void);
 void EPD_Display(UBYTE *Image);
 void EPD_Sleep(void);
-
 
 #endif

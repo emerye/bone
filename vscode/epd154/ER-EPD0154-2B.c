@@ -12,7 +12,7 @@ EastRising Technology Co.,LTD
 function :	Software reset
 parameter:
 ******************************************************************************/
-static void EPD_Reset(void)
+void EPD_Reset(void)
 {
     DEV_Digital_Write(PIN_RESET, 1);
     DEV_Delay_ms(200);
@@ -27,7 +27,7 @@ function :	send command
 parameter:
      Reg : Command register
 ******************************************************************************/
-static void EPD_SendCommand(UBYTE Reg)
+void EPD_SendCommand(UBYTE Reg)
 {
     DEV_Digital_Write(PIN_DC, 0);
     DEV_Digital_Write(PIN_CS, 0);
@@ -40,7 +40,7 @@ function :	send data
 parameter:
     Data : Write data
 ******************************************************************************/
-static void EPD_SendData(UBYTE Data)
+void EPD_SendData(UBYTE Data)
 {
     DEV_Digital_Write(PIN_DC, 1);
     DEV_Digital_Write(PIN_CS, 0);
@@ -56,7 +56,7 @@ void EPD_WaitUntilIdle(void)
 {
     printf("e-Paper busy\r\n");
     while(DEV_Digital_Read(PIN_BUSY) == 1) {      //LOW: idle, HIGH: busy
-        DEV_Delay_ms(100);
+        DEV_Delay_ms(10);
     }
     printf("e-Paper busy release\r\n");
 }
@@ -97,12 +97,11 @@ static void EPD_SetCursor(UWORD Xstart, UWORD Ystart)
 function :	Turn On Display
 parameter:
 ******************************************************************************/
-static void EPD_TurnOnDisplay(void)
+void EPD_TurnOnDisplay(void)
 {
     EPD_SendCommand(DISPLAY_UPDATE_CONTROL_2);
     EPD_SendData(0xC4);
     EPD_SendCommand(MASTER_ACTIVATION);
-
 
     EPD_WaitUntilIdle();
 }
@@ -147,8 +146,6 @@ UBYTE EPD_Init(void)
     EPD_WaitUntilIdle();
 	       		    
     return 0;
-
-   
 }
 
 /******************************************************************************

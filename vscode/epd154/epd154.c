@@ -11,6 +11,11 @@
 #include "hardware/spi.h"
 #include "Fonts/fonts.h"
 
+extern void EPD_SendCommand(UBYTE reg);
+extern void EPD_SendData(UBYTE reg);
+extern void EPD_TurnOnDisplay();
+ 
+
 void  Handler(int signo)
 {
     //System Exit
@@ -22,7 +27,7 @@ void  Handler(int signo)
 
 void InitPicoSPI(int channel) {
 
-    // SPI initialisation. This example will use SPI at 1MHz.
+    // SPI initialisation. This example will use SPI at 2MHz.
     spi_init(SPI_PORT, 1000*2000);
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
     gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
@@ -47,6 +52,12 @@ void InitPicoSPI(int channel) {
     //Busy input pin
     gpio_set_function(PIN_BUSY, GPIO_FUNC_SIO);
     gpio_set_dir(PIN_BUSY, GPIO_IN);
+}
+
+void Test_Pattern()  {
+    EPD_SendCommand(AUTOWRITE_PATTERN);
+    EPD_SendData(0);
+    EPD_TurnOnDisplay();
 }
 
 
@@ -91,6 +102,8 @@ int main(void)
     EPD_Display(BlackImage);
     DEV_Delay_ms(1000);
 
+    Test_Pattern();
+    sleep_ms(4000);
 
 
 #if 1   // Drawing on the image
@@ -130,10 +143,16 @@ int main(void)
     EPD_Display(BlackImage);
     Paint_Clear(WHITE);
     sleep_ms(1000);
+
+
+
+
     
-    for(int i=10; i<20; i++) {
+    for(int i=10; i<12; i++) {
       Paint_Clear(WHITE);
       Paint_DrawNum(1, 1, i, &Font160, WHITE, BLACK);
+      EPD_Display(BlackImage);
+      sleep_ms(1000);
       EPD_Display(BlackImage);
       sleep_ms(1000);
     }
