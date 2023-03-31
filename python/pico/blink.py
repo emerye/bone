@@ -2,16 +2,21 @@
 import sys
 from machine import Pin
 import utime as Time
-import ntptime
+import uasyncio
+
 
 sleeptime = 0.10
-
 led = Pin("LED", Pin.OUT)
-for i in range(20):
-    led.on()
-    Time.sleep(sleeptime)
-    led.off()
-    Time.sleep(sleeptime)
-    print(i)
-    print("Time ", Time.time())
+
+async def blink(delay):
     
+    while(True):
+        await uasyncio.sleep_ms(delay)
+        led.toggle()
+        print("in blink")
+            
+            
+async def main():
+    uasyncio.run(blink(100))
+
+uasyncio.run(main())
