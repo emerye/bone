@@ -17,6 +17,6 @@ async def blink(delay):
             
             
 async def main():
-    uasyncio.run(blink(100))
+    uasyncio.run(blink(500))
 
 uasyncio.run(main())
