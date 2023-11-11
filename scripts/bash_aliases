@@ -1,7 +1,7 @@
 #!/bin/bash
 
-alias vncs='vncserver -geometry 1920x1080  :90'
-alias vncl='vncserver -geometry 1600x900 :91'
+alias vncs='vncserver -geometry 2048x12  :90'
+alias vnc2='vncserver -geometry 2560x1440 :91'
 
 export PICO_SDK_PATH=/home/andy/pico/pico-sdk
 export PATH=$PATH:/home/andy/bone/scripts/
