@@ -1,9 +1,13 @@
 import machine
-import utime
-import ustruct
+import time
+import struct
 import sys
 
+# MCP 3424
 DEVADDR = 0x68
+RESR1=193700.0
+RESR2=8090.0
+
 
 
 def reg_write(i2c, addr, reg, data):
@@ -41,22 +45,34 @@ i2c = machine.I2C(0,
                   freq=400000)
 
 data = bytearray()
-trig = b'\x94'   # 14 bit
+trig = b'\x94'   # 14 bit   60 samples per second
 #trig = b'\x98'   # 16 bit
 
 i2c.writeto(DEVADDR,trig)
 
-utime.sleep_ms(10)
-count = 0
+time.sleep_ms(100)
 
 while(True):
-    data = i2c.readfrom(DEVADDR, 4)
-    utime.sleep_ms(100)
-    count += 1
+    vlist = []
+    sample = 128.0
+    for count in range(sample):
+        time.sleep_ms(25)
+        data = i2c.readfrom(DEVADDR, 4)
+        voltage = (struct.unpack('>h', data)[0]) * 0.000250   #14 bit
+        vlist.append(voltage)
+        #vadc = voltage
+    
+    vadc = float((sum(vlist)) / sample)
+    time.sleep_ms(500)
+    print("vadc =", vadc)
+    currentinput = vadc / RESR2
+    print("R1 current =", currentinput)
+    print(currentinput * (RESR1 + RESR2))
+          
     #print(f'0x{data.hex()}')
     #print(f'Config Register 0x{data[3]:x}')
-    voltage = (ustruct.unpack('>h', data)[0]) * 0.000250   #14 bit
+    voltage = (struct.unpack('>h', data)[0]) * 0.000250   #14 bit
 #    voltage = (ustruct.unpack('>h', data)[0]) * 0.0000625   #16 bit
-    print(f'{voltage:.3f} v  {count}')
+#    print(f'{voltage:.3f} v  {count}')
     #print(ustruct.unpack('>h', data)[0]/4)
 
