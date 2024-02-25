@@ -9,8 +9,6 @@ DEVADDR = 0x68
 RESR1=194200.0
 RESR2=8090.0
 
-MUL = 0.039992
-
 
 def reg_write(i2c, addr, reg, data):
     """
@@ -61,13 +59,12 @@ while(True):
     for count in range(sample):
         time.sleep_ms(20)
         data = i2c.readfrom(DEVADDR, 3)
-        print(binascii.hexlify(data).decode())
+#        print(binascii.hexlify(data).decode())
           
         voltage = (struct.unpack('>h', data)[0]) * 0.000250   #14 bit
 #       voltage = (ustruct.unpack('>h', data)[0]) * 0.0000625   #16 bit
        
         vlist.append(voltage)
-        #vadc = voltage
                  
     vadc = float((sum(vlist)) / sample)
     time.sleep_ms(500)
