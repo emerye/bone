@@ -3,6 +3,7 @@ import time
 import struct
 import sys
 import binascii
+from machine import I2C
 
 # MCP 3424
 DEVADDR = 0x68
@@ -39,12 +40,15 @@ def reg_read(i2c, addr, reg, nbytes=1):
 
 
 # Initialize I2C with pins
-i2c = machine.I2C(0,
-                  scl=machine.Pin(17),
-                  sda=machine.Pin(16),
-                  freq=400000)
-
+i2c = I2C(0,
+        scl=machine.Pin(17),
+        sda=machine.Pin(16),
+        freq=400000)
+#Channel 1 blown
 trig = b'\x94'   # 14 bit   60 samples per second
+#Channel 2 OK 2/29/2024
+trig = b'\x34'   # 14 bit   60 samples per second
+
 #trig = b'\x98'   # 16 bit
 
 i2c.writeto(DEVADDR,trig)
@@ -59,8 +63,9 @@ while(True):
     for count in range(sample):
         time.sleep_ms(20)
         data = i2c.readfrom(DEVADDR, 3)
-#        print(binascii.hexlify(data).decode())
-          
+        print(binascii.hexlify(data,'-').decode())
+        #print(data.hex())
+        
         voltage = (struct.unpack('>h', data)[0]) * 0.000250   #14 bit
 #       voltage = (ustruct.unpack('>h', data)[0]) * 0.0000625   #16 bit
        
