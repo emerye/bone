@@ -1,0 +1,12 @@
+#!/bin/bash
+
+config-pin P9_17 spi_cs
+config-pin P9_18 spi
+config-pin P9_21 spi
+config-pin P9_22  spi_sclk
+
+config-pin -q P9_17
+config-pin -q P9_18
+config-pin -q P9_21
+config-pin -q P9_22
+
