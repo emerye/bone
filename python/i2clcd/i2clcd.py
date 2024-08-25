@@ -5,6 +5,7 @@ from time import sleep
 BACKLIGHT = 1
 ENABLE = 4
 address = 0x27
+bus = SMBus()  #BBB P9-18 SDA  P9-17 SCL  8/24/2024 
 
 def initLCD():
     LCD_CLEAR_DISPLAY = 1
@@ -38,7 +39,6 @@ def initLCD():
 
 # Write a byte of data to LCD display
 def writeLCDByte(bytetoWrite, commandType):
-    bus = SMBus(1)
 
     highByte = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
     bus.write_byte(address, highByte)
@@ -51,7 +51,6 @@ def writeLCDByte(bytetoWrite, commandType):
     bus.write_byte(address, lowByte)
 
 def writeLCDNibble(bytetoWrite, commandType):
-    bus = SMBus(1)
 
     highByte = (bytetoWrite & 0x00F0) + ENABLE + (BACKLIGHT * 8) + commandType
     bus.write_byte(address, highByte)
@@ -66,7 +65,7 @@ def WriteString(row, pos, displayString):
     for x in displayString:
         writeLCDByte(ord(x),1)
 
-bus = SMBus(1)
+bus = SMBus(2)
 initLCD()
 
 WriteString(0, 0, "0,0 Line1")
