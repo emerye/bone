@@ -8,9 +8,7 @@ lcdobj.text('Raspberry Pi', 2)
 lcdobj.text('is really', 3, 'center')
 lcdobj.text('awesome', 4, 'right')
 
-sleep(5)
+sleep(3)
 lcdobj.clear()
-sleep(2)
-
 
 del lcdobj

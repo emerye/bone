@@ -5,7 +5,7 @@ from vcgencmd import Vcgencmd
 
 def main():
     start_time = time.time()
-    fb = open("/home/pi/readings.txt","a+")
+    fb = open("/home/andy/readings.txt","a+")
     fb.write("Elapsed Time (s),Temperature (°C),Clock Speed (MHz),Throttled\n")
     vcgm = Vcgencmd()
     while True:

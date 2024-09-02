@@ -2,6 +2,7 @@
 from smbus2 import SMBus
 from time import sleep
 
+
 BACKLIGHT = 1
 ENABLE = 4
 address = 0x27
@@ -65,10 +66,11 @@ def WriteString(row, pos, displayString):
     for x in displayString:
         writeLCDByte(ord(x),1)
 
-bus = SMBus(2)
+bus = SMBus(1)
 initLCD()
 
-WriteString(0, 0, "0,0 Line1")
+WriteString(0, 0, "0,0 Line1 Pos0" )
+
 WriteString(1, 20, "1,20 Line4")
 WriteString(0, 20, "0,20 Line3")
 WriteString(1, 0, "1,0 Line2")
