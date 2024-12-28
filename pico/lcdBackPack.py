@@ -6,6 +6,12 @@ ENABLE = 4
 
 class CharLCD:
     BACKLIGHT = 1
+    LCD_CLEAR_DISPLAY = 1
+    LCD_RETURNHOME = 2
+    LCD_CURSOR_DISPLAY = 0x10
+    LCD_DISPLAY_OFF = 0x08
+    DISPLAY_SHIFT = 0x04
+    LCD_FUNCTION_SET = 0x20
 
     def __init__(self, i2cobj, address):
         self.i2cobj = i2cobj
@@ -20,12 +26,6 @@ class CharLCD:
         self.i2cobj.writeto(self.address, data)
 
     def initLCD(self):
-        LCD_CLEAR_DISPLAY = 1
-        LCD_RETURNHOME = 2
-        LCD_CURSOR_DISPLAY = 0x10
-        LCD_DISPLAY_OFF = 0x08
-        DISPLAY_SHIFT = 0x04
-        LCD_FUNCTION_SET = 0x20
         sleep(0.015)
         self.writeLCDNibble(0x30,0)
         sleep(0.010)
@@ -36,11 +36,11 @@ class CharLCD:
         self.writeLCDNibble(0x20,0)   # Set 4 bit mode
         sleep(0.010)
 
-        self.writeLCDByte(LCD_FUNCTION_SET + 0xC, 0)   # Set lines 1, 5x11 dot matrix
+        self.writeLCDByte(self.LCD_FUNCTION_SET + 0xC, 0)   # Set lines 1, 5x11 dot matrix
         sleep(0.001)
-        self.writeLCDByte(LCD_CLEAR_DISPLAY, 0)   # Clear screen
+        self.writeLCDByte(self.LCD_CLEAR_DISPLAY, 0)   # Clear screen
         sleep(0.003)
-        self.writeLCDByte(LCD_DISPLAY_OFF, 0)    # Display Cursor Blink Off
+        self.writeLCDByte(self.LCD_DISPLAY_OFF, 0)    # Display Cursor Blink Off
         sleep(0.003)
         self.writeLCDByte(0x06, 0)   # Cursor right don't shift screen
         sleep(0.001)
@@ -68,6 +68,9 @@ class CharLCD:
         self.writeLCDByte(dataaddress,0)
         for x in displayString:
             self.writeLCDByte(ord(x),1)
+            
+    def lcdClear(self):
+        self.writeLCDByte(self.LCD_CLEAR_DISPLAY, 0)
 
 def main():
   
@@ -86,6 +89,8 @@ def main():
    
     print('*', end = '')
     print("End of program", end = "E")
+    sleep(1)
+    charlcd.lcdClear()
 
     
 if __name__ == "__main__":
