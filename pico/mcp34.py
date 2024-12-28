@@ -50,8 +50,6 @@ i2c = I2C(0,
 
 #nit lcd display
 charlcd = CharLCD.CharLCD(i2c, 0x27)
-charlcd.BACKLIGHT = 1
-print('Backlight =', charlcd.BACKLIGHT)
 charlcd.WriteString(0,0,'Hello')
 charlcd.WriteString(1,0,'Feb 29 2024')
 charlcd.WriteString(2,0,'Cold Rain Today')
