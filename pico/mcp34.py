@@ -4,6 +4,9 @@ import struct
 import sys
 import binascii
 from machine import I2C
+import lcdBackPack as CharLCD
+
+i2c = I2C
 
 # MCP 3424
 DEVADDR = 0x68
@@ -44,6 +47,18 @@ i2c = I2C(0,
         scl=machine.Pin(17),
         sda=machine.Pin(16),
         freq=400000)
+
+#nit lcd display
+charlcd = CharLCD.CharLCD(i2c, 0x27)
+charlcd.BACKLIGHT = 1
+print('Backlight =', charlcd.BACKLIGHT)
+charlcd.WriteString(0,0,'Hello')
+charlcd.WriteString(1,0,'Feb 29 2024')
+charlcd.WriteString(2,0,'Cold Rain Today')
+charlcd.WriteString(3,0,'Much snow tomorrow')
+time.sleep(2)
+charlcd.lcdClear()
+
 #Channel 1 blown
 #trig = b'\x94'   # 14 bit   60 samples per second
 #Channel 2 OK 2/29/2024
@@ -74,6 +89,8 @@ while(True):
         vlist.append(voltage)
                  
     vadc = float((sum(vlist)) / sample)
+    charlcd.WriteString(3,0,'                         ')
+    charlcd.WriteString(3,0,f"{vadc:.4f} VDC")
     time.sleep_ms(500)
     print("vadc =", vadc * divider)
     currentinput = vadc / RESR2
