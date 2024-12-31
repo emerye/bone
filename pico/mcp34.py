@@ -6,10 +6,15 @@ import binascii
 from machine import I2C
 import lcdBackPack as CharLCD
 
-i2c = I2C
-
 # MCP 3424
 DEVADDR = 0x68
+# PGA GAIN
+X1=0
+X2=1
+X4=2
+X8=3
+
+
 RESR1=194200.0
 RESR2=8090.0
 
@@ -47,21 +52,24 @@ i2c = I2C(0,
         scl=machine.Pin(17),
         sda=machine.Pin(16),
         freq=400000)
+print(i2c)
+time.sleep(1)
 
 #nit lcd display
 charlcd = CharLCD.CharLCD(i2c, 0x27)
 charlcd.WriteString(0,0,'Hello')
-charlcd.WriteString(1,0,'Feb 29 2024')
-charlcd.WriteString(2,0,'Cold Rain Today')
-charlcd.WriteString(3,0,'Much snow tomorrow')
+charlcd.WriteString(1,0,'Dec 29. 2024')
+charlcd.WriteString(2,0,'Rain Today')
+
 time.sleep(2)
 charlcd.lcdClear()
 
 #Channel 1 blown
 #trig = b'\x94'   # 14 bit   60 samples per second
 #Channel 2 OK 2/29/2024
-trig = b'\x34'   # 14 bit   60 samples per second
-
+#trig = bin(int(0x34) | X2)   # 16 bit   15 samples per second
+trig = b'\x34'   #Bytes object
+print(type(trig))
 #trig = b'\x98'   # 16 bit
 
 i2c.writeto(DEVADDR,trig)
@@ -75,21 +83,19 @@ while(True):
     divider = 1.0
     
     for count in range(sample):
-        time.sleep_ms(20)
+        time.sleep_ms(80)
         data = i2c.readfrom(DEVADDR, 3)
-        if count == 0:
-            print(binascii.hexlify(data,'-').decode())
+        #if count == 0:
+        #print(binascii.hexlify(data,'-').decode())
         #print(data.hex())
         
         voltage = (struct.unpack('>h', data)[0]) * 0.000250   #14 bit
 #       voltage = (ustruct.unpack('>h', data)[0]) * 0.0000625   #16 bit
-       
         vlist.append(voltage)
                  
     vadc = float((sum(vlist)) / sample)
     charlcd.WriteString(3,0,'                         ')
     charlcd.WriteString(3,0,f"{vadc:.4f} VDC")
-    time.sleep_ms(500)
     print("vadc =", vadc * divider)
     currentinput = vadc / RESR2
     
