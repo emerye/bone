@@ -7,6 +7,10 @@ alias vnc2v='vncserver-virtual -geometry 2560x1440 :91'
 export PICO_SDK_PATH=/home/andy/pico/pico-sdk
 export PATH=$PATH:/home/andy/bone/scripts/
 
+#Python virtual env 
+alias pythonenv='source ~andy/env/bin/activate'
+#deactiate to stop
+
 #Sound
 alias volu='sudo amixer set PCM -- $[$(amixer get PCM|grep -o [0-9]*%|sed 's/%//')+5]%'
 
