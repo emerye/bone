@@ -1,17 +1,18 @@
 [Unit]
-Description=Start TightVNC server at startup
+Description=Start RealVNC virtual server at startup for :91 
 After=syslog.target network.target
 
 [Service]
 Type=forking
 User=andy
-Group=andy
-WorkingDirectory=/home/andy
-
-PIDFile=/home/andy/.vnc/%H:%i.pid
-ExecStartPre=-/usr/bin/vncserver -kill :%i > /dev/null 2>&1
-ExecStart=/usr/bin/vncserver -depth 24 -geometry 1920x1080 :%i
-ExecStop=/usr/bin/vncserver -kill :%i
+ExecStart=/usr/bin/vncserver-virtual -depth 24 -geometry 1920x1080 :91
+ExecStop=/usr/bin/vncserver -kill :91
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
+
+# Install
+# sudo systemctl daemon-reload
+# sudo systemctl enable vncserver@:91
+# sudo systemctl start vncserver@: 
