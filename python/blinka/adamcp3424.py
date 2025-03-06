@@ -11,7 +11,7 @@ from smbus2 import SMBus
 from time import sleep
 
 #set to zero to remove LCD character display
-CHARDISP = 1
+CHARDISP = 0
 
 def printlist():
     print(f"{count} ADC value: {adc_channel.value}")
@@ -75,18 +75,18 @@ def radc():
             lcdobj.text(vString, 3)
             
        
-        print(f"{count} ADC Voltage: {volts:.4f} {current:.2f}")
+        print(f"{count} ADC Voltage: {volts:.4f} Current: {current:.2f}")
         
         
         #printlist()
         try:
             with open(file_name, 'a') as f:
-                f.write(f"{count},{volts:.4f}\n")
+                f.write(f"{count},{volts:.4f},{current:.2f}\n")
                 f.close()
         except FileNotFoundError:
             print("File not found!", file=sys.stderr)
             
-        time.sleep(2.0)
+        time.sleep(3.0)
         
 if __name__ == "__main__":
     radc()
