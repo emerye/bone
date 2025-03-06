@@ -66,7 +66,7 @@ def radc():
     while True:
         count = count + 1
         volts = adc_channel.value * 0.000250
-        current = volts * 6.25 
+        current = volts * 6.66 
         
         vString = f"{count} {volts:.4f} {current:.2f}"
         
