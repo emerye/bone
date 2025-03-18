@@ -12,3 +12,4 @@ sleep(3)
 lcdobj.clear()
 
 del lcdobj
+

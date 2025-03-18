@@ -5,7 +5,7 @@ import busio
 print("Hello blinka!")
 
 # Try to great a Digital input
-pin = digitalio.DigitalInOut(board.P9_17)
+pin = digitalio.DigitalInOut(board.D18)
 print("Digital IO ok!")
 
 # Try to create an I2C device
