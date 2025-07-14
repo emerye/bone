@@ -1,0 +1,5 @@
+adamcp3424.py is the Raspberry Pi Zero 2W voltage project to read voltage and current for ebike.  Adafruit blinka is used.  
+
+1. ~/env/bin/activate
+2. cd ~/bone/python/blinka
+3. python3 adamcp3424.py
