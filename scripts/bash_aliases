@@ -3,6 +3,8 @@
 alias vncs='vncserver -geometry 2048x1152  :90'
 alias vnc2='vncserver -geometry 2560x1440 :91'
 alias vnc2v='vncserver-virtual -geometry 2560x1440 :91'
+# TigervncServer
+alias tvnc='vncserver -localhost no -geometry 2048x1152 :91'
 
 export PICO_SDK_PATH=/home/andy/pico/pico-sdk
 export PATH=$PATH:/home/andy/bone/scripts/
