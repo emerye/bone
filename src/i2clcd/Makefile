@@ -7,7 +7,8 @@ main:  liblcdchar.o
 	$(CC) $(CFLAGS) -shared -o liblcdchar.so liblcdchar.o -li2c 
 	sudo mv liblcdchar.so /usr/local/lib
 	sudo cp -f lcdchar.h /usr/local/include
-	ldconfig -v -n /usr/local/lib/
+	sudo ldconfig -v -n /usr/local/lib/
+	sudo ldconfig 
 	$(CC) $(CFLAGS) -L/usr/local/lib -L/usr/lib/arm-linux-gnueabihf i2clcd.c -li2c -llcdchar -o i2clcd  
 
 lcdchar.o: lcdchar.h lcdchar.c
