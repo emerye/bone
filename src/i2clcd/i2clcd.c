@@ -43,23 +43,24 @@ main (int argc, char **argv)
   if (r < 0)
     perror ("Selecting i2c device.\n");
 
-  Setup4bit ();
+  Setup4bit(i2cfd);
 
 //  WriteI2CByte(0x0F, 0); 
 
-  DisplayClear ();
+  DisplayClear (i2cfd);
   GetTime(); 
-  WriteString (0,0, dateBuff); 
-  WriteString (1,0, GetTime()); 
+  WriteString (i2cfd,0,0, dateBuff); 
+  WriteString (i2cfd,1,0, GetTime()); 
 
 //  DisplayClear ();
 //  WriteString (3, 0, "Hello There");
 
   while(1) 
   {
-  	GetTime(); 
-  WriteString (0,0, dateBuff); 
-  WriteString (1,0, GetTime()); 
+  GetTime(); 
+  WriteString(i2cfd,0,0, dateBuff); 
+  WriteString(i2cfd,1,0, GetTime()); 
+  WriteString(i2cfd,3,0, "Today 11/19/2025");
   sleep(1); 
 }
 
