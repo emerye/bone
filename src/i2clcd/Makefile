@@ -3,7 +3,7 @@ CFLAGS=-Wall
 OBJECTS = i2clcd.o liblcdchar.o
 
 main:  liblcdchar.o 
-	$(CC) $(CFLAGS) -fPIC -c liblcdchar.c -o liblcdchar.o  
+	$(CC) $(CFLAGS) -fPIC -c liblcdchar.c -o liblcdchar.o -li2c    
 	$(CC) $(CFLAGS) -shared -o liblcdchar.so liblcdchar.o -li2c 
 	sudo mv liblcdchar.so /usr/local/lib
 	sudo cp -f lcdchar.h /usr/local/include
