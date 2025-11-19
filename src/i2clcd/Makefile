@@ -4,7 +4,7 @@ OBJECTS = i2clcd.o liblcdchar.o
 
 main:  liblcdchar.o 
 	$(CC) $(CFLAGS) -fPIC -c liblcdchar.c -o liblcdchar.o  
-	$(CC) $(CFLAGS) -shared -o liblcdchar.so liblcdchar.o 
+	$(CC) $(CFLAGS) -shared -o liblcdchar.so liblcdchar.o -li2c 
 	sudo mv liblcdchar.so /usr/local/lib
 	sudo cp -f lcdchar.h /usr/local/include
 #       Edit Add /etc/ld.so.conf.d/andy.conf  with /usr/local/lib/
