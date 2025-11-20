@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+THROT=`vcgencmd get_throttled`
+echo $THROT
+
+COREV=`vcgencmd measure_volts`
+echo $COREV 
