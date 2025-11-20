@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-THROT=`vcgencmd get_throttled`
-echo $THROT
+echo `vcgencmd get_throttled`
 
-COREV=`vcgencmd measure_volts`
-echo $COREV 
+echo `vcgencmd measure_volts`
+
+echo `vcgencmd measure_temp` 

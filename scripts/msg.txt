@@ -1,6 +1,0 @@
-To: emerye@gmail.com
-From: emerye@gmail.com
-Subject: Backup Complete
-
-Backup was completed
-
