@@ -47,6 +47,7 @@ main()
   int i2cfd; 
   //  char *dev = "/dev/i2c-2"; Bone
   char *dev = "/dev/i2c-1";
+  int count = 0;
 
   i2cfd = open (dev, O_RDWR);
   if (i2cfd < 0)
@@ -77,13 +78,15 @@ main()
 //  DisplayClear ();
     WriteString(i2cfd, 2, 0, "Sept 21, 2021");
     WriteString(i2cfd, 3, 0, "Retired");
-    while (1) {
+    while (count < 200) {
 	GetTime();
 	WriteString(i2cfd, 0, 0, dateBuff);
 	WriteString(i2cfd, 1, 0, GetTime());
 	sleep(1);
+	count++;
     }
 
+    DisplayClear(i2cfd);
     close(i2cfd);
     return 0;
 }

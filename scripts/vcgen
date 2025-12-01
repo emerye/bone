@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo `vcgencmd get_throttled`
+
+echo `vcgencmd measure_volts`
+
+echo `vcgencmd measure_temp` 

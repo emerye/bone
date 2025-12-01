@@ -8,7 +8,7 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "enter program name, for example ${workspaceFolder}/a.out",
+        "program": "${workspaceFolder}/cellmon",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",
@@ -26,7 +26,7 @@
     },
         {
             "name": "g++ - Build and debug active file",
-            "type": "cppdbg",
+            "type": "cppbuild",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
             "args": [],
