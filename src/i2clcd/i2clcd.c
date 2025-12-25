@@ -60,7 +60,7 @@ main (int argc, char **argv)
   GetTime(); 
   WriteString(i2cfd,0,0, dateBuff); 
   WriteString(i2cfd,1,0, GetTime()); 
-  WriteString(i2cfd,3,0, "Today 11/19/2025");
+  WriteString(i2cfd,3,0, "Christmas 2025");
   sleep(1); 
 }
 
