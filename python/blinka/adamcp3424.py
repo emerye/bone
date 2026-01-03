@@ -47,7 +47,7 @@ def radc():
             pass
 
 
-    adc = ADC.MCP3421(i2c, gain=1, resolution=14, continuous_mode=True, channel=2)
+    adc = ADC.MCP3421(i2c, gain=1, resolution=14, continuous_mode=True)
     adc_channel = AnalogIn(adc)
     i2c_device = I2CDevice(i2c, 0x68)
     with i2c_device as bus_device:
@@ -55,7 +55,7 @@ def radc():
         bus_device.readinto(result)
         print(result.hex())
         
-        config_byte = bytearray(b'\xb7')
+        config_byte = bytearray(b'\xd7')
         bus_device.write(bytearray(config_byte))
     
         result = bytearray(6)
@@ -84,21 +84,6 @@ def radc():
 #Current reading
     count = 0
     while True:
-        #Current reading
-        count = count + 1
-        with i2c_device as bus_device:
-            config_byte = bytearray(b'\xb4')  #gain 1
-            bus_device.write(bytearray(config_byte))
-        
-        sleep(0.05)
-        volts = adc_channel.value * 0.000250
-        current = volts * 6.66 
-        vString = f"{count} {volts:.4f} {current:.2f}"
-        if CHARDISP != 0:
-            lcdobj.text(vString, 3)
-            
-        print(f"{count} ADC: {adc_channel.value} ADC Voltage: {volts:.4f} Current: {current:.2f}")
-        
         #50 Volt reading
         with i2c_device as bus_device:
             result = bytearray(6)
@@ -106,7 +91,7 @@ def radc():
             print(result.hex())
             
         with i2c_device as bus_device:
-            config_byte = bytearray(b'\xC4')  #gain 1
+            config_byte = bytearray(b'\xf4')  #gain 1  Channel 4
             bus_device.write(bytearray(config_byte))
         sleep(0.05)
         volts = adc_channel.value * 0.000250
@@ -115,12 +100,13 @@ def radc():
         #printlist()
         try:
             with open(file_name, 'a') as f:
-                f.write(f"{count},{volts:.4f},{current:.2f}\n")
+                f.write(f"{count},{volts:.4f}\n")
                 f.close()
         except FileNotFoundError:
             print("File not found!", file=sys.stderr)
             
         time.sleep(3.0)
+        count = count + 1
         
 if __name__ == "__main__":
     radc()
