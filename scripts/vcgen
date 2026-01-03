@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
 
+
 echo `vcgencmd get_throttled`
 
 echo `vcgencmd measure_volts`
 
 echo `vcgencmd measure_temp` 
+
+CPUCLOCK=`vcgencmd measure_clock arm`
+arrIN=(${CPUCLOCK//=/ })
+CPUFREQ=${arrIN[1]}
+DIV=1000000
+CPU=$(($CPUFREQ / $DIV)) 
+CPUTEXT="CPU FREQ"
+echo $CPUTEXT $CPU
+
+GPUCLOCK=`vcgencmd measure_clock arm`
+arrIN=(${GPUCLOCK//=/ })
+GPUFREQ=${arrIN[1]}
+DIV=1000000
+GPU=$(($GPUFREQ / $DIV)) 
+GPUTEXT="GPU FREQ"
+echo $GPUTEXT $GPU
+
