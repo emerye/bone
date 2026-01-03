@@ -4,26 +4,28 @@
 import time
 import board
 import busio
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+from adafruit_ads1x15 import ADS1015, AnalogIn, ads1x15 
 from rpi_lcd import LCD
 
 CHARDISP = 1
 
 # Create the I2C bus
-i2c = busio.I2C(board.SCL, board.SDA)
+
 if CHARDISP != 0:
     lcdobj = LCD()
     lcdobj.text("LCD Message", 1)
+    
+i2c = board.I2C()
+ads = ADS1015(i2c)
 
 # Create the ADC object using the I2C bus
-ads = ADS.ADS1115(i2c, gain = 2)
+#ads = ADS.ADS1115(i2c, gain = 2)
 # you can specify an I2C adress instead of the default 0x48
 # ads = ADS.ADS1115(i2c, address=0x49)
 #print(ads.gain)
 
 # Create single-ended input on channel 0
-chan = AnalogIn(ads, ADS.P0)
+chan = AnalogIn(ads, ads1x15.Pin.A0)
 
 # Create differential input between channel 0 and 1
 # chan = AnalogIn(ads, ADS.P0, ADS.P1)
