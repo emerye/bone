@@ -28,18 +28,12 @@ def init():
 #ls
 #init()
  
-#Setup for mcp3422  Channel 1
+#Setup for mcp3422  Channel 4
 
-p = (DEVDIR + '/in_voltage0_raw')
-
-for x in range(10):
-    sleep(0.5)
+p = (DEVDIR + '/in_voltage3_raw')
+for x in range(20):
+    sleep(0.3)
     f = open(p,'r')
     volt = f.readline().strip()
 
     print(int(volt))
-
-
-    
-
-        
