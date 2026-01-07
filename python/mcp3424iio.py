@@ -14,26 +14,27 @@ SCALE = '0.00025' # X4
 SCALE = '0.0005' # X2
 SCALE = '0.001'  # X1
 
-def init():
-    path = os.path.realpath(ADCSETUP)
-    if not os.path.isfile(path):
-        print(f"Error directory {path} does not exist. Exiting!")
-        exit()
+
+path = os.path.realpath(ADCSETUP)
+if not os.path.isfile(path):
+    print(f"Error directory {path} does not exist. Exiting!")
+    exit()
         
- #   open(ADCSETUP,'w').write(str("mcp3424 0x68"))
- #   p = DEVDIR + 'in_voltage2_scale'
- #   f = open(p,'w+').write(SCALE)
+ 
+#cfd = open((DEVDIR + 'in_voltage_sampling_frequency'),'w', encoding='utf=8') 
+#cfd.write(60);
+#cfd.close()
     
-#main
-#ls
-#init()
  
 #Setup for mcp3422  Channel 4
+scalefd = open((DEVDIR + 'in_voltage3_scale'),'r', encoding='utf-8')
+scale = scalefd.readline().strip()
+scalefd.close()
+scale_factor = float(scale)
 
 p = (DEVDIR + '/in_voltage3_raw')
 for x in range(20):
     sleep(0.3)
-    f = open(p,'r')
-    volt = f.readline().strip()
-
-    print(int(volt))
+    f = open(p,'r', encoding='utf-8')
+    volt = float(f.readline().strip())
+    print(volt * scale_factor)
