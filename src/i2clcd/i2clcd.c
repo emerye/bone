@@ -52,15 +52,13 @@ main (int argc, char **argv)
   WriteString (i2cfd,0,0, dateBuff); 
   WriteString (i2cfd,1,0, GetTime()); 
 
-//  DisplayClear ();
-//  WriteString (3, 0, "Hello There");
 
   while(1) 
   {
   GetTime(); 
   WriteString(i2cfd,0,0, dateBuff); 
   WriteString(i2cfd,1,0, GetTime()); 
-  WriteString(i2cfd,3,0, "Christmas 2025");
+  WriteString(i2cfd,3,0, "Last  2/11/2026");
   sleep(1); 
 }
 
