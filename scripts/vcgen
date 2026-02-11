@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
+echo `vcgencmd bootloader_version`
+
+echo ""
 
 echo `vcgencmd get_throttled`
 
-echo `vcgencmd measure_volts`
+echo `vcgencmd measure_volts core`
 
 echo `vcgencmd measure_temp` 
 
@@ -15,7 +18,7 @@ CPU=$(($CPUFREQ / $DIV))
 CPUTEXT="CPU FREQ"
 echo $CPUTEXT $CPU
 
-GPUCLOCK=`vcgencmd measure_clock arm`
+GPUCLOCK=`vcgencmd measure_clock core`
 arrIN=(${GPUCLOCK//=/ })
 GPUFREQ=${arrIN[1]}
 DIV=1000000

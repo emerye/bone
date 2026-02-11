@@ -6,4 +6,4 @@
 sudo bash -c "echo mcp3424 0x68 > /sys/bus/i2c/devices/i2c-1/new_device"
 
 #Sampling frequency
-sudo bash -c "echo 60 > /sys/bus/iio/devices/iio:device0/in_voltage_sampling_frequency"  
+#sudo bash -c "echo 60 > /sys/bus/iio/devices/iio:device0/in_voltage_sampling_frequency"  
