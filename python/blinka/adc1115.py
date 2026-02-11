@@ -3,7 +3,6 @@
 
 import time
 import board
-import busio
 from adafruit_ads1x15 import ADS1015, AnalogIn, ads1x15 
 from rpi_lcd import LCD
 
@@ -38,5 +37,3 @@ while True:
         count += 1
         lcdobj.text(f"{count}  {chan.voltage:.3f} V", 1)
     time.sleep(1.0)
-
-    

@@ -55,7 +55,7 @@ def radc():
         bus_device.readinto(result)
         print(result.hex())
         
-        config_byte = bytearray(b'\xd7')
+        config_byte = bytearray(b'\xd2')
         bus_device.write(bytearray(config_byte))
     
         result = bytearray(6)
@@ -91,11 +91,11 @@ def radc():
             print(result.hex())
             
         with i2c_device as bus_device:
-            config_byte = bytearray(b'\xf4')  #gain 1  Channel 4
+            config_byte = bytearray(b'\xf2')  #gain 1  Channel 4
             bus_device.write(bytearray(config_byte))
         sleep(0.05)
         volts = adc_channel.value * 0.000250
-        print(f"Channel 3: {adc_channel.value} ADC Voltage: {volts:.4f}")
+        print(f"Channel 4: {adc_channel.value} ADC Voltage: {volts:.4f}")
         
         #printlist()
         try:

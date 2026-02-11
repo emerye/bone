@@ -26,14 +26,14 @@ if not os.path.isfile(path):
 #cfd.close()
     
  
-#Setup for mcp3422  Channel 4
+#Setup for mcp3422  Channel 3
 scalefd = open((DEVDIR + 'in_voltage3_scale'),'r', encoding='utf-8')
 scale = scalefd.readline().strip()
 scalefd.close()
 scale_factor = float(scale)
 
 p = (DEVDIR + '/in_voltage3_raw')
-for x in range(20):
+for x in range(90):
     sleep(0.3)
     f = open(p,'r', encoding='utf-8')
     volt = float(f.readline().strip())
