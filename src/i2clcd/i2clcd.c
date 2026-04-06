@@ -19,6 +19,7 @@ char * GetTime()
   time_t curTime; 
   struct tm * timeInfo;
 
+
   time(&curTime); 
   timeInfo = localtime(&curTime);  
   strftime(timeBuff, 50, "%r", timeInfo);  
@@ -26,7 +27,6 @@ char * GetTime()
   return timeBuff; 
 }
  
-
 int
 main (int argc, char **argv)
 {
@@ -50,7 +50,8 @@ main (int argc, char **argv)
   DisplayClear (i2cfd);
   GetTime(); 
   WriteString (i2cfd,0,0, dateBuff); 
-  WriteString (i2cfd,1,0, GetTime()); 
+  WriteString (i2cfd,1,0, GetTime());
+  printf("Running\n"); 
 
 
   while(1) 
@@ -58,7 +59,7 @@ main (int argc, char **argv)
   GetTime(); 
   WriteString(i2cfd,0,0, dateBuff); 
   WriteString(i2cfd,1,0, GetTime()); 
-  WriteString(i2cfd,3,0, "Last  2/11/2026");
+  WriteString(i2cfd,3,0, "Last chg 3/07/2026");
   sleep(1); 
 }
 
