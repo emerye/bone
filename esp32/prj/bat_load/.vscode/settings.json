@@ -1,0 +1,14 @@
+{
+    "idf.currentSetup": "C:\\esp\\v6.0\\esp-idf",
+    "idf.flashType": "UART",
+    "idf.portWin": "COM3",
+    "idf.openOcdConfigs": [
+      "interface/ftdi/esp_ftdi.cfg",
+      "target/esp32.cfg"
+    ],
+    "idf.monitorPort": "COM3",
+    "idf.customExtraVars": {
+      "IDF_TARGET": "esp32",
+      "OPENOCD_USB_ADAPTER_LOCATION": "1-3.4.4"
+    },
+}
