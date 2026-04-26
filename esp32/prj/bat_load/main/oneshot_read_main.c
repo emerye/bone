@@ -13,6 +13,10 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "driver/gpio.h"
 
 const static char *TAG = "EXAMPLE";
 
@@ -45,13 +49,30 @@ const static char *TAG = "EXAMPLE";
 
 #define EXAMPLE_ADC_ATTEN           ADC_ATTEN_DB_12
 
+#define GPIO_OUTPUT_IO_18          GPIO_NUM_18
+#define GPIO_OUTPUT_PIN_SEL        (1ULL << GPIO_OUTPUT_IO_18)
+
 static int adc_raw[2][10];
 static int voltage[2][10];
 static bool example_adc_calibration_init(adc_unit_t unit, adc_channel_t channel, adc_atten_t atten, adc_cali_handle_t *out_handle);
 static void example_adc_calibration_deinit(adc_cali_handle_t handle);
+static gpio_config_t io_conf = {};
+static void init_gpios();
+
 
 void app_main(void)
 {
+    init_gpios();
+
+    int cnt = 0;
+    while (1) {
+        printf("cnt: %d\n", cnt++);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        gpio_set_level(GPIO_OUTPUT_IO_18, cnt % 2);
+        gpio_set_level(GPIO_OUTPUT_IO_18, cnt % 2);
+    }
+
+
     //-------------ADC1 Init---------------//
     adc_oneshot_unit_handle_t adc1_handle;
     adc_oneshot_unit_init_cfg_t init_config1 = {
@@ -73,7 +94,7 @@ void app_main(void)
     bool do_calibration1_chan0 = example_adc_calibration_init(ADC_UNIT_1, EXAMPLE_ADC1_CHAN0, EXAMPLE_ADC_ATTEN, &adc1_cali_chan0_handle);
     bool do_calibration1_chan1 = example_adc_calibration_init(ADC_UNIT_1, EXAMPLE_ADC1_CHAN1, EXAMPLE_ADC_ATTEN, &adc1_cali_chan1_handle);
 
-
+    
     while (1) {
         ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
         //ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
@@ -165,4 +186,22 @@ static void example_adc_calibration_deinit(adc_cali_handle_t handle)
     ESP_LOGI(TAG, "deregister %s calibration scheme", "Line Fitting");
     ESP_ERROR_CHECK(adc_cali_delete_scheme_line_fitting(handle));
 #endif
+}
+
+void init_gpios()
+{
+  //zero-initialize the config structure.
+    //gpio_config_t io_conf = {};
+    //disable interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    //set as output mode
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO18/19
+    io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
+    //disable pull-down mode
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    //disable pull-up mode
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
 }

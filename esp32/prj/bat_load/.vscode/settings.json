@@ -1,6 +1,6 @@
 {
     "idf.currentSetup": "C:\\esp\\v6.0\\esp-idf",
-    "idf.flashType": "UART",
+    "idf.flashType": "JTAG",
     "idf.portWin": "COM3",
     "idf.openOcdConfigs": [
       "interface/ftdi/esp_ftdi.cfg",
