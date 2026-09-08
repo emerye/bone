@@ -1,14 +1,15 @@
 from machine import Pin, PWM
 import sys
+import time
 
-pwm_pin = Pin(4, Pin.OUT)
-pwm = PWM(pwm_pin, freq=10000)
 
-print("--- Sparrow Detect Interactive PWM Control ---")
+pwm_pin = Pin(21, Pin.OUT)
+pwm = PWM(pwm_pin, freq=10000, duty_u16=32767)
+
+print("--- Sparrow Detect Interactive PWM Control --- Version 0.02 GPI021")
 print("Enter a duty cycle percentage from 0 to 100. A decimal number is allowed. Default is 50.0")
 print("Type 'exit' to quit.\n")
 
-pwm.duty_u16(32767)
 
 while True:
     try:
@@ -35,3 +36,7 @@ while True:
         print("\nProgram interrupted. Cleaning up.")
         pwm.deinit()
         break
+
+
+
+50
