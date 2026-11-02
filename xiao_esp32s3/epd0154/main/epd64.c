@@ -6,8 +6,8 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
-// Include your custom external 64px font array dataset
-#include "font_32x64_u8.h"
+// Include your custom external 96px font array dataset
+#include "font_48x96.h"
 
 static const char *TAG = "EPD_CLOCK";
 
@@ -109,7 +109,7 @@ void draw_pixel(int x, int y, uint8_t color) {
     else            image_buffer[index] |= bit_mask;
 }
 
-// Renders a single 32x64 clock symbol from the font_bitmap_64px array
+// Renders a single 48x96 clock symbol from the font_bitmap_64px array
 void draw_clock_char(int x, int y, char c, uint8_t color) {
     int idx = -1;
 
@@ -122,10 +122,10 @@ void draw_clock_char(int x, int y, char c, uint8_t color) {
 
     if (idx == -1) return;
 
-    for (int row = 0; row < 64; row++) {
-        for (int byte_col = 0; byte_col < 4; byte_col++) {
-            // Unpack 4 bytes sequentially per row (256 bytes stride per char)
-            uint8_t byte_data = font_32x64[idx][(row * 4) + byte_col];
+    for (int row = 0; row < 96; row++) {
+        for (int byte_col = 0; byte_col < 6; byte_col++) {
+            // Unpack 6 bytes sequentially per row (596 bytes stride per char)
+            uint8_t byte_data = font_48x96_digits[idx][(row * 6) + byte_col];
 
             for (int bit = 0; bit < 8; bit++) {
                 if (byte_data & (0x80 >> bit)) {  //MSBFirst
@@ -144,7 +144,7 @@ void draw_clock_string(int x, int y, const char *str, uint8_t color) {
     while (*str) {
         draw_clock_char(x, y, *str, color);
         // Step forward by exactly 32 horizontal pixels for the next element
-        x += 32; 
+        x += 48; 
         str++;
     }
 }
@@ -181,7 +181,8 @@ void app_main(void) {
 
     // Placed at X=20 to center the 160px wide string inside the 200px panel
     // draw_clock_string(20, 68, "12:34", 0);
-    draw_clock_string(20, 68, "12:34", 0);
+    draw_clock_string(0, 0, "0123", 0);
+    draw_clock_string(0, 100, "5678", 0);
     epd_init();
     ESP_LOGI(TAG, "Pushing clock frame payload...");
     epd_display_frame(image_buffer);
