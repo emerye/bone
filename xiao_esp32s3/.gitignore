@@ -7,7 +7,6 @@ sdkconfig.old
 
 # IDE & Editor files
 .idea/
-.vscode/
 *.swp
 *.swo
 .DS_Store
