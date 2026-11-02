@@ -1,0 +1,26 @@
+
+# ESP-IDF generated files
+/build/
+/managed_components/
+sdkconfig
+sdkconfig.old
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Python virtual environment & cache
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Test / CI output
+pytest_embedded_log/
+build_summary_*.xml
+app_info_*.txt
+size_info_*.txt
