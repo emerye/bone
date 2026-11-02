@@ -1,0 +1,19 @@
+{
+    "idf.flashType": "JTAG",
+    "idf.currentSetup": "C:\\esp\\v6.1\\esp-idf",
+    "clangd.path": "C:\\Espressif\\tools\\esp-clangd\\esp-21.1.3_20260408\\esp-clangd\\bin\\clangd.exe",
+    "clangd.arguments": [
+      "--background-index",
+      "--query-driver=**",
+      "--compile-commands-dir=c:\\Users\\andy\\Desktop\\bone\\xiao_esp32s3\\epd0154\\build"
+    ],
+    "idf.port": "COM9",
+    "idf.monitorPort": "COM9",
+    "idf.openOcdConfigs": [
+      "board/esp32s3-builtin.cfg"
+    ],
+    "idf.customExtraVars": {
+      "OPENOCD_USB_ADAPTER_LOCATION": "1-2.2",
+      "IDF_TARGET": "esp32s3"
+    }
+}
