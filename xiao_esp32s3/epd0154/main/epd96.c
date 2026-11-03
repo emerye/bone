@@ -5,11 +5,14 @@
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
+#include "esp_sleep.h"
+#include "driver/rtc_io.h"
+#include "epd96.h"
+#include "esp_err.h"
 
 // Include your custom external 96px font array dataset
 #include "font_48x96.h"
 
-static const char *TAG = "EPD_CLOCK";
 
 // XIAO ESP32S3 Pin Definitions for EPD_0154-2
 #define EPD_MOSI_PIN     9
@@ -19,15 +22,38 @@ static const char *TAG = "EPD_CLOCK";
 #define EPD_RST_PIN      5
 #define EPD_BUSY_PIN     6
 
-
 // Display metrics 
 #define EPD_WIDTH        200
 #define EPD_HEIGHT       200
 #define BUFFER_SIZE      ((EPD_WIDTH * EPD_HEIGHT) / 8)
 
+//Sleep
+#define SLEEP_TIME_SECONDS  5
 
+
+RTC_DATA_ATTR int wakeup_count = 0;
+
+static const char *TAG = "EPD_CLOCK";
 static spi_device_handle_t spi_handle;
 static uint8_t image_buffer[BUFFER_SIZE];
+
+
+void isolate_gpio_pins() {
+    // 2. Configure SPI and Control lines to prevent leakage during ESP32 Deep Sleep
+    // Disabling outputs and removing standard pull-ups prevents parasitic current draw
+    gpio_num_t pins[] = {EPD_MOSI_PIN, EPD_SCLK_PIN, EPD_CS_PIN, EPD_DC_PIN, EPD_RST_PIN};
+    
+    for (int i = 0; i < sizeof(pins)/sizeof(pins[0]); i++) {
+        if (rtc_gpio_is_valid_gpio(pins[i])) {
+            rtc_gpio_init(pins[i]);
+            rtc_gpio_set_direction(pins[i], RTC_GPIO_MODE_DISABLED);
+            rtc_gpio_pullup_dis(pins[i]);
+            rtc_gpio_pulldown_en(pins[i]); // Or float depending on display board breakout pull-ups
+        } else {
+            gpio_set_direction(pins[i], GPIO_MODE_DISABLE);
+        }
+    }
+}
 
 
 // --- EPD Low-Level Base SPI Protocol Driver Handling ---
@@ -94,11 +120,14 @@ void epd_display_frame(const uint8_t *buffer) {
 
     // Refresh flag
     epd_write_command(0x22); epd_write_data(0xF7);
+    epd_wait_busy();
     epd_write_command(0x20); epd_wait_busy();
 }
 
 void epd_sleep(void) {
     epd_write_command(0x10); epd_write_data(0x01);
+    // Wait for display to handle the command if necessary
+    vTaskDelay(pdMS_TO_TICKS(100));
 }
 
 void draw_pixel(int x, int y, uint8_t color) {
@@ -149,7 +178,44 @@ void draw_clock_string(int x, int y, const char *str, uint8_t color) {
     }
 }
 
+void enter_sleep() {
+    
+    ESP_LOGI(TAG, "Finished cycle operation and sending the display to sleep mode.");
+    epd_sleep(); //Send display to low power mode.
+    ESP_LOGI(TAG, "Delaying for 10 seconds so device can be flashed.");
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    ESP_LOGI(TAG, "Entering deep sleep.");
+
+    ESP_ERROR_CHECK(
+        esp_sleep_enable_timer_wakeup(
+            (uint64_t)SLEEP_TIME_SECONDS * 1000000ULL
+        )
+    );
+    //isolate_gpio_pins();
+    
+     // Enter deep sleep (does not return)
+     // esp_deep_sleep_start(); 
+}
+
+
+
 void app_main(void) {
+
+    wakeup_count++;
+    esp_sleep_wakeup_cause_t wakeup_reason;
+
+    // Determine why the ESP32-S3 started
+    wakeup_reason = esp_sleep_get_wakeup_causes();
+
+    if ((wakeup_reason && 0x04) == true)
+    {
+        ESP_LOGI(TAG, "Woke up from timer count %d", wakeup_count);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Initial startup or other wakeup source");
+    }
+
     ESP_LOGI(TAG, "Initializing System Bus Peripherals...");
 
     gpio_config_t io_conf = {
@@ -186,8 +252,9 @@ void app_main(void) {
     epd_init();
     ESP_LOGI(TAG, "Pushing clock frame payload...");
     epd_display_frame(image_buffer);
-
     ESP_LOGI(TAG, "Finished cycle operation and sending the display to sleep mode.");
     epd_sleep();
-    
+    ESP_LOGI(TAG, "Delaying for 10 seconds so device can be flashed.");
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    // enter_sleep(): 
 }
